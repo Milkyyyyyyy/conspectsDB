@@ -1,4 +1,8 @@
 import sqlite3
+
+from main import facultObject
+
+
 # --------- Classes ---------
 # Returns facult by facult_id
 class Facult:
@@ -20,8 +24,8 @@ class Facult:
 # On errors returns None
 def getFacult(facult_id):
     database = sqlite3.connect('conspects.db')
+    cursor = database.cursor()
     try:
-        cursor = database.cursor()
         cursor.execute(f"SELECT * FROM facults WHERE rowid = {facult_id}")
         output = cursor.fetchone()
         database.close()
@@ -29,4 +33,9 @@ def getFacult(facult_id):
     except:
         database.close()
         return None
-# test
+def getFacultObject(facult_id):
+    facultObject = Facult(facult_id)
+    if facultObject.id != -1:
+        return facultObject
+    else:
+        return None
