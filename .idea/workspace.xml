@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
-      <change afterPath="$PROJECT_DIR$/FacultClass.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/FacultClass.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/dbProcessing.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -110,7 +110,7 @@
       <option name="presentableId" value="Default" />
       <updated>1758736764243</updated>
       <workItem from="1758736768797" duration="2676000" />
-      <workItem from="1758739538908" duration="4481000" />
+      <workItem from="1758739538908" duration="4652000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />

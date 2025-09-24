@@ -6,7 +6,7 @@ from main import facultObject
 # --------- Methods ---------
 # Returns tuple of information from table about facult
 # On errors returns None
-def getFacult(facult_id):
+def get_facult_by_id(facult_id):
     database = sqlite3.connect('conspects.db')
     cursor = database.cursor()
     try:
@@ -17,7 +17,7 @@ def getFacult(facult_id):
     except:
         database.close()
         return None
-def getFacultObject(facult_id):
+def get_facult_object(facult_id):
     facult_object = FacultClass.Facult(facult_id)
     if facult_object.id != -1:
         return facult_object
