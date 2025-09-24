@@ -29,4 +29,4 @@ def getFacult(facult_id):
     except:
         database.close()
         return None
-
+# test
