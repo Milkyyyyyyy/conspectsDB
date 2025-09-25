@@ -2,7 +2,7 @@ from code.database import dbProcessing
 
 class Chair:
     def __init__(self, chair_id):
-        chair_tuple = dbProcessing.get_chair_by_id(chair_id)
+        chair_tuple = dbProcessing.getChairByID(chair_id)
         if chair_tuple is None:
             self.id = None
             self.name = None
@@ -18,6 +18,6 @@ class Chair:
     def getID(self):
         return self.id
     def getFacult(self):
-        return dbProcessing.get_facult_by_id(facult_id=self.facult_id)
+        return dbProcessing.getFacultByID(facult_id=self.facult_id)
     def getFacultObject(self):
-        return dbProcessing.get_facult_object(facult_id=self.facult_id)
+        return dbProcessing.getFacultObject(facult_id=self.facult_id)

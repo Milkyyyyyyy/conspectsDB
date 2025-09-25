@@ -4,7 +4,7 @@ import sqlite3
 databasePath = 'files/database/conspects.db'
 # ======== Methods ========
 # -------- Facults --------
-def get_all_facults():
+def getAllFacults():
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     cursor.execute("SELECT rowid, name FROM facults")
@@ -12,7 +12,7 @@ def get_all_facults():
     database.close()
     return output
 
-def get_facult_by_id(facult_id):
+def getFacultByID(facult_id):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     try:
@@ -23,10 +23,10 @@ def get_facult_by_id(facult_id):
     except:
         database.close()
         return None
-def get_facult_object(facult_id):
+def getFacultObject(facult_id):
     facult_object = FacultClass.Facult(facult_id)
     return facult_object
-def is_facult_exists_name(name=None):
+def isFacultExistsByName(name=None):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     cursor.execute(f'SELECT * FROM facults WHERE name = "{name}"')
@@ -36,7 +36,7 @@ def is_facult_exists_name(name=None):
         return True
     else:
         return False
-def is_facult_exists_id(facult_id=None):
+def isFacultExistsByID(facult_id=None):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     cursor.execute(f'SELECT * FROM facults WHERE rowid = "{facult_id}"')
@@ -47,10 +47,10 @@ def is_facult_exists_id(facult_id=None):
     else:
         return False
 
-def add_facult(facult_name=None):
+def addFacult(facult_name=None):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
-    if is_facult_exists_name(name=facult_name):
+    if isFacultExistsByName(name=facult_name):
         print('Facult already exists')
         return None
     try:
@@ -60,63 +60,70 @@ def add_facult(facult_name=None):
     database.commit()
     database.close()
     return None
-def remove_facult(facult_id):
+def removeFacult(facult_id):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     cursor.execute(f"DELETE FROM facults WHERE rowid = {facult_id}")
     database.commit()
     database.close()
     return None
-def remove_many_facults(facult_id_list=[]):
+def removeManyFacults(facult_id_list=[]):
     for facult_id in facult_id_list:
-        remove_facult(facult_id)
+        removeFacult(facult_id)
 
 
 # ------- Chairs --------
-def get_all_chairs():
+def getAllChairs():
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     cursor.execute(f'SELECT rowid, name, facult_id FROM chairs')
     output = cursor.fetchall()
     database.close()
     return output
-def get_chair_by_id(chair_id):
+def getChairByID(chair_id):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     cursor.execute(f"SELECT rowid, facult_id, name FROM chairs WHERE rowid = {chair_id}")
     output = cursor.fetchone()
     database.close()
     return output
-def get_chair_object(chair_id):
+def getChairObject(chair_id):
     chair_object = ChairClass.Chair(chair_id)
     return chair_object
-def is_chair_exists(name=None):
+def isChairExists(name_or_id = None):
+    # Checks if name_or_id is not str or int, or if name_or_id is None
+    if not (isinstance(name_or_id, str) or isinstance(name_or_id, int)) or name_or_id is None:
+        return False
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
-    cursor.execute(f'SELECT * FROM chairs WHERE name = "{name}"')
+    # If name_or_id is integer, then search by rowid
+    if isinstance(name_or_id, int):
+        cursor.execute(f'SELECT * FROM chairs WHERE rowid = "{name_or_id}"')
+    # Else if name_or_id is string, then search by name
+    elif isinstance(name_or_id, str):
+        cursor.execute(f'SELECT * FROM chairs WHERE name = "{name_or_id}"')
     output = cursor.fetchone()
     database.close()
     if output is not None:
         return True
     else:
         return False
-#!!!! Доделать
-def add_chair(chair_name=None,facult_id=None):
+def addChair(chair_name=None, facult_id=None):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
-    if is_chair_exists(name=chair_name) or chair_name is None or facult_id is None or not is_facult_exists_id(facult_id):
+    if isChairExists(chair_name) or chair_name is None or facult_id is None or not isFacultExistsByID(facult_id):
         return None
     cursor.execute(f"INSERT INTO chairs VALUES ({facult_id}, '{chair_name}')")
     database.commit()
     database.close()
-def remove_chair(chair_id):
+def removeChair(chair_id):
     database = sqlite3.connect(databasePath)
     cursor = database.cursor()
     cursor.execute(f"DELETE FROM chairs WHERE rowid = {chair_id}")
     database.commit()
     database.close()
     return None
-def remove_many_chairs(chair_id_list=[]):
+def removeManyChairs(chair_id_list=[]):
     for chair_id in chair_id_list:
-        remove_chair(chair_id)
+        removeChair(chair_id)
 

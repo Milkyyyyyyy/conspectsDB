@@ -5,16 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
-      <change afterPath="$PROJECT_DIR$/code/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/ChairClass.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ChairClass.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/FacultClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conspects.db" beforeDir="false" afterPath="$PROJECT_DIR$/files/database/conspects.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/ChairClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/ChairClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/FacultClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -45,6 +40,10 @@
   }
 }</component>
   <component name="ProblemsViewState">
+    <hideBySeverity>
+      <option value="200" />
+      <option value="300" />
+    </hideBySeverity>
     <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
@@ -127,7 +126,7 @@
       <workItem from="1758739538908" duration="4652000" />
       <workItem from="1758784512082" duration="2878000" />
       <workItem from="1758791936510" duration="131000" />
-      <workItem from="1758793233985" duration="2192000" />
+      <workItem from="1758793233985" duration="2788000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
