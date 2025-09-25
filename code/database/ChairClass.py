@@ -20,9 +20,3 @@ class Chair:
 
     def getID(self):
         return self.id
-
-    def getFacult(self):
-        return dbProcessing.getFacultByID(facult_id=self.facult_id)
-
-    def getFacultObject(self):
-        return dbProcessing.getFacultObject(facult_id=self.facult_id)
