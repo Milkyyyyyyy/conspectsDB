@@ -43,7 +43,6 @@ def isFacultExists(name=None, facultID=None):
         return False
 
 def addFacult(facult_name=None):
-    try:
     if facult_name is None or not isinstance(facult_name, str):
         return False
     database = sqlite3.connect(databasePath)
@@ -62,7 +61,9 @@ def removeFacult(facult_id):
     database.commit()
     database.close()
     return True
-def removeManyFacults(facult_id_list=[]):
+def removeManyFacults(facult_id_list=None):
+    if facult_id_list is None or not isinstance(facult_id_list, list):
+        return False
     for facult_id in facult_id_list:
         removeFacult(facult_id)
     return True
@@ -123,7 +124,9 @@ def removeChair(chair_id):
     database.commit()
     database.close()
     return True
-def removeManyChairs(chair_id_list=[]):
+def removeManyChairs(chair_id_list=None):
+    if chair_id_list is None or not isinstance(chair_id_list, list):
+        return False
     for chair_id in chair_id_list:
         removeChair(chair_id)
     return True
