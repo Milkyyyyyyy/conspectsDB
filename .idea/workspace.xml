@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов" />
+    <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -119,7 +121,7 @@
       <workItem from="1758739538908" duration="4652000" />
       <workItem from="1758784512082" duration="2878000" />
       <workItem from="1758791936510" duration="131000" />
-      <workItem from="1758793233985" duration="2805000" />
+      <workItem from="1758793233985" duration="3124000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
