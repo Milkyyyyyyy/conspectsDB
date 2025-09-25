@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
     </list>
@@ -50,6 +51,7 @@
   "keyToString": {
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "developer",
     "last_opened_file_path": "C:/Users/Stas/Documents/Python/Projects/conspectsDB",
     "node.js.detected.package.eslint": "true",
@@ -57,7 +59,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
+    "settings.editor.selected.configurable": "editor.preferences.appearance",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -118,7 +120,7 @@
       <workItem from="1758739538908" duration="4652000" />
       <workItem from="1758784512082" duration="2878000" />
       <workItem from="1758791936510" duration="131000" />
-      <workItem from="1758793233985" duration="5598000" />
+      <workItem from="1758793233985" duration="5960000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
