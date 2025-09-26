@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
+      <change afterPath="$PROJECT_DIR$/code/database/SubjectClass.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
     </list>
@@ -122,7 +123,7 @@
       <workItem from="1758793233985" duration="6038000" />
       <workItem from="1758827917759" duration="594000" />
       <workItem from="1758866401957" duration="113000" />
-      <workItem from="1758867125460" duration="2134000" />
+      <workItem from="1758867125460" duration="2664000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
@@ -162,17 +163,6 @@
     <MESSAGE value="Test" />
     <MESSAGE value="Добавил дополнительные функции для факультетов" />
     <option name="LAST_COMMIT_MESSAGE" value="Добавил дополнительные функции для факультетов" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/code/database/dbProcessing.py</url>
-          <line>113</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/conspectsDB$main.coverage" NAME="main Coverage Results" MODIFIED="1758869277544" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

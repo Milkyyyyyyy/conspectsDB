@@ -1,8 +1,12 @@
-from code.database import FacultClass
+from code.database import FacultClass, SubjectClass
 from code.database import ChairClass
 from code.database import DirectionClass
 import sqlite3
 CONSPECTS_DB = 'files/database/conspects.db'
+
+# TODO
+# - Почистить код
+# - При соединить некоторые методы (например все getByID с getByName можно соединить в один метод)
 
 # ======== Methods ========
 # -------- Facults --------
@@ -170,6 +174,7 @@ def removeChairsList(chairIDList=None):
     database.commit()
     database.close()
     return True
+
 # ------------ DIRECTION ------------
 def getAllDirections():
     database = sqlite3.connect(CONSPECTS_DB)
@@ -238,3 +243,54 @@ def removeDirectionList(directionIDList=None):
     database.commit()
     database.close()
     return True
+
+# ------------ SUBJECT ------------
+def getAllSubjects():
+    database = sqlite3.connect(CONSPECTS_DB)
+    cursor = database.cursor()
+    cursor.execute('SELECT rowid, direction_id, name FROM subjects')
+    output = cursor.fetchall()
+    database.close()
+    return output
+def getSubjectByID(subjectID=None):
+    if not isinstance(subjectID, int):
+        return None
+    database = sqlite3.connect(CONSPECTS_DB)
+    cursor = database.cursor()
+    cursor.execute(f"SELECT * FROM subjects WHERE rowid = {subjectID}")
+    output = cursor.fetchone()
+    database.close()
+    if output is not None:
+        return output
+    else:
+        return None
+def getSubjectByName(subjectName=None):
+    if not isinstance(subjectName, str):
+        return None
+    database = sqlite3.connect(CONSPECTS_DB)
+    cursor = database.cursor()
+    cursor.execute(f"SELECT * FROM subjects WHERE name = {subjectName}")
+    output = cursor.fetchone()
+    database.close()
+    if output is not None:
+        return output
+    else:
+        return None
+def getSubjectObject(subjectID=None):
+    if not isinstance(subjectID, int):
+        return None
+    subjectObject = SubjectClass.Subject(subjectID)
+    return subjectObject
+def isSubjectExists(subjectID=None, subjectName=None):
+    if not isinstance(subjectID, int) and not isinstance(subjectName, str):
+        return False
+    output = None
+    if isinstance(subjectID, int):
+        output = getSubjectByID(subjectID)
+    elif isinstance(subjectName, str):
+        output = getSubjectByName(subjectName)
+    if output is not None:
+        return True
+    else:
+        return False
+
