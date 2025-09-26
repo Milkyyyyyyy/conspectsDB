@@ -2,7 +2,7 @@ from code.database import dbProcessing
 
 class Direction:
     def __init__(self, directionID):
-        directionTuple = dbProcessing.getDirectionByID(directionID)
+        directionTuple = dbProcessing.getDirection(directionID=directionID)
         if directionTuple is None:
             self.id = None
             self.chairID = None

@@ -17,14 +17,16 @@ def getAllFacults():
     output = cursor.fetchall()
     database.close()
     return output
-
-def getFacultByID(facultID=None):
-    if not isinstance(facultID, int):
+def getFacult(facultID=None, facultName=None):
+    if not isinstance(facultID, int) and not isinstance(facultName, str):
         return None
     database = sqlite3.connect(CONSPECTS_DB)
     cursor = database.cursor()
     try:
-        cursor.execute(f"SELECT * FROM facults WHERE rowid = {facultID}")
+        if facultID is not None:
+            cursor.execute(f"SELECT * FROM facults WHERE rowid = {facultID}")
+        elif facultName is not None:
+            cursor.execute(f'SELECT * FROM facults WHERE name = "{facultName}"')
         output = cursor.fetchone()
         database.close()
         return output
@@ -111,12 +113,15 @@ def getAllChairsOfFacult(facultID=None):
         return output
     else:
         return None
-def getChairByID(chairID=None):
-    if not isinstance(chairID, int):
+def getChair(chairID=None, chairName=None):
+    if not isinstance(chairID, int) and not isinstance(chairName, str):
         return None
     database = sqlite3.connect(CONSPECTS_DB)
     cursor = database.cursor()
-    cursor.execute(f"SELECT rowid, facult_id, name FROM chairs WHERE rowid = {chairID}")
+    if isinstance(chairID, int):
+        cursor.execute(f"SELECT rowid, facult_id, name FROM chairs WHERE rowid = {chairID}")
+    elif isinstance(chairName, str):
+        cursor.execute(f'SELECT * FROM chairs WHERE name = "{chairName}"')
     output = cursor.fetchone()
     database.close()
     return output
@@ -183,12 +188,15 @@ def getAllDirections():
     output = cursor.fetchall()
     database.close()
     return output
-def getDirectionByID(directionID):
-    if not isinstance(directionID, int):
+def getDirection(directionID = None, directionName=None):
+    if not isinstance(directionID, int) and not isinstance(directionName, str):
         return None
     database = sqlite3.connect(CONSPECTS_DB)
     cursor = database.cursor()
-    cursor.execute(f"SELECT rowid, chair_id, name FROM directions WHERE rowid = {directionID}")
+    if isinstance(directionID, int):
+        cursor.execute(f"SELECT * FROM directions WHERE rowid = {directionID}")
+    elif isinstance(directionName, str):
+        cursor.execute(f'SELECT * FROM directions WHERE name = "{directionName}"')
     output = cursor.fetchone()
     database.close()
     return output
@@ -252,30 +260,19 @@ def getAllSubjects():
     output = cursor.fetchall()
     database.close()
     return output
-def getSubjectByID(subjectID=None):
-    if not isinstance(subjectID, int):
+def getSubject(subjectID=None, subjectName=None):
+    if not isinstance(subjectID, int) and not isinstance(subjectName, str):
         return None
     database = sqlite3.connect(CONSPECTS_DB)
     cursor = database.cursor()
-    cursor.execute(f"SELECT * FROM subjects WHERE rowid = {subjectID}")
+    if isinstance(subjectID, int):
+        cursor.execute(f"SELECT * FROM subjects WHERE rowid = {subjectID}")
+    elif isinstance(subjectName, str):
+        cursor.execute(f'SELECT * FROM subjects WHERE name = "{subjectName}"')
     output = cursor.fetchone()
     database.close()
-    if output is not None:
-        return output
-    else:
-        return None
-def getSubjectByName(subjectName=None):
-    if not isinstance(subjectName, str):
-        return None
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-    cursor.execute(f"SELECT * FROM subjects WHERE name = {subjectName}")
-    output = cursor.fetchone()
-    database.close()
-    if output is not None:
-        return output
-    else:
-        return None
+    return output
+
 def getSubjectObject(subjectID=None):
     if not isinstance(subjectID, int):
         return None
@@ -286,9 +283,9 @@ def isSubjectExists(subjectID=None, subjectName=None):
         return False
     output = None
     if isinstance(subjectID, int):
-        output = getSubjectByID(subjectID)
+        output = getSubject(subjectID=subjectID)
     elif isinstance(subjectName, str):
-        output = getSubjectByName(subjectName)
+        output = getSubject(subjectName=subjectName)
     if output is not None:
         return True
     else:

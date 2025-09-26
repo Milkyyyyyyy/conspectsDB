@@ -1,9 +1,9 @@
-from code.database.dbProcessing import getSubjectByID
+from code.database.dbProcessing import getSubject
 
 
 class Subject:
     def __init__(self, subjectID):
-        subjectTuple = getSubjectByID(subjectID)
+        subjectTuple = getSubject(subjectID=subjectID)
         if subjectTuple is None:
             self.id = None
             self.directionID = None

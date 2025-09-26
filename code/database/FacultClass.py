@@ -2,7 +2,7 @@ from code.database import dbProcessing
 
 class Facult:
     def __init__(self, facult_id):
-        facult_tuple = dbProcessing.getFacultByID(facult_id)
+        facult_tuple = dbProcessing.getFacult(facultID=facult_id)
         if facult_tuple is None:
             print("No such facult")
             self.id = None
