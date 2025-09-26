@@ -30,7 +30,7 @@ def getFacultObject(facult_id):
     facult_object = FacultClass.Facult(facult_id)
     return facult_object
 def isFacultExists(name=None, facultID=None):
-    if name is None or facultID is None:
+    if name is None and facultID is None:
         return False
 
     database = sqlite3.connect(CONSPECTS_DB)
@@ -117,7 +117,7 @@ def getChairObject(chairID):
     return chair_object
 def isChairExists(name=None, chairID=None):
     # Checks if name_or_id is not str or int, or if name_or_id is None
-    if name is None or chairID is None:
+    if name is None and chairID is None:
         return False
 
     database = sqlite3.connect(CONSPECTS_DB)
