@@ -91,7 +91,7 @@ def removeFacultsList(facultIDList=None):
 def getAllChairs():
     database = sqlite3.connect(CONSPECTS_DB)
     cursor = database.cursor()
-    cursor.execute(f'SELECT rowid, name, facult_id FROM chairs')
+    cursor.execute(f'SELECT rowid, facult_id, name  FROM chairs')
     output = cursor.fetchall()
     database.close()
     return output
