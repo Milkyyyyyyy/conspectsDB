@@ -1,8 +1,8 @@
 from code.database import dbProcessing
 
 class Chair:
-    def __init__(self, chair_id):
-        chair_tuple = dbProcessing.getChair(chairID=chair_id)
+    def __init__(self, chairID):
+        chair_tuple = dbProcessing.getChair(chairID=chairID)
         if chair_tuple is None:
             self.id = None
             self.name = None

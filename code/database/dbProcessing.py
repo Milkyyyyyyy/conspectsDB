@@ -74,24 +74,24 @@ def addFacult(facultName=None):
     database.close()
     return True
 def removeFacult(facultID=None):
-    if not isinstance(facultID, int):
-        return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-    cursor.execute(f"DELETE FROM facults WHERE rowid = {facultID}")
-    database.commit()
-    database.close()
-    return True
-def removeFacultsList(facultIDList=None):
-    if not isinstance(facultIDList, list):
-        return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-    for facultID in facultIDList:
+    if  isinstance(facultID, int) and isFacultExists(facultID=facultID):
+        database = sqlite3.connect(CONSPECTS_DB)
+        cursor = database.cursor()
         cursor.execute(f"DELETE FROM facults WHERE rowid = {facultID}")
-    database.commit()
-    database.close()
-    return True
+        database.commit()
+        database.close()
+        return True
+    return False
+def removeFacultsList(facultIDList=None):
+    if isinstance(facultIDList, list):
+        database = sqlite3.connect(CONSPECTS_DB)
+        cursor = database.cursor()
+        for facultID in facultIDList:
+            cursor.execute(f"DELETE FROM facults WHERE rowid = {facultID}")
+        database.commit()
+        database.close()
+        return True
+    return False
 
 # ------- Chairs --------
 def getAllChairs():
@@ -162,13 +162,15 @@ def addChair(chairName=None, facultID=None):
     database.commit()
     database.close()
     return True
-def removeChair(chair_id):
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-    cursor.execute(f"DELETE FROM chairs WHERE rowid = {chair_id}")
-    database.commit()
-    database.close()
-    return True
+def removeChair(chairID=None):
+    if isinstance(chairID, int) and isChairExists(chairID=chairID):
+        database = sqlite3.connect(CONSPECTS_DB)
+        cursor = database.cursor()
+        cursor.execute(f"DELETE FROM chairs WHERE rowid = {chairID}")
+        database.commit()
+        database.close()
+        return True
+    return False
 def removeChairsList(chairIDList=None):
     if not isinstance(chairIDList, list):
         return False
@@ -233,14 +235,14 @@ def addDirection(directionName=None, chairID=None):
     database.commit()
     database.close()
 def removeDirection(directionID=None):
-    if not isinstance(directionID, int):
-        return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-    cursor.execute(f"DELETE FROM directions WHERE rowid = {directionID}")
-    database.commit()
-    database.close()
-    return True
+    if isinstance(directionID, int) and isDirectionExists(directionID=directionID):
+        database = sqlite3.connect(CONSPECTS_DB)
+        cursor = database.cursor()
+        cursor.execute(f"DELETE FROM directions WHERE rowid = {directionID}")
+        database.commit()
+        database.close()
+        return True
+    return False
 def removeDirectionList(directionIDList=None):
     if not isinstance(directionIDList, list):
         return False
@@ -290,4 +292,38 @@ def isSubjectExists(subjectID=None, subjectName=None):
         return True
     else:
         return False
+def addSubject(directionID=None, subjectName=None):
+    if isSubjectExists(subjectName=subjectName) or not isDirectionExists(directionID=directionID):
+        print("Subject already exists or direction not exists")
+        return False
+    if isinstance(directionID, int) and isinstance(subjectName, str):
+        database = sqlite3.connect(CONSPECTS_DB)
+        cursor = database.cursor()
+        cursor.execute(f'INSERT INTO subjects VALUES ({directionID}, "{subjectName}")')
+        database.commit()
+        database.close()
+        return True
+    else:
+        return False
+def removeSubject(subjectID=None):
+    if isinstance(subjectID, int) and isSubjectExists(subjectID=subjectID):
+        database = sqlite3.connect(CONSPECTS_DB)
+        cursor = database.cursor()
+        cursor.execute(f"DELETE FROM subjects WHERE rowid = {subjectID}")
+        database.commit()
+        database.close()
+        return True
+    else:
+        return False
+def removeSubjectList(subjectIDList=None):
+    if isinstance(subjectIDList, list):
+        database = sqlite3.connect(CONSPECTS_DB)
+        cursor = database.cursor()
+        for subjectID in subjectIDList:
+            cursor.execute(f"DELETE FROM subjects WHERE rowid = {subjectID}")
+        database.commit()
+        database.close()
+        return True
+    return False
+
 
