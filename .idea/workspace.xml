@@ -7,10 +7,10 @@
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/ChairClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/ChairClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/DirectionClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/DirectionClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/FacultClass.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/SubjectClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/SubjectClass.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/files/database/conspects.db" beforeDir="false" afterPath="$PROJECT_DIR$/files/database/conspects.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -130,6 +130,7 @@
       <workItem from="1758871202464" duration="4000" />
       <workItem from="1758874059274" duration="551000" />
       <workItem from="1758879103152" duration="651000" />
+      <workItem from="1758910640134" duration="2120000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />

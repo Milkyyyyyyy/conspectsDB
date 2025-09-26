@@ -1,142 +1,145 @@
-from code.database import FacultClass, SubjectClass
-from code.database import ChairClass
-from code.database import DirectionClass
+from code.database import FacultClass, SubjectClass, ChairClass, DirectionClass
 import sqlite3
 CONSPECTS_DB = 'files/database/conspects.db'
 
+
+def checkCursor(cursor=None):
+    return isinstance(cursor, sqlite3.Cursor)
+
 # TODO
-# - Почистить код
-# - При соединить некоторые методы (например все getByID с getByName можно соединить в один метод)
+# 1. Доделать все проверки и архитектуру
 
 # ======== Methods ========
 # -------- Facults --------
-def getAllFacults():
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-    cursor.execute("SELECT rowid, name FROM facults")
-    output = cursor.fetchall()
-    database.close()
-    return output
-def getFacult(facultID=None, facultName=None):
-    if not isinstance(facultID, int) and not isinstance(facultName, str):
+def getAllFacults(cursor=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
         return None
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     try:
-        if facultID is not None:
-            cursor.execute(f"SELECT * FROM facults WHERE rowid = {facultID}")
-        elif facultName is not None:
-            cursor.execute(f'SELECT * FROM facults WHERE name = "{facultName}"')
-        output = cursor.fetchone()
-        database.close()
+        cursor.execute("SELECT rowid, name FROM facults")
+        output = cursor.fetchall()
         return output
-    except:
-        database.close()
+    except Exception as e:
+        print(e)
         return None
-def getFacultObject(facultID=None):
-    if not isinstance(facultID, int):
+def getFacult(cursor=None, facultID=None, facultName=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
         return None
-    facultObject = FacultClass.Facult(facultID)
-    return facultObject
-def isFacultExists(name=None, facultID=None):
-    if not isinstance(name, str) and not isinstance(facultID, int):
-        return False
-
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-
-    if isinstance(name, str):
-        cursor.execute(f'SELECT * FROM facults WHERE name = "{name}"')
-    elif isinstance(facultID, int):
-        cursor.execute(f'SELECT * FROM facults WHERE rowid = {facultID}')
-
-    output = cursor.fetchone()
-    database.close()
-
-    if output is not None:
-        return True
+    if isinstance(facultID, int) or isinstance(facultName, str):
+        try:
+            if isinstance(facultID, int):
+                cursor.execute(f"SELECT * FROM facults WHERE rowid = {facultID}")
+            elif isinstance(facultName, str):
+                cursor.execute(f'SELECT * FROM facults WHERE name = "{facultName}"')
+            output = cursor.fetchone()
+            return output
+        except Exception as e:
+            print(e)
+            return None
+def getFacultObject(cursor=None, facultID=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return None
+    if isinstance(facultID, int):
+        facultObject = FacultClass.Facult(facultID=facultID, cursor=cursor)
+        return facultObject
     else:
+        return None
+def isFacultExists(cursor=None, name=None, facultID=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
         return False
-
-def addFacult(facultName=None):
+    if isinstance(facultID, int) or isinstance(name, str):
+        try:
+            if isinstance(name, str):
+                cursor.execute(f'SELECT * FROM facults WHERE name = "{name}"')
+            elif isinstance(facultID, int):
+                cursor.execute(f'SELECT * FROM facults WHERE rowid = {facultID}')
+            output = cursor.fetchone()
+            if output is not None:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(e)
+            return False
+def addFacult(cursor=None, facultName=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return False
     if not isinstance(facultName, str):
         return False
-
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-
-    if isFacultExists(name=facultName):
+    if isFacultExists(cursor=cursor, name=facultName):
         print('Facult already exists')
         return False
-
     cursor.execute(f"INSERT INTO facults VALUES ('{facultName}')")
-    database.commit()
-    database.close()
     return True
-def removeFacult(facultID=None):
-    if  isinstance(facultID, int) and isFacultExists(facultID=facultID):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
+def removeFacult(cursor=None, facultID=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return False
+    if  isinstance(facultID, int) and isFacultExists(cursor=cursor, facultID=facultID):
         cursor.execute(f"DELETE FROM facults WHERE rowid = {facultID}")
-        database.commit()
-        database.close()
         return True
     return False
-def removeFacultsList(facultIDList=None):
-    if isinstance(facultIDList, list):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
+def removeFacultsList(cursor=None, facultIDList=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return False
+    if  isinstance(facultIDList, list):
         for facultID in facultIDList:
             cursor.execute(f"DELETE FROM facults WHERE rowid = {facultID}")
-        database.commit()
-        database.close()
         return True
     return False
 
 # ------- Chairs --------
-def getAllChairs():
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
+def getAllChairs(cursor=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return None
     cursor.execute(f'SELECT rowid, facult_id, name  FROM chairs')
     output = cursor.fetchall()
-    database.close()
     return output
-def getAllChairsOfFacult(facultID=None):
+def getAllChairsOfFacult(cursor=None, facultID=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return None
     if not isinstance(facultID, int):
         return None
-    if isFacultExists(facultID=facultID):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
+    if isFacultExists(cursor=cursor, facultID=facultID):
         cursor.execute(f"SELECT * FROM chairs WHERE facult_id = {facultID}")
         output = cursor.fetchall()
-        database.close()
         return output
     else:
         return None
-def getChair(chairID=None, chairName=None):
+def getChair(cursor=None, chairID=None, chairName=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return None
     if not isinstance(chairID, int) and not isinstance(chairName, str):
         return None
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     if isinstance(chairID, int):
         cursor.execute(f"SELECT rowid, facult_id, name FROM chairs WHERE rowid = {chairID}")
     elif isinstance(chairName, str):
         cursor.execute(f'SELECT * FROM chairs WHERE name = "{chairName}"')
     output = cursor.fetchone()
-    database.close()
     return output
-def getChairObject(chairID):
+def getChairObject(cursor=None, chairID=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return None
     if not isinstance(chairID, int):
         return None
-    chairObject = ChairClass.Chair(chairID)
+    chairObject = ChairClass.Chair(cursor=cursor, chairID=chairID)
     return chairObject
-def isChairExists(name=None, chairID=None):
+def isChairExists(cursor=None, name=None, chairID=None):
+    if not checkCursor(cursor):
+        print("Set cursor variable")
+        return None
     # Checks if name_or_id is not str or int, or if name_or_id is None
-    if not isinstance(name, str) and not isinstance(chairID, int):
+    if (not isinstance(name, str) and not isinstance(chairID, int)) or not isinstance(cursor, sqlite3.Cursor):
         return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
-
     # If name_or_id is integer, then search by rowid
     if isinstance(chairID, int):
         cursor.execute(f'SELECT * FROM chairs WHERE rowid = {chairID}')
@@ -145,185 +148,145 @@ def isChairExists(name=None, chairID=None):
         cursor.execute(f'SELECT * FROM chairs WHERE name = "{name}"')
 
     output = cursor.fetchone()
-    database.close()
     if output is not None:
         return True
     else:
         return False
-def addChair(chairName=None, facultID=None):
-    if not isinstance(chairName, str) or not isinstance(facultID, int):
+def addChair(cursor=None, chairName=None, facultID=None):
+    if not isinstance(chairName, str) or not isinstance(facultID, int) or not isinstance(cursor, sqlite3.Cursor):
         return False
-    if isChairExists(chairName) or not isFacultExists(facultID=facultID):
+    if isChairExists(cursor=cursor, name=chairName) or not isFacultExists(cursor=cursor, facultID=facultID):
         return False
-
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     cursor.execute(f"INSERT INTO chairs VALUES ({facultID}, '{chairName}')")
-    database.commit()
-    database.close()
     return True
-def removeChair(chairID=None):
-    if isinstance(chairID, int) and isChairExists(chairID=chairID):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
+def removeChair(cursor=None, chairID=None):
+    if isinstance(cursor, sqlite3.Cursor) and isinstance(chairID, int) and isChairExists(cursor=cursor, chairID=chairID):
         cursor.execute(f"DELETE FROM chairs WHERE rowid = {chairID}")
-        database.commit()
-        database.close()
         return True
     return False
-def removeChairsList(chairIDList=None):
-    if not isinstance(chairIDList, list):
+def removeChairsList(cursor=None, chairIDList=None):
+    if not isinstance(chairIDList, list) or isinstance(cursor, sqlite3.Cursor):
         return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     for chair_id in chairIDList:
         cursor.execute(f"DELETE FROM chairs WHERE rowid = {chair_id}")
-    database.commit()
-    database.close()
     return True
 
 # ------------ DIRECTION ------------
-def getAllDirections():
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
+def getAllDirections(cursor=None):
+    if not isinstance(cursor, sqlite3.Cursor):
+        return None
     cursor.execute('SELECT rowid, chair_id, name FROM directions')
     output = cursor.fetchall()
-    database.close()
     return output
-def getDirection(directionID = None, directionName=None):
-    if not isinstance(directionID, int) and not isinstance(directionName, str):
+def getDirection(cursor=None, directionID = None, directionName=None):
+    if (not isinstance(directionID, int) and not isinstance(directionName, str)) or not isinstance(cursor, sqlite3.Cursor):
         return None
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     if isinstance(directionID, int):
         cursor.execute(f"SELECT * FROM directions WHERE rowid = {directionID}")
     elif isinstance(directionName, str):
         cursor.execute(f'SELECT * FROM directions WHERE name = "{directionName}"')
     output = cursor.fetchone()
-    database.close()
     return output
-def getDirectionObject(directionID):
-    if not isinstance(directionID, int):
+def getDirectionObject(cursor=None, directionID=None):
+    if not isinstance(directionID, int) or not isinstance(cursor, sqlite3.Cursor):
         return None
-    directionObject = DirectionClass.Direction(directionID)
+    directionObject = DirectionClass.Direction(cursor=cursor, directionID=directionID)
     return directionObject
-def isDirectionExists(name=None, directionID=None):
-    if not isinstance(name, str) and not isinstance(directionID, int):
+def isDirectionExists(cursor=None, name=None, directionID=None):
+    if not (isinstance(name, str) and not isinstance(directionID, int)) or not isinstance(cursor, sqlite3.Cursor):
         return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     if isinstance(directionID, int):
         cursor.execute(f"SELECT * FROM directions WHERE rowid = {directionID}")
     elif isinstance(name, str):
         cursor.execute(f'SELECT * FROM directions WHERE name = "{name}"')
     output = cursor.fetchone()
-    database.close()
     if output is not None:
         return True
     else:
         return False
-def addDirection(directionName=None, chairID=None):
-    if not isinstance(directionName, str) or not isinstance(chairID, int):
+def addDirection(cursor=None, directionName=None, chairID=None):
+    if not isinstance(directionName, str) or not isinstance(chairID, int) or not isinstance(cursor, sqlite3.Cursor):
         print("Direction name must be string and chairID must be integer")
         return False
-    if isDirectionExists(name=directionName) or not isChairExists(chairID=chairID):
+    if isDirectionExists(cursor=cursor, name=directionName) or not isChairExists(cursor=cursor, chairID=chairID):
         print("Direction name already exists or chairID does not exist")
         return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     cursor.execute(f'INSERT INTO directions VALUES ({chairID}, "{directionName}")')
-    database.commit()
-    database.close()
-def removeDirection(directionID=None):
-    if isinstance(directionID, int) and isDirectionExists(directionID=directionID):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
+def removeDirection(cursor=None, directionID=None):
+    if isinstance(directionID, int) and isDirectionExists(directionID=directionID) and isinstance(cursor, sqlite3.Cursor):
         cursor.execute(f"DELETE FROM directions WHERE rowid = {directionID}")
-        database.commit()
-        database.close()
         return True
     return False
-def removeDirectionList(directionIDList=None):
-    if not isinstance(directionIDList, list):
+def removeDirectionList(cursor=None, directionIDList=None):
+    if not isinstance(directionIDList, list) or not isinstance(cursor, sqlite3.Cursor):
         return False
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     for directionID in directionIDList:
         cursor.execute(f"DELETE FROM directions WHERE rowid = {directionID}")
-    database.commit()
-    database.close()
     return True
 
 # ------------ SUBJECT ------------
-def getAllSubjects():
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
+def getAllSubjects(cursor=None):
+    if not isinstance(cursor, sqlite3.Cursor):
+        return None
     cursor.execute('SELECT rowid, direction_id, name FROM subjects')
     output = cursor.fetchall()
-    database.close()
     return output
-def getSubject(subjectID=None, subjectName=None):
-    if not isinstance(subjectID, int) and not isinstance(subjectName, str):
+def getSubject(cursor=None, subjectID=None, subjectName=None):
+    if (not isinstance(subjectID, int) and not isinstance(subjectName, str)) or not isinstance(cursor, sqlite3.Cursor):
         return None
-    database = sqlite3.connect(CONSPECTS_DB)
-    cursor = database.cursor()
     if isinstance(subjectID, int):
         cursor.execute(f"SELECT * FROM subjects WHERE rowid = {subjectID}")
     elif isinstance(subjectName, str):
         cursor.execute(f'SELECT * FROM subjects WHERE name = "{subjectName}"')
     output = cursor.fetchone()
-    database.close()
     return output
 
-def getSubjectObject(subjectID=None):
-    if not isinstance(subjectID, int):
+def getSubjectObject(cursor=None, subjectID=None):
+    if not isinstance(subjectID, int) or not isinstance(cursor, sqlite3.Cursor):
         return None
-    subjectObject = SubjectClass.Subject(subjectID)
+    subjectObject = SubjectClass.Subject(cursor=cursor, subjectID=subjectID)
     return subjectObject
-def isSubjectExists(subjectID=None, subjectName=None):
-    if not isinstance(subjectID, int) and not isinstance(subjectName, str):
+def isSubjectExists(cursor=None, subjectID=None, subjectName=None):
+    if (not isinstance(subjectID, int) and not isinstance(subjectName, str)) or not isinstance(cursor, sqlite3.Cursor):
         return False
     output = None
     if isinstance(subjectID, int):
-        output = getSubject(subjectID=subjectID)
+        output = getSubject(cursor=cursor, subjectID=subjectID)
     elif isinstance(subjectName, str):
-        output = getSubject(subjectName=subjectName)
+        output = getSubject(cursor=cursor, subjectName=subjectName)
     if output is not None:
         return True
     else:
         return False
-def addSubject(directionID=None, subjectName=None):
-    if isSubjectExists(subjectName=subjectName) or not isDirectionExists(directionID=directionID):
+def addSubject(cursor=None, directionID=None, subjectName=None):
+    if not isinstance(cursor, sqlite3.Cursor):
+        return None
+    if isSubjectExists(cursor=cursor, subjectName=subjectName) or not isDirectionExists(cursor=cursor, directionID=directionID):
         print("Subject already exists or direction not exists")
         return False
     if isinstance(directionID, int) and isinstance(subjectName, str):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
         cursor.execute(f'INSERT INTO subjects VALUES ({directionID}, "{subjectName}")')
-        database.commit()
-        database.close()
         return True
     else:
         return False
-def removeSubject(subjectID=None):
-    if isinstance(subjectID, int) and isSubjectExists(subjectID=subjectID):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
+def removeSubject(cursor=None, subjectID=None):
+    if isinstance(cursor, sqlite3.Cursor) and isinstance(subjectID, int) and isSubjectExists(subjectID=subjectID):
         cursor.execute(f"DELETE FROM subjects WHERE rowid = {subjectID}")
-        database.commit()
-        database.close()
         return True
     else:
         return False
-def removeSubjectList(subjectIDList=None):
-    if isinstance(subjectIDList, list):
-        database = sqlite3.connect(CONSPECTS_DB)
-        cursor = database.cursor()
+def removeSubjectList(cursor=None, subjectIDList=None):
+    if isinstance(subjectIDList, list) and isinstance(cursor, sqlite3.Cursor):
         for subjectID in subjectIDList:
             cursor.execute(f"DELETE FROM subjects WHERE rowid = {subjectID}")
-        database.commit()
-        database.close()
         return True
     return False
-
+# =========================================================
+# ---------------- USER ----------------
+def getAllUsers(cursor=None):
+    if not isinstance(cursor, sqlite3.Cursor):
+        return None
+    cursor.execute('SELECT * FROM users')
+    output = cursor.fetchall()
+    return output
 

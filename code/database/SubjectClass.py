@@ -2,8 +2,8 @@ from code.database import dbProcessing
 
 
 class Subject:
-    def __init__(self, subjectID):
-        subjectTuple = dbProcessing.getSubject(subjectID=subjectID)
+    def __init__(self, subjectID=None, cursor=None):
+        subjectTuple = dbProcessing.getSubject(cursor=cursor, subjectID=subjectID)
         if subjectTuple is None:
             self.id = None
             self.directionID = None
@@ -16,6 +16,10 @@ class Subject:
         return self.id
     def getDirectionID(self):
         return self.directionID
+    def getChairID(self):
+        return dbProcessing.getDirection(self.getDirectionID()).getChairID()
+    def getFacultID(self):
+        return dbProcessing.getDirection(self.getDirectionID()).getFacultID()
     def getName(self):
         return self.name
 
