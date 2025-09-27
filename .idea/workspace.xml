@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/FacultClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/files/database/conspects.db" beforeDir="false" afterPath="$PROJECT_DIR$/files/database/conspects.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -129,7 +123,7 @@
       <workItem from="1758871202464" duration="4000" />
       <workItem from="1758874059274" duration="551000" />
       <workItem from="1758879103152" duration="672000" />
-      <workItem from="1758948441863" duration="1179000" />
+      <workItem from="1758948441863" duration="1223000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
