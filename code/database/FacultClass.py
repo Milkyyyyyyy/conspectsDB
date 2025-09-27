@@ -9,7 +9,7 @@ class Facult:
             self.name = None
             return
         self.id = facultID
-        self.name = dbProcessing.getFacultByID(facultID)[0]
+        self.name = facult_tuple[0]
     # Returns name of facult
     def getName(self):
         return self.name
