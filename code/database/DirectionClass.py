@@ -1,8 +1,9 @@
-from code.database import dbProcessing
+from code.database.databaseProcessing.Repo import directionRepo, chairRepo
+
 
 class Direction:
     def __init__(self, directionID=None, cursor=None):
-        directionTuple = dbProcessing.getDirection(cursor=cursor, directionID=directionID)
+        directionTuple = directionRepo.getOne(cursor=cursor, directionID=directionID)
         if directionTuple is None:
             self.id = None
             self.chairID = None
@@ -18,5 +19,5 @@ class Direction:
     def getChairID(self):
         return self.chairID
     def getFacultID(self):
-        return dbProcessing.getChairObject(self.getChairID()).getFacultID()
+        return chairRepo.getObject(self.getChairID()).getFacultID()
 

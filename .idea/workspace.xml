@@ -4,7 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов" />
+    <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
+      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/chairRepo.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/directionRepo.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/facultRepo.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/subjectRepo.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/databaseUtil.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/ChairClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/ChairClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/DirectionClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/DirectionClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/FacultClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/SubjectClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/SubjectClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/files/database/conspects.db" beforeDir="false" afterPath="$PROJECT_DIR$/files/database/conspects.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -49,7 +66,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;developer&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Stas/Documents/Python/Projects/conspectsDB&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Stas/Documents/Python/Projects/conspectsDB/code/database/databaseProcessing&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -65,7 +82,11 @@
   }
 }</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\databaseProcessing" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\databaseProcessing\Repo" />
       <recent name="H:\Документы\GitHub\conspectsDB\files\database" />
       <recent name="H:\Документы\GitHub\conspectsDB\code\database" />
       <recent name="H:\Документы\GitHub\conspectsDB" />
@@ -123,7 +144,11 @@
       <workItem from="1758871202464" duration="4000" />
       <workItem from="1758874059274" duration="551000" />
       <workItem from="1758879103152" duration="672000" />
-      <workItem from="1758948441863" duration="1223000" />
+      <workItem from="1758948441863" duration="1281000" />
+      <workItem from="1758954040504" duration="327000" />
+      <workItem from="1758957968053" duration="702000" />
+      <workItem from="1758977747346" duration="347000" />
+      <workItem from="1758989907621" duration="1139000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
@@ -166,6 +191,6 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/conspectsDB$main.coverage" NAME="main Coverage Results" MODIFIED="1758869277544" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/dbProcessing_py$main.coverage" NAME="main Coverage Results" MODIFIED="1758949626189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/dbProcessing_py$main.coverage" NAME="main Coverage Results" MODIFIED="1758958013838" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

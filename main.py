@@ -1,9 +1,8 @@
-from code.database import dbProcessing
+from code.database.databaseProcessing import databaseUtil
 import sqlite3
 
-database = sqlite3.connect(dbProcessing.CONSPECTS_DB)
+database = sqlite3.connect(databaseUtil.CONSPECTS_DB)
 cursor = database.cursor()
-print(dbProcessing.getAllSubjects(cursor=cursor))
-print(dbProcessing.getSubjectObject(cursor=cursor, subjectID=1).getName())
+# print(dbProcessing.getAll())
 database.commit()
 database.close()

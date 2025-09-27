@@ -1,8 +1,9 @@
-from code.database import dbProcessing
+from code.database.databaseProcessing.Repo import facultRepo
+
 
 class Facult:
     def __init__(self, facultID=None, cursor=None):
-        facult_tuple = dbProcessing.getFacult(cursor=cursor, facultID=facultID)
+        facult_tuple = facultRepo.getOne(cursor=cursor, facultID=facultID)
         if facult_tuple is None:
             print("No such facult")
             self.id = None

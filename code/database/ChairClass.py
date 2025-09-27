@@ -1,8 +1,9 @@
-from code.database import dbProcessing
+from code.database.databaseProcessing.Repo import chairRepo
+
 
 class Chair:
     def __init__(self, chairID=None, cursor=None):
-        chair_tuple = dbProcessing.getChair(cursor=cursor, chairID=chairID)
+        chair_tuple = chairRepo.getOne(cursor=cursor, chairID=chairID)
         if chair_tuple is None:
             self.id = None
             self.name = None
