@@ -1,4 +1,4 @@
-from code.database.Repo import subjectRepo, directionRepo
+from code.database.repo import subjectRepo, directionRepo
 
 
 class Subject:

@@ -1,6 +1,6 @@
 from code.database import databaseUtil
-from code.database.Repo import directionRepo
-from code.database.classes import SubjectClass
+from code.database.repo import directionRepo
+from code.database.classes import subjectClass
 
 def getAll(cursor=None):
     if not databaseUtil.checkCursor(cursor):
@@ -9,16 +9,16 @@ def getAll(cursor=None):
     cursor.execute('SELECT rowid, direction_id, name FROM subjects')
     output = cursor.fetchall()
     return output
-def getOne(cursor=None, subjectID=None, subjectName=None):
+def getOne(cursor=None, subjectID=None, name=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return None
-    if not isinstance(subjectID, int) and not isinstance(subjectName, str):
+    if not isinstance(subjectID, int) and not isinstance(name, str):
         return None
     if isinstance(subjectID, int):
         cursor.execute(f"SELECT rowid, direction_id, name FROM subjects WHERE rowid = {subjectID}")
-    elif isinstance(subjectName, str):
-        cursor.execute(f'SELECT rowid, direction_id, name FROM subjects WHERE name = "{subjectName}"')
+    elif isinstance(name, str):
+        cursor.execute(f'SELECT rowid, direction_id, name FROM subjects WHERE name = "{name}"')
     output = cursor.fetchone()
     return output
 
@@ -28,32 +28,32 @@ def getObject(cursor=None, subjectID=None):
         return None
     if not isinstance(subjectID, int):
         return None
-    subjectObject = SubjectClass.Subject(cursor=cursor, subjectID=subjectID)
+    subjectObject = subjectClass.Subject(cursor=cursor, subjectID=subjectID)
     return subjectObject
-def isExists(cursor=None, subjectID=None, subjectName=None):
+def isExists(cursor=None, subjectID=None, name=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return False
-    if not isinstance(subjectID, int) and not isinstance(subjectName, str):
+    if not isinstance(subjectID, int) and not isinstance(name, str):
         return False
     output = None
     if isinstance(subjectID, int):
         output = getOne(cursor=cursor, subjectID=subjectID)
-    elif isinstance(subjectName, str):
-        output = getOne(cursor=cursor, subjectName=subjectName)
+    elif isinstance(name, str):
+        output = getOne(cursor=cursor, name=name)
     if output is not None:
         return True
     else:
         return False
-def add(cursor=None, directionID=None, subjectName=None):
+def add(cursor=None, directionID=None, name=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return False
-    if isExists(cursor=cursor, subjectName=subjectName) or not directionRepo.isExists(cursor=cursor, directionID=directionID):
+    if isExists(cursor=cursor, name=name) or not directionRepo.isExists(cursor=cursor, directionID=directionID):
         print("Subject already exists or direction not exists")
         return False
-    if isinstance(directionID, int) and isinstance(subjectName, str):
-        cursor.execute(f'INSERT INTO subjects VALUES ({directionID}, "{subjectName}")')
+    if isinstance(directionID, int) and isinstance(name, str):
+        cursor.execute(f'INSERT INTO subjects VALUES ({directionID}, "{name}")')
         return True
     else:
         return False
@@ -66,12 +66,12 @@ def remove(cursor=None, subjectID=None):
         return True
     else:
         return False
-def removeList(cursor=None, subjectIDList=None):
+def removeList(cursor=None, idList=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return False
-    if isinstance(subjectIDList, list):
-        for subjectID in subjectIDList:
+    if isinstance(idList, list):
+        for subjectID in idList:
             cursor.execute(f"DELETE FROM subjects WHERE rowid = {subjectID}")
         return True
     return False

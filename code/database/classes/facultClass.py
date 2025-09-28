@@ -1,4 +1,4 @@
-from code.database.Repo import facultRepo
+from code.database.repo import facultRepo
 
 
 class Facult:

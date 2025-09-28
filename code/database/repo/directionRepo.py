@@ -1,6 +1,6 @@
 from code.database import databaseUtil
-from code.database.Repo import chairRepo
-from code.database.classes import DirectionClass
+from code.database.repo import chairRepo
+from code.database.classes import directionClass
 
 def getAll(cursor=None):
     if not databaseUtil.checkCursor(cursor):
@@ -9,16 +9,16 @@ def getAll(cursor=None):
     cursor.execute('SELECT rowid, chair_id, name FROM directions')
     output = cursor.fetchall()
     return output
-def getOne(cursor=None, directionID = None, directionName=None):
+def get(cursor=None, directionID = None, name=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return None
-    if not isinstance(directionID, int) and not isinstance(directionName, str):
+    if not isinstance(directionID, int) and not isinstance(name, str):
         return None
     if isinstance(directionID, int):
         cursor.execute(f"SELECT rowid, chair_id, name FROM directions WHERE rowid = {directionID}")
-    elif isinstance(directionName, str):
-        cursor.execute(f'SELECT rowid, chair_id, name FROM directions WHERE name = "{directionName}"')
+    elif isinstance(name, str):
+        cursor.execute(f'SELECT rowid, chair_id, name FROM directions WHERE name = "{name}"')
     output = cursor.fetchone()
     return output
 def getObject(cursor=None, directionID=None):
@@ -27,7 +27,7 @@ def getObject(cursor=None, directionID=None):
         return None
     if not isinstance(directionID, int):
         return None
-    directionObject = DirectionClass.Direction(cursor=cursor, directionID=directionID)
+    directionObject = directionClass.Direction(cursor=cursor, directionID=directionID)
     return directionObject
 def isExists(cursor=None, name=None, directionID=None):
     if not databaseUtil.checkCursor(cursor):
@@ -44,17 +44,17 @@ def isExists(cursor=None, name=None, directionID=None):
         return True
     else:
         return False
-def add(cursor=None, directionName=None, chairID=None):
+def add(cursor=None, name=None, chairID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return False
-    if not isinstance(directionName, str) or not isinstance(chairID, int):
+    if not isinstance(name, str) or not isinstance(chairID, int):
         print("Direction name must be string and chairID must be integer")
         return False
-    if isExists(cursor=cursor, name=directionName) or not chairRepo.isExists(cursor=cursor, chairID=chairID):
+    if isExists(cursor=cursor, name=name) or not chairRepo.isExists(cursor=cursor, chairID=chairID):
         print("Direction name already exists or chairID does not exist")
         return False
-    cursor.execute(f'INSERT INTO directions VALUES ({chairID}, "{directionName}")')
+    cursor.execute(f'INSERT INTO directions VALUES ({chairID}, "{name}")')
 def remove(cursor=None, directionID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
@@ -63,12 +63,12 @@ def remove(cursor=None, directionID=None):
         cursor.execute(f"DELETE FROM directions WHERE rowid = {directionID}")
         return True
     return False
-def removeList(cursor=None, directionIDList=None):
+def removeList(cursor=None, idList=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return False
-    if not isinstance(directionIDList, list):
+    if not isinstance(idList, list):
         return False
-    for directionID in directionIDList:
+    for directionID in idList:
         cursor.execute(f"DELETE FROM directions WHERE rowid = {directionID}")
     return True

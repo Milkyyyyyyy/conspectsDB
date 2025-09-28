@@ -1,6 +1,6 @@
-from code.database.databaseProcessing import databaseUtil
-from code.database.databaseProcessing.Repo import facultRepo
-from code.database import ChairClass
+from code.database import databaseUtil
+from code.database.repo import facultRepo
+from code.database.classes import chairClass
 
 def getAll(cursor=None):
     if not databaseUtil.checkCursor(cursor):
@@ -21,16 +21,16 @@ def getAllWithFacult(cursor=None, facultID=None):
         return output
     else:
         return None
-def getOne(cursor=None, chairID=None, chairName=None):
+def getOne(cursor=None, chairID=None, name=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return None
-    if not isinstance(chairID, int) and not isinstance(chairName, str):
+    if not isinstance(chairID, int) and not isinstance(name, str):
         return None
     if isinstance(chairID, int):
         cursor.execute(f"SELECT rowid, facult_id, name FROM chairs WHERE rowid = {chairID}")
-    elif isinstance(chairName, str):
-        cursor.execute(f'SELECT rowid, facult_id, name FROM chairs WHERE name = "{chairName}"')
+    elif isinstance(name, str):
+        cursor.execute(f'SELECT rowid, facult_id, name FROM chairs WHERE name = "{name}"')
     output = cursor.fetchone()
     return output
 def getObject(cursor=None, chairID=None):
@@ -39,14 +39,14 @@ def getObject(cursor=None, chairID=None):
         return None
     if not isinstance(chairID, int):
         return None
-    chairObject = ChairClass.Chair(cursor=cursor, chairID=chairID)
+    chairObject = chairClass.Chair(cursor=cursor, chairID=chairID)
     return chairObject
 def isExists(cursor=None, name=None, chairID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return None
     # Checks if name_or_id is not str or int, or if name_or_id is None
-    if (not isinstance(name, str) and not isinstance(chairID, int)) or not isinstance(cursor, sqlite3.Cursor):
+    if not isinstance(name, str) and not isinstance(chairID, int):
         return False
     # If name_or_id is integer, then search by rowid
     if isinstance(chairID, int):
@@ -60,15 +60,15 @@ def isExists(cursor=None, name=None, chairID=None):
         return True
     else:
         return False
-def add(cursor=None, chairName=None, facultID=None):
+def add(cursor=None, name=None, facultID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return False
-    if not isinstance(chairName, str) or not isinstance(facultID, int):
+    if not isinstance(name, str) or not isinstance(facultID, int):
         return False
-    if isExists(cursor=cursor, name=chairName) or not isFacultExists(cursor=cursor, facultID=facultID):
+    if isExists(cursor=cursor, name=name) or not facultRepo.isExists(cursor=cursor, facultID=facultID):
         return False
-    cursor.execute(f"INSERT INTO chairs VALUES ({facultID}, '{chairName}')")
+    cursor.execute(f"INSERT INTO chairs VALUES ({facultID}, '{name}')")
     return True
 def remove(cursor=None, chairID=None):
     if not databaseUtil.checkCursor(cursor):
@@ -78,12 +78,12 @@ def remove(cursor=None, chairID=None):
         cursor.execute(f"DELETE FROM chairs WHERE rowid = {chairID}")
         return True
     return False
-def removeList(cursor=None, chairIDList=None):
+def removeList(cursor=None, idList=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return False
-    if not isinstance(chairIDList, list):
+    if not isinstance(idList, list):
         return False
-    for chair_id in chairIDList:
+    for chair_id in idList:
         cursor.execute(f"DELETE FROM chairs WHERE rowid = {chair_id}")
     return True
