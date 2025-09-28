@@ -1,8 +1,9 @@
-from code.database.databaseProcessing import databaseUtil
+from code.database import databaseUtil
+from code.database.Repo import facultRepo
 import sqlite3
 
 database = sqlite3.connect(databaseUtil.CONSPECTS_DB)
 cursor = database.cursor()
-# print(dbProcessing.getAll())
+print(facultRepo.getAll(cursor=cursor))
 database.commit()
 database.close()

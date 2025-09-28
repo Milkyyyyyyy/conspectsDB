@@ -5,21 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
-      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/chairRepo.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/directionRepo.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/facultRepo.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/subjectRepo.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/database/databaseProcessing/databaseUtil.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/ChairClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/ChairClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/DirectionClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/DirectionClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/FacultClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/SubjectClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/SubjectClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/ChairClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/ChairClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/DirectionClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/DirectionClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/FacultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/FacultClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/SubjectClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/SubjectClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/chairRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/chairRepo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/directionRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/directionRepo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/facultRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/facultRepo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseProcessing/Repo/subjectRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/subjectRepo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseProcessing/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseProcessing/databaseUtil.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/databaseUtil.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/dbProcessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/files/database/conspects.db" beforeDir="false" afterPath="$PROJECT_DIR$/files/database/conspects.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -149,6 +147,8 @@
       <workItem from="1758957968053" duration="702000" />
       <workItem from="1758977747346" duration="347000" />
       <workItem from="1758989907621" duration="1139000" />
+      <workItem from="1759049659581" duration="594000" />
+      <workItem from="1759060329307" duration="51000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />

@@ -1,4 +1,4 @@
-from code.database.databaseProcessing.Repo import chairRepo
+from code.database.Repo import chairRepo
 
 
 class Chair:

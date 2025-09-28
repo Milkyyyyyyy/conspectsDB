@@ -1,5 +1,5 @@
-from code.database.databaseProcessing import databaseUtil
-from code.database import FacultClass
+from code.database import databaseUtil
+from code.database.classes import FacultClass
 
 def getAll(cursor=None):
     if not databaseUtil.checkCursor(cursor):

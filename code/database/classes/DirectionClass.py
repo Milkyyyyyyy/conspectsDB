@@ -1,4 +1,4 @@
-from code.database.databaseProcessing.Repo import directionRepo, chairRepo
+from code.database.Repo import directionRepo, chairRepo
 
 
 class Direction:

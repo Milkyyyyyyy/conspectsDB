@@ -1,6 +1,6 @@
-from code.database.databaseProcessing import databaseUtil
-from code.database.databaseProcessing.Repo import directionRepo
-from code.database import SubjectClass
+from code.database import databaseUtil
+from code.database.Repo import directionRepo
+from code.database.classes import SubjectClass
 
 def getAll(cursor=None):
     if not databaseUtil.checkCursor(cursor):

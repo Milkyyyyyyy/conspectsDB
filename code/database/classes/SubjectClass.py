@@ -1,9 +1,9 @@
-from code.database.databaseProcessing.Repo import subjectRepo, directionRepo
+from code.database.Repo import subjectRepo, directionRepo
 
 
 class Subject:
     def __init__(self, subjectID=None, cursor=None):
-        subjectTuple = subjectRepo..getOne(cursor=cursor, subjectID=subjectID)
+        subjectTuple = subjectRepo.getOne(cursor=cursor, subjectID=subjectID)
         if subjectTuple is None:
             self.id = None
             self.directionID = None
@@ -16,10 +16,10 @@ class Subject:
         return self.id
     def getDirectionID(self):
         return self.directionID
-    def getChairID(self):
-        return directionRepo.getObject(cursor=cursor, directionID=.getDirectionID()).getChairID()
-    def getFacultID(self):
-        return dbProcessing.getDirection(self.getDirectionID()).getFacultID()
+    # def getChairID(self):
+    #     return directionRepo.getObject(cursor=cursor, directionID=.getDirectionID()).getChairID()
+    # def getFacultID(self):
+    #     return dbProcessing.getDirection(self.getDirectionID()).getFacultID()
     def getName(self):
         return self.name
 

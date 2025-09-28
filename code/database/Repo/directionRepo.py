@@ -1,6 +1,6 @@
-from code.database.databaseProcessing import databaseUtil
-from code.database.databaseProcessing.Repo import chairRepo
-from code.database import DirectionClass
+from code.database import databaseUtil
+from code.database.Repo import chairRepo
+from code.database.classes import DirectionClass
 
 def getAll(cursor=None):
     if not databaseUtil.checkCursor(cursor):
