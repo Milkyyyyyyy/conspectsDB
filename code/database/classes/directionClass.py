@@ -1,6 +1,5 @@
 from code.database.repo import directionRepo, chairRepo
 
-
 class Direction:
     def __init__(self, directionID=None, cursor=None):
         directionTuple = directionRepo.get(cursor=cursor, directionID=directionID)

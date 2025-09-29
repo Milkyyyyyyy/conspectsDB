@@ -3,7 +3,7 @@ from code.database.repo import subjectRepo, directionRepo
 
 class Subject:
     def __init__(self, subjectID=None, cursor=None):
-        subjectTuple = subjectRepo.getOne(cursor=cursor, subjectID=subjectID)
+        subjectTuple = subjectRepo.get(cursor=cursor, subjectID=subjectID)
         if subjectTuple is None:
             self.id = None
             self.directionID = None

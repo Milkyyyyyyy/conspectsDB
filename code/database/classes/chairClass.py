@@ -1,9 +1,8 @@
 from code.database.repo import chairRepo
 
-
 class Chair:
     def __init__(self, chairID=None, cursor=None):
-        chair_tuple = chairRepo.getOne(cursor=cursor, chairID=chairID)
+        chair_tuple = chairRepo.get(cursor=cursor, chairID=chairID)
         if chair_tuple is None:
             self.id = None
             self.name = None

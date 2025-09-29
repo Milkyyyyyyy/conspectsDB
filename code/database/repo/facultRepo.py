@@ -1,32 +1,13 @@
 from code.database import databaseUtil
+from code.database.repo import queries
 from code.database.classes import facultClass
 
+TABLE_NAME = 'facults'
 def getAll(cursor=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    try:
-        cursor.execute("SELECT rowid, name FROM facults")
-        output = cursor.fetchall()
-        return output
-    except Exception as e:
-        print(e)
-        return None
-def getOne(cursor=None, facultID=None, name=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    if isinstance(facultID, int) or isinstance(name, str):
-        try:
-            if isinstance(facultID, int):
-                cursor.execute(f"SELECT * FROM facults WHERE rowid = {facultID}")
-            elif isinstance(name, str):
-                cursor.execute(f'SELECT * FROM facults WHERE name = "{name}"')
-            output = cursor.fetchone()
-            return output
-        except Exception as e:
-            print(e)
-            return None
+    return queries.getAll(cursor=cursor, tableName=TABLE_NAME)
+
+def get(cursor=None, input=None):
+   return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
 def getObject(cursor=None, facultID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")

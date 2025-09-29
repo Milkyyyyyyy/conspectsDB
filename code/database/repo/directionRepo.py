@@ -1,14 +1,10 @@
 from code.database import databaseUtil
 from code.database.repo import chairRepo
+from code.database.repo import queries
 from code.database.classes import directionClass
 
 def getAll(cursor=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    cursor.execute('SELECT rowid, chair_id, name FROM directions')
-    output = cursor.fetchall()
-    return output
+    return queries.getAll(cursor=cursor, table='directions')
 def get(cursor=None, directionID = None, name=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")

@@ -1,15 +1,12 @@
 from code.database import databaseUtil
 from code.database.repo import directionRepo
+from code.database.repo import queries
 from code.database.classes import subjectClass
 
+TABLE_NAME = 'subjects'
 def getAll(cursor=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    cursor.execute('SELECT rowid, direction_id, name FROM subjects')
-    output = cursor.fetchall()
-    return output
-def getOne(cursor=None, subjectID=None, name=None):
+    return queries.getAll(cursor=cursor, tableName=TABLE_NAME)
+def get(cursor=None, subjectID=None, name=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
         return None
@@ -38,9 +35,9 @@ def isExists(cursor=None, subjectID=None, name=None):
         return False
     output = None
     if isinstance(subjectID, int):
-        output = getOne(cursor=cursor, subjectID=subjectID)
+        output = get(cursor=cursor, subjectID=subjectID)
     elif isinstance(name, str):
-        output = getOne(cursor=cursor, name=name)
+        output = get(cursor=cursor, name=name)
     if output is not None:
         return True
     else:
