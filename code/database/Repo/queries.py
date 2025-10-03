@@ -82,3 +82,13 @@ def removeList(cursor=None, tableName=None, input=None):
     except Exception as e:
         print(e)
         return False
+def add(cursor=None, tableName=None, input=None):
+    try:
+        if isinstance(input, list) and len(input) >= 1:
+            cursor.execute(f"INSERT INTO {tableName} VALUES ({', '.join(input)})")
+            return True
+        else:
+            Exception("Invalid input type or list size")
+    except Exception as e:
+        print(e)
+        return False

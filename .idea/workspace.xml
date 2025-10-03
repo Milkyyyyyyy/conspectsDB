@@ -5,9 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/Repo/queries.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/queries.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/repo/facultRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/facultRepo.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -145,6 +145,8 @@
       <workItem from="1759164198187" duration="240000" />
       <workItem from="1759387681669" duration="122000" />
       <workItem from="1759391830750" duration="636000" />
+      <workItem from="1759476134897" duration="243000" />
+      <workItem from="1759485021055" duration="76000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
