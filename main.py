@@ -1,9 +1,9 @@
-from code.database import databaseUtil
 from code.database.repo import facultRepo
-import sqlite3
+from code.database.repo.queries import connectDB
 
-database = sqlite3.connect(databaseUtil.CONSPECTS_DB)
+database = connectDB()
 cursor = database.cursor()
 print(facultRepo.getAll(cursor=cursor))
+facultRepo.add(cursor=cursor, name="Тест новой архитектуры и логов")
 database.commit()
 database.close()

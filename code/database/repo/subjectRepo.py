@@ -6,19 +6,8 @@ from code.database.classes import subjectClass
 TABLE_NAME = 'subjects'
 def getAll(cursor=None):
     return queries.getAll(cursor=cursor, tableName=TABLE_NAME)
-def get(cursor=None, subjectID=None, name=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    if not isinstance(subjectID, int) and not isinstance(name, str):
-        return None
-    if isinstance(subjectID, int):
-        cursor.execute(f"SELECT rowid, direction_id, name FROM subjects WHERE rowid = {subjectID}")
-    elif isinstance(name, str):
-        cursor.execute(f'SELECT rowid, direction_id, name FROM subjects WHERE name = "{name}"')
-    output = cursor.fetchone()
-    return output
-
+def get(cursor=None, input=None):
+   return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
 def getObject(cursor=None, subjectID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")

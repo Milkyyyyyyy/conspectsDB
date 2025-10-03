@@ -3,9 +3,12 @@ from code.database.repo import facultRepo
 from code.database.repo import queries
 from code.database.classes import chairClass
 
-def getAll(cursor=None):
-    return queries.getAll(cursor=cursor, tableName='chairs')
+TABLE_NAME = 'chairs'
 
+def getAll(cursor=None):
+    return queries.getAll(cursor=cursor, tableName=TABLE_NAME)
+def get(cursor=None, input=None):
+   return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
 def getAllWithFacult(cursor=None, facultID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
@@ -18,18 +21,6 @@ def getAllWithFacult(cursor=None, facultID=None):
         return output
     else:
         return None
-def get(cursor=None, chairID=None, name=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    if not isinstance(chairID, int) and not isinstance(name, str):
-        return None
-    if isinstance(chairID, int):
-        cursor.execute(f"SELECT rowid, facult_id, name FROM chairs WHERE rowid = {chairID}")
-    elif isinstance(name, str):
-        cursor.execute(f'SELECT rowid, facult_id, name FROM chairs WHERE name = "{name}"')
-    output = cursor.fetchone()
-    return output
 def getObject(cursor=None, chairID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")

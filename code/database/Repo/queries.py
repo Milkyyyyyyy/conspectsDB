@@ -1,8 +1,22 @@
-from logging import exception
-
-from code.database.databaseUtil import checkCursor
+import logging
+import sqlite3
 import functools
 
+# TODO
+# [ ] Доделать логи и новую архитектуру
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    filename='logs/app.log',
+    level=logging.DEBUG,
+    format='[%(asctime)s] - %(levelname)s - %(name)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+def checkCursor(cursor):
+    if isinstance(cursor, sqlite3.Cursor):
+        return True
+    return False
 def require_cursor(func):
     @functools.wraps(func)
     def wrapper(cursor, *args, **kwargs):

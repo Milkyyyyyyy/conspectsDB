@@ -2,21 +2,11 @@ from code.database import databaseUtil
 from code.database.repo import chairRepo
 from code.database.repo import queries
 from code.database.classes import directionClass
-
+TABLE_NAME = 'directions'
 def getAll(cursor=None):
-    return queries.getAll(cursor=cursor, table='directions')
-def get(cursor=None, directionID = None, name=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    if not isinstance(directionID, int) and not isinstance(name, str):
-        return None
-    if isinstance(directionID, int):
-        cursor.execute(f"SELECT rowid, chair_id, name FROM directions WHERE rowid = {directionID}")
-    elif isinstance(name, str):
-        cursor.execute(f'SELECT rowid, chair_id, name FROM directions WHERE name = "{name}"')
-    output = cursor.fetchone()
-    return output
+    return queries.getAll(cursor=cursor, tableName=TABLE_NAME)
+def get(cursor=None, input=None):
+   return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
 def getObject(cursor=None, directionID=None):
     if not databaseUtil.checkCursor(cursor):
         print("Set cursor variable")
