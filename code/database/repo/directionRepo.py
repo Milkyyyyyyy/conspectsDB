@@ -2,12 +2,15 @@ from code.database.repo import chairRepo
 from code.database.repo import queries
 from code.database.classes import directionClass
 TABLE_NAME = 'directions'
-def getAll(cursor=None):
-    return queries.getAll(cursor=cursor, tableName=TABLE_NAME)
-def get(cursor=None, input=None):
-   return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
+def getAll(cursor=None, value=None, valueName=None):
+    return queries.getAll(cursor=cursor, tableName=TABLE_NAME, value=value, valueName=valueName)
+def get(cursor=None, ID=None, name=None):
+    if not ID is None:
+        return queries.get(cursor=cursor, tableName=TABLE_NAME, input=ID)
+    elif not name is None:
+        return queries.get(cursor=cursor, tableName=TABLE_NAME, input=name, valueName='name')
 def getObject(cursor=None, directionID=None):
-    return directionClass.Direction(get(cursor=cursor, input=directionID))
+    return directionClass.Direction(get(cursor=cursor, ID=directionID))
 def isExists(cursor=None, input=None):
     return queries.isExists(cursor=cursor, tableName=TABLE_NAME, input=input)
 def add(cursor=None, name=None, chairID=None):

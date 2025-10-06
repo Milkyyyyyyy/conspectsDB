@@ -36,70 +36,70 @@ def require_cursor(func):
     return wrapper
 
 @require_cursor
-def getAll(cursor=None, tableName=None):
+def getAll(cursor=None, tableName=None, value=None, valueName=None):
     logger.info(f'Getting all rows in "{tableName}"...')
+
+    valuesTuple = ()
+    sql_query = f"SELECT rowid, * FROM {tableName}"
+    if value is not None and valueName is not None:
+        sql_query += f" WHERE {valueName} = ?"
+        valuesTuple = (value,)
+
     try:
-        cursor.execute(f"SELECT rowid, *  FROM {tableName}")
+        cursor.execute(sql_query, valuesTuple)
         output = cursor.fetchall()
-        if output is None:
-            Exception(f"{tableName} table has no rows")
-        logger.info("Successfully fetched all rows")
+        logger.info("Successfully fetched all existing rows")
         return output
     except Exception as e:
         logger.exception(e)
         return None
 @require_cursor
-def get(cursor=None, tableName=None, input=None):
+def get(cursor=None, tableName=None, input=None, valueName="rowid"):
     logger.info(f'Getting row from "{tableName}" with input={input}...')
+
+    if input is None:
+        logger.error("Invalid input type")
+        return False
+    sql_query = f"SELECT rowid, * FROM {tableName} WHERE {valueName} = ?"
+
     try:
-        if isinstance(input, int):
-            cursor.execute(f"SELECT rowid, *  FROM {tableName} WHERE rowid = {input}")
-        elif isinstance(input, str):
-            cursor.execute(f'SELECT rowid, *  FROM {tableName} WHERE name = "{input}"')
-        else:
-            Exception("Invalid input type")
+        cursor.execute(sql_query, (input, ))
         output = cursor.fetchone()
-        if output is None:
-            Exception(f"Row not exists")
         logger.info("Successfully fetched row")
         return output
     except Exception as e:
         logger.exception(e)
         return None
 @require_cursor
-def isExists(cursor=None, tableName=None, input=None):
+def isExists(cursor=None, tableName=None, input=None, valueName="rowid"):
     logger.info(f'Check if "{tableName}" entry exists...')
+    sql_query = f'SELECT rowid, *  FROM {tableName} WHERE {valueName} = ?'
     try:
-        if isinstance(input, int):
-            cursor.execute(f"SELECT rowid, *  FROM {tableName} WHERE rowid = {input}")
-        elif isinstance(input, str):
-            cursor.execute(f'SELECT rowid, *  FROM {tableName} WHERE name = "{input}"')
-        else:
-            Exception("Invalid input type")
+        cursor.execute(sql_query, (input, ))
         output = cursor.fetchone()
         logger.info("Successfully fetched row")
         if output is not None:
-            logger.info(f'Row with {input} exists')
+            logger.info(f"Row with {valueName}={input} exists")
             return True
         else:
-            logger.info(f'Row with {input} NOT exists')
+            logger.info(f"Row with {valueName}={input} NOT exists")
             return False
     except Exception as e:
         logger.exception(e)
         return None
 @require_cursor
-def remove(cursor=None, tableName=None, input=None):
-    logger.info(f'Removing row from "{tableName}" with input={input}...')
+def remove(cursor=None, tableName=None, ID=None):
+    logger.info(f'Removing row from "{tableName}" with ID={ID}...')
+
+    if not isExists(cursor=cursor, tableName=tableName, input=ID):
+        logger.error(f"Row {ID} not exists")
+        return False
+    sql_query = f"DELETE FROM {tableName} WHERE rowid = ?"
+
     try:
-        if not isExists(cursor=cursor, tableName=tableName, input=input):
-            Exception(f"Row not exists")
-        elif isinstance(input, int):
-            cursor.execute(f"DELETE FROM {tableName} WHERE rowid = {input}")
+        if isinstance(ID, int):
+            cursor.execute(sql_query, (ID,))
             logger.info("Successfully removed row")
-            return True
-        elif isinstance(input, str):
-            cursor.execute(f'DELETE FROM {tableName} WHERE name = "{input}"')
-            logger.info("Successfully removed row with")
             return True
         else:
             Exception("Invalid input type")
@@ -109,11 +109,14 @@ def remove(cursor=None, tableName=None, input=None):
 @require_cursor
 def removeList(cursor=None, tableName=None, input=None):
     logger.info("Removing many rows from list...")
+
+    if not isinstance(input, list) or len(input) == 0:
+        logger.error("Invalid input type or empty list")
+        return False
+
     try:
-        if not isinstance(input, list):
-            Exception("Invalid input type")
         for item in input:
-            remove(cursor=cursor, tableName=tableName, input=item)
+            remove(cursor=cursor, tableName=tableName, ID=item)
         logger.info("Successfully removed many rows")
         return True
     except Exception as e:
@@ -121,26 +124,19 @@ def removeList(cursor=None, tableName=None, input=None):
         return False
 def add(cursor=None, tableName=None, input=None):
     logger.info(f'Adding row to "{tableName}" with input={input}...')
+    if not isinstance(input, list) or len(input) == 0:
+        logger.error("Invalid input type or empty list")
+        return False
+
+    placeholders = ['?'] * len(input)
+    placeholders_str = "(" + ", ".join(placeholders) + ")"
+
+    sql_query = f"INSERT INTO {tableName} VALUES {placeholders_str}"
+
     try:
-        if isinstance(input, list) and len(input) >= 1:
-            val = ""
-            for item in input:
-                valConverted = None
-                if isinstance(item, str):
-                    valConverted = '"' + item + '"'
-                elif isinstance(item, int) or isinstance(item, float):
-                    valConverted = str(item)
-                else: continue
-                if val == "":
-                    val += valConverted
-                    continue
-                else:
-                    val += ", " + valConverted
-            cursor.execute(f"INSERT INTO {tableName} VALUES ({val})")
-            logger.info("Successfully added row")
-            return True
-        else:
-            Exception("Invalid input type or list size")
+        cursor.execute(sql_query, input)
+        logger.info("Successfully added row")
+        return True
     except Exception as e:
         logger.exception(e)
         return False

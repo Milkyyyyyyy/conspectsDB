@@ -1,27 +1,17 @@
-from code.database.repo import facultRepo
 from code.database.repo import queries
 from code.database.classes import chairClass
 
 TABLE_NAME = 'chairs'
 
-def getAll(cursor=None):
-    return queries.getAll(cursor=cursor, tableName=TABLE_NAME)
-def get(cursor=None, input=None):
-   return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
-# def getAllWithFacult(cursor=None, facultID=None):
-#     if not databaseUtil.checkCursor(cursor):
-#         print("Set cursor variable")
-#         return None
-#     if not isinstance(facultID, int):
-#         return None
-#     if facultRepo.isExists(cursor=cursor, facultID=facultID):
-#         cursor.execute(f"SELECT * FROM chairs WHERE facult_id = {facultID}")
-#         output = cursor.fetchall()
-#         return output
-#     else:
-#         return None
+def getAll(cursor=None, value=None, valueName=None):
+    return queries.getAll(cursor=cursor, tableName=TABLE_NAME, value=value, valueName=valueName)
+def get(cursor=None, ID=None, name=None):
+    if not ID is None:
+        return queries.get(cursor=cursor, tableName=TABLE_NAME, input=ID)
+    elif not name is None:
+        return queries.get(cursor=cursor, tableName=TABLE_NAME, input=name, valueName="name")
 def getObject(cursor=None, chairID=None):
-    return chairClass.Chair(get(cursor=cursor, input=chairID))
+    return chairClass.Chair(get(cursor=cursor, ID=chairID))
 def isExists(cursor=None, input=None):
     return queries.isExists(cursor=cursor, tableName=TABLE_NAME, input=input)
 def add(cursor=None, name=None, facultID=None):
