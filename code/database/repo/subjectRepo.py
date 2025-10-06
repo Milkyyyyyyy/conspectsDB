@@ -1,4 +1,3 @@
-from code.database import databaseUtil
 from code.database.repo import directionRepo
 from code.database.repo import queries
 from code.database.classes import subjectClass
@@ -9,55 +8,14 @@ def getAll(cursor=None):
 def get(cursor=None, input=None):
    return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
 def getObject(cursor=None, subjectID=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return None
-    if not isinstance(subjectID, int):
-        return None
-    subjectObject = subjectClass.Subject(cursor=cursor, subjectID=subjectID)
-    return subjectObject
-def isExists(cursor=None, subjectID=None, name=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return False
-    if not isinstance(subjectID, int) and not isinstance(name, str):
-        return False
-    output = None
-    if isinstance(subjectID, int):
-        output = get(cursor=cursor, subjectID=subjectID)
-    elif isinstance(name, str):
-        output = get(cursor=cursor, name=name)
-    if output is not None:
-        return True
-    else:
-        return False
+    return subjectClass.Subject(get(cursor=cursor, input=subjectID))
+def isExists(cursor=None, input=None):
+    return queries.isExists(cursor=cursor, tableName=TABLE_NAME, input=input)
 def add(cursor=None, directionID=None, name=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
+    if isExists(cursor=cursor, input=name):
         return False
-    if isExists(cursor=cursor, name=name) or not directionRepo.isExists(cursor=cursor, directionID=directionID):
-        print("Subject already exists or direction not exists")
-        return False
-    if isinstance(directionID, int) and isinstance(name, str):
-        cursor.execute(f'INSERT INTO subjects VALUES ({directionID}, "{name}")')
-        return True
-    else:
-        return False
-def remove(cursor=None, subjectID=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return False
-    if isinstance(subjectID, int) and isExists(subjectID=subjectID):
-        cursor.execute(f"DELETE FROM subjects WHERE rowid = {subjectID}")
-        return True
-    else:
-        return False
+    return queries.add(cursor=cursor, tableName=TABLE_NAME, input=[directionID, name])
+def remove(cursor=None, input=None):
+    return queries.remove(cursor=cursor, tableName=TABLE_NAME, input=input)
 def removeList(cursor=None, idList=None):
-    if not databaseUtil.checkCursor(cursor):
-        print("Set cursor variable")
-        return False
-    if isinstance(idList, list):
-        for subjectID in idList:
-            cursor.execute(f"DELETE FROM subjects WHERE rowid = {subjectID}")
-        return True
-    return False
+    return queries.remove(cursor=cursor, tableName=TABLE_NAME, input=idList)

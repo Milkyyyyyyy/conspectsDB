@@ -1,4 +1,3 @@
-from code.database import databaseUtil
 from code.database.repo import queries
 from code.database.classes import facultClass
 
@@ -8,31 +7,17 @@ def getAll(cursor=None):
 
 def get(cursor=None, input=None):
    return queries.get(cursor=cursor, tableName=TABLE_NAME, input=input)
-# def getObject(cursor=None, facultID=None):
-#     if not databaseUtil.checkCursor(cursor):
-#         print("Set cursor variable")
-#         return None
-#     if isinstance(facultID, int):
-#         facultObject = facultClass.Facult(facultID=facultID, cursor=cursor)
-#         return facultObject
-#     else:
-#         return None
+def getObject(cursor=None, facultID=None):
+    return facultClass.Facult(get(cursor=cursor, input=facultID))
 def isExists(cursor=None, input=None):
     return queries.isExists(cursor=cursor, tableName=TABLE_NAME, input=input)
 
 def add(cursor=None, name=None):
+    if queries.isExists(cursor=cursor, tableName=TABLE_NAME, input=name):
+        return None
     return queries.add(cursor=cursor, tableName=TABLE_NAME, input=[name])
 
 def remove(cursor=None, facultID=None):
     return queries.remove(cursor=cursor, tableName=TABLE_NAME, input=facultID)
-# def removeList(cursor=None, idList=None):
-#     if not databaseUtil.checkCursor(cursor):
-#         print("Set cursor variable")
-#         return False
-#     if  isinstance(idList, list):
-#         for facultID in idList:
-#             if not isExists(cursor=cursor, input=facultID):
-#                 continue
-#             cursor.execute(f"DELETE FROM facults WHERE rowid = {facultID}")
-#         return True
-#     return False
+def removeList(cursor=None, IDList=None):
+    return queries.removeList(cursor=cursor, tableName=TABLE_NAME, input=IDList)

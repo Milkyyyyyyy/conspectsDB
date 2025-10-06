@@ -1,10 +1,6 @@
-from code.database.repo import subjectRepo, directionRepo
-
-
 class Subject:
-    def __init__(self, subjectID=None, cursor=None):
-        subjectTuple = subjectRepo.get(cursor=cursor, subjectID=subjectID)
-        if subjectTuple is None:
+    def __init__(self, subjectTuple=None):
+        if not isinstance(subjectTuple, tuple):
             self.id = None
             self.directionID = None
             self.name = None
@@ -16,10 +12,6 @@ class Subject:
         return self.id
     def getDirectionID(self):
         return self.directionID
-    # def getChairID(self):
-    #     return directionRepo.getObject(cursor=cursor, directionID=.getDirectionID()).getChairID()
-    # def getFacultID(self):
-    #     return dbProcessing.getDirection(self.getDirectionID()).getFacultID()
     def getName(self):
         return self.name
 

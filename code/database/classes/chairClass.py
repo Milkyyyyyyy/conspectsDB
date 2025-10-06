@@ -1,9 +1,6 @@
-from code.database.repo import chairRepo
-
 class Chair:
-    def __init__(self, chairID=None, cursor=None):
-        chair_tuple = chairRepo.get(cursor=cursor, chairID=chairID)
-        if chair_tuple is None:
+    def __init__(self, chair_tuple=None):
+        if not isinstance(chair_tuple, tuple):
             self.id = None
             self.name = None
             self.facult_id = None

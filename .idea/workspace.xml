@@ -5,16 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
-      <change afterPath="$PROJECT_DIR$/logs/app.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/databaseUtil.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/databaseUtil.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/dbProcessing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/Repo/queries.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/queries.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/classes/chairClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/chairClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/classes/directionClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/directionClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/classes/facultClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/facultClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/classes/subjectClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/subjectClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/databaseUtil.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/repo/chairRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/chairRepo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/repo/directionRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/directionRepo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/repo/facultRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/facultRepo.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/repo/queries.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/queries.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/database/repo/subjectRepo.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/subjectRepo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/files/database/conspects.db" beforeDir="false" afterPath="$PROJECT_DIR$/files/database/conspects.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/app.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/app.log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -155,6 +158,10 @@
       <workItem from="1759391830750" duration="636000" />
       <workItem from="1759476134897" duration="243000" />
       <workItem from="1759485021055" duration="76000" />
+      <workItem from="1759671177370" duration="1430000" />
+      <workItem from="1759748880309" duration="890000" />
+      <workItem from="1759752306954" duration="899000" />
+      <workItem from="1759753227775" duration="190000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
@@ -197,6 +204,6 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/dbProcessing_py$main.coverage" NAME="main Coverage Results" MODIFIED="1759164310331" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/conspectsDB$main.coverage" NAME="main Coverage Results" MODIFIED="1759511510463" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/conspectsDB$main.coverage" NAME="main Coverage Results" MODIFIED="1759753414409" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

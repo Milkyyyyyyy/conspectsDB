@@ -1,9 +1,8 @@
-from code.database.repo import directionRepo, chairRepo
+from code.database.repo import chairRepo
 
 class Direction:
-    def __init__(self, directionID=None, cursor=None):
-        directionTuple = directionRepo.get(cursor=cursor, directionID=directionID)
-        if directionTuple is None:
+    def __init__(self, directionTuple=None):
+        if not isinstance(directionTuple, tuple):
             self.id = None
             self.chairID = None
             self.name = None
@@ -17,6 +16,3 @@ class Direction:
         return self.id
     def getChairID(self):
         return self.chairID
-    def getFacultID(self):
-        return chairRepo.getObject(self.getChairID()).getFacultID()
-
