@@ -1,5 +1,3 @@
-from code.database.repo import chairRepo
-
 class Direction:
     def __init__(self, directionTuple=None):
         if not isinstance(directionTuple, tuple):
