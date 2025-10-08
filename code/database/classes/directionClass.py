@@ -1,5 +1,5 @@
-class Direction:
-    def __init__(self, directionTuple=None):
+class DirectionInterface:
+    def __init__(self, directionTuple:tuple = None):
         if not isinstance(directionTuple, tuple):
             self.id = None
             self.chairID = None
@@ -8,9 +8,9 @@ class Direction:
             self.id = directionTuple[0]
             self.chairID = directionTuple[1]
             self.name = directionTuple[2]
-    def getName(self):
+    def getName(self) -> str:
         return self.name
-    def getID(self):
+    def getID(self) -> int:
         return self.id
-    def getChairID(self):
+    def getChairID(self) -> int:
         return self.chairID

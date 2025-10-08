@@ -1,5 +1,5 @@
-class Subject:
-    def __init__(self, subjectTuple=None):
+class SubjectInterface:
+    def __init__(self, subjectTuple:tuple=None):
         if not isinstance(subjectTuple, tuple):
             self.id = None
             self.directionID = None

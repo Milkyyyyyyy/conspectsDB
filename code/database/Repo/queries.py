@@ -1,6 +1,6 @@
 from enum import Enum
 import re
-import logging
+from code.logging import logger
 import sqlite3
 import functools
 from typing import Union, Dict, Any, Optional, Iterable
@@ -21,14 +21,7 @@ class Tables(str, Enum):
 # Проверка идентификатора
 _SIMPLE_IDENT_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 
-# ========== Настройка логов ==========
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    filename='logs/app.log',
-    level=logging.DEBUG,
-    format='[%(asctime)s] - %(levelname)s - %(name)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+
 # ======================================
 
 def connectDB() -> Optional[sqlite3.Connection]:
