@@ -3,7 +3,7 @@ import re
 from code.logging import logger
 import sqlite3
 import functools
-from typing import Union, Dict, Any, Optional, Iterable
+from typing import Union, Dict, Any, Optional, Iterable, Tuple
 
 
 # ========== Константы ==========
@@ -46,6 +46,8 @@ def checkCursor(cursor: Union[sqlite3.Cursor] = None) -> bool:
     if isinstance(cursor, sqlite3.Cursor):
         return True
     return False
+def checkDatabase(database:sqlite3.Connection) -> bool:
+    return isinstance(database, sqlite3.Connection)
 def require_cursor(func):
     """
     Проверка наличия курсора
@@ -122,15 +124,18 @@ def _build_where_clause(filters, operator="AND"):
     where_sql = " WHERE " + f" {operator} ".join(parts)
     return where_sql, tuple(params)
 
-@require_cursor
-def getAll(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters: Dict[str, Any] = None, operator: str = "AND") -> Optional[list]:
+def getAll(
+        database:sqlite3.Connection = None,
+        table: Union[str, Enum] = None,
+        filters: Dict[str, Any] = None,
+        operator: str = "AND") -> Union[Tuple[list, sqlite3.Cursor], None]:
     """
     Возвращает все записи из таблицы, которые соответствуют заданным фильтрам
 
-    :param cursor:   qlite3.Cursor --> Курсор подключения к датабазе
-    :param table:    str, Enum     --> Название таблицы из Tables
-    :param filters:  dict, str     --> Фильтры
-    :param operator: str           --> Оператор фильтра, "AND" или "OR"
+    :param database: sqlite3.Connection --> Датабаза
+    :param table:    str, Enum          --> Название таблицы из Tables
+    :param filters:  dict, str          --> Фильтры
+    :param operator: str                --> Оператор фильтра, "AND" или "OR"
 
     :return: list --> список всех найденных записей
 
@@ -138,6 +143,15 @@ def getAll(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters
     input: getAll(cursor=cursor, table="USERS", filters = {"direction_id: "2"})
     output: список всех пользователей с ID направлением, равный 2
     """
+    # Проверка датабазы
+    try:
+        cursor = database.cursor()
+    except Exception:
+        logger.error("Invalid database connection")
+        return None
+
+    # Инициализируем курсор
+
 
     # Проверяем существует ли таблица с заданными фильтрами
     try:
@@ -156,26 +170,35 @@ def getAll(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters
         cursor.execute(sql_query, params)
         output = cursor.fetchall()
         logger.info("Successfully fetched rows")
-        return output
+        return output, cursor
     except Exception as e:
         logger.exception(e)
         return None
-@require_cursor
-def get(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters: Dict[str, Any] = None, operator: str = "AND") -> Optional[tuple]:
+def get(
+        database:sqlite3.Connection = None,
+        table: Union[str, Enum] = None,
+        filters: Dict[str, Any] = None,
+        operator: str = "AND") -> Union[Tuple[tuple, sqlite3.Cursor], None]:
     """
     Возвращает первую строку из таблицы, соответствующую заданным фильтрам
     Если фильтр пустой, то вернёт первую строку таблицы
-    :param cursor:   sqlite3.Cursor  --> Курсор подключения к датабазе
-    :param table:    enum, str       --> Название таблицы из Tables
-    :param filters:  dict            --> Фильтры поиска
-    :param operator: str             --> Оператор фильтра, "AND" или "OR"
+    :param database: sqlite3.Connection --> Датабаза
+    :param table:    enum, str          --> Название таблицы из Tables
+    :param filters:  dict               --> Фильтры поиска
+    :param operator: str                --> Оператор фильтра, "AND" или "OR"
 
-    :return: tuple --> кортеж строки
+    :return: Кортеж строки; курсор (нужен для получения названий полей)
 
     Пример использования
     input: get(cursor=cursor, table="FACULTS", filters={"name": "<NAME>"})
     output: Первая запись с заданным именем
     """
+    # Проверка датабазы
+    try:
+        cursor = database.cursor()
+    except Exception:
+        logger.error("Invalid database connection")
+        return None
 
     # Разрешаем Enum или str --> название таблицы
     try:
@@ -194,27 +217,35 @@ def get(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters: D
         cursor.execute(sql_query, params)
         output = cursor.fetchone()
         logger.info("Successfully fetched row")
-        return output
+        return output, cursor
     except Exception as e:
         logger.exception(e)
         return None
-@require_cursor
-def isExists(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, filters:Dict[str, Any] = None, operator: str = 'AND') -> Optional[bool]:
+def isExists(
+        database:sqlite3.Connection = None,
+        table:Union[str, Enum] = None,
+        filters:Dict[str, Any] = None,
+        operator: str = 'AND') -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
     """
     Возвращает True, если запись, соответствующая заданным фильтрам, существует
     Если вводные данные ошибочны, возвращает None
 
-    :param cursor:   sqlite3.Cursor  --> Курсор подключения к датабазе
-    :param table:    enum, str       --> Название таблицы из Tables
-    :param filters:  dict            --> Фильтры поиска
-    :param operator: str, None       --> Оператор фильтра, "AND" или "OR"
+    :param database: sqlite3.Connection  --> Датабаза
+    :param table:    enum, str           --> Название таблицы из Tables
+    :param filters:  dict                --> Фильтры поиска
+    :param operator: str, None           --> Оператор фильтра, "AND" или "OR"
 
-    :return: bool --> Существует ли запись, соответствующая данным фильтрам
+    :return: True или False; курсор (нужен для получения названий полей)
 
     Пример использования
     input: isExists(cursor=cursor, table="USERS", filters={"telegram_id": "abcdef"})
     output: True, если пользователь
     """
+    try:
+        cursor = database.cursor()
+    except Exception:
+        logger.error("Invalid database connection")
+        return None
 
     logger.info(f'Check if "{table}" entry exists with filters={filters}...')
 
@@ -240,23 +271,32 @@ def isExists(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, filter
             logger.info("Matching row exists")
         else:
             logger.info("No matching rows found")
-        return exists
+        return exists, cursor
     except Exception as e:
         logger.exception(e)
         return None
-@require_cursor
-def remove(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, filters:Dict[str, Any] = None, operator: str = "AND") -> bool:
+def remove(
+        database:sqlite3.Connection = None,
+        table:Union[str, Enum] = None,
+        filters:Dict[str, Any] = None,
+        operator: str = "AND") -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
     """
     Удаляет запись в датабазе, соответствующую заданным фильтрам
 
-    :param cursor:   sqlite3.Cursor  --> Курсор подключения к датабазе
-    :param table:    enum, str       --> Название таблицы из Tables
-    :param filters:  dict            --> Фильтры поиска
-    :param operator: str, None       --> Оператор фильтра, "AND" или "OR"
+    :param database: sqlite3.Connection  --> Датабаза
+    :param table:    enum, str           --> Название таблицы из Tables
+    :param filters:  dict                --> Фильтры поиска
+    :param operator: str, None           --> Оператор фильтра, "AND" или "OR"
 
-    :return: Было ли произведено удаление
+    :return: Было ли произведено удаление; курсор (нужен для получения названий полей)
     """
     logger.info(f'Removing row from "{table}" with filters={filters}...')
+
+    try:
+        cursor = database.cursor()
+    except Exception:
+        logger.error("Invalid database connection")
+        return None
 
     if not filters or not isinstance(filters, dict):
         logger.error("Invalid filter argument")
@@ -297,17 +337,25 @@ def remove(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, filters:
     except Exception as e:
         logger.exception(e)
         return False
-@require_cursor
-def removeList(cursor=None, table=None, rowids: Iterable = None) -> Optional[int]:
+def removeList(
+        database:sqlite3.Connection = None,
+        table:Union[str, Enum] = None,
+        rowids: Iterable = None) -> Union[int, Tuple[int, sqlite3.Cursor], None]:
     """
     Удаляет множество записей из датабазы
 
-    :param cursor: sqlite3.Cursor --> Курсор подключения к датабазе
-    :param table:  enum, str      --> Название таблицы из Tables
-    :param rowids: Iterable       --> Список всех rowid
+    :param database: sqlite3.Connection  --> Датабаза
+    :param table:  enum, str             --> Название таблицы из Tables
+    :param rowids: Iterable              --> Список всех rowid
 
-    :return: Кол-во удалённых записей или None
+    :return: Кол-во удалённых записей; None; курсор (нужен для получения названий полей)
     """
+
+    try:
+        cursor = database.cursor()
+    except Exception:
+        logger.error("Invalid database connection")
+        return None
 
     logger.info(f'Removing rows from "{table}": rowids={rowids}...')
 
@@ -345,21 +393,29 @@ def removeList(cursor=None, table=None, rowids: Iterable = None) -> Optional[int
         if deleted is None:
             deleted = len(rowid_list)
         logger.info("Deleted %d rows (requested %d)",  deleted, len(rowid_list))
-        return deleted
+        return deleted, cursor
     except Exception as e:
         logger.exception(e)
         return None
-@require_cursor
-def insert(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, values:Iterable = None, columns:Iterable = None) -> Union[bool, int]:
+def insert(
+        database:sqlite3.Connection = None,
+        table:Union[str, Enum] = None,
+        values:Iterable = None,
+        columns:Iterable = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
+    """
+    :param database: sqlite3.Connection  --> Датабаза
+    :param table:   enum, str            --> Название таблицы из Tables
+    :param values:  Iterable             --> Список значений
+    :param columns: Iterable             --> Список полей
+
+    :return: Истинность добавления; последний rowid, если доступен; курсор (нужен для получения названий полей)
     """
 
-    :param cursor:  sqlite3.Cursor --> Курсор подключения к датабазе
-    :param table:   enum, str      --> Название таблицы из Tables
-    :param values:  Iterable       --> Список значений
-    :param columns: Iterable       --> Список полей
-
-    :return: Истинность добавления или последний rowid, если доступен
-    """
+    try:
+        cursor = database.cursor()
+    except Exception:
+        logger.error("Invalid database connection")
+        return False
 
     logger.info(f'Inserting into "{table}": values={values}, columns={columns}')
 
@@ -410,10 +466,10 @@ def insert(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, values:I
             last_id = getattr(cursor, "lastrowid", None)
             if isinstance(last_id, int) and last_id > 0:
                 logger.info("Insert successful, lastrowid = %s", last_id)
-                return last_id
+                return last_id, cursor
             else:
                 logger.info("Insert successful (lastrowid not available, return True")
-                return True
+                return True, cursor
         except Exception as e:
             logger.exception(e)
             return False
