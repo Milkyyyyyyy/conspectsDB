@@ -21,6 +21,23 @@ def rowToDict(cursor:Cursor=None, row:tuple=None):
 		raise e
 
 def getRowNamespaces(cursor:Cursor=None, row:tuple=None):
+	"""
+
+	:param cursor: Курсор, полученный из метода из queries.py
+	:param row: Кортеж строки, полученный из метода из queries.py
+	:return: namespaces
+
+	Пример
+	response, cursor = get(...) # Здесь ты, например, получил какую-то строку из датабазы
+	# response - это основной ответ из функции get, например кортеж строки
+	# cursor - возвращаемый курсор
+	coolInterface = getRowNamespaces(cursor=cursor, row=row)
+
+	# И теперь ты можешь получать все значения вот таким образом:
+	coolInterface.rowid
+	coolInterface.name
+	coolInterface.someVariables
+	"""
 	try:
 		return SimpleNamespace(**rowToDict(cursor, row))
 	except Exception as e:
