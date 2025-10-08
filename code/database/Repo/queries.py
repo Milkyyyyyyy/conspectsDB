@@ -34,6 +34,7 @@ logging.basicConfig(
 def connectDB() -> Optional[sqlite3.Connection]:
     """
     Возвращает датабазу conspects.db
+    :return: sqlite3.Connection
     """
     logger.info('Connecting to database...')
     try:
@@ -46,14 +47,15 @@ def connectDB() -> Optional[sqlite3.Connection]:
 def checkCursor(cursor: Union[sqlite3.Cursor] = None) -> bool:
     """
     Возвращает True, если cursor валидный
+    :param cursor: sqlite3.Cursor --> курсор подключения к датабазе
+    :return: bool
     """
     if isinstance(cursor, sqlite3.Cursor):
         return True
     return False
 def require_cursor(func):
     """
-    :param func:
-    :return:
+    Проверка наличия курсора
     """
     @functools.wraps(func)
     def wrapper(cursor, *args, **kwargs):
@@ -86,7 +88,7 @@ def _resolve_table(table: Union[str, Enum]) -> str:
     Возвращает название таблицы из enum Tables
     """
     if table is None:
-        raise ValueError("table must be provided")
+        raise ValueError("Table must be provided")
 
     # Если передан Enum: используем его value
     if isinstance(table, Enum):
@@ -131,6 +133,17 @@ def _build_where_clause(filters, operator="AND"):
 def getAll(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters: Dict[str, Any] = None, operator: str = "AND") -> Optional[list]:
     """
     Возвращает все записи из таблицы, которые соответствуют заданным фильтрам
+
+    :param cursor:   qlite3.Cursor --> Курсор подключения к датабазе
+    :param table:    str, Enum     --> Название таблицы из Tables
+    :param filters:  dict, str     --> Фильтры
+    :param operator: str           --> Оператор фильтра, "AND" или "OR"
+
+    :return: list --> список всех найденных записей
+
+    Пример использования
+    input: getAll(cursor=cursor, table="USERS", filters = {"direction_id: "2"})
+    output: список всех пользователей с ID направлением, равный 2
     """
 
     # Проверяем существует ли таблица с заданными фильтрами
@@ -155,10 +168,22 @@ def getAll(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters
         logger.exception(e)
         return None
 @require_cursor
-def get(cursor=None, table: Union[str, Enum] = None, input:Union[int, str, float]=None, valueName: str = "rowid", filters: Dict[str, Any] = None) -> Optional[tuple]:
+def get(cursor:sqlite3.Cursor = None, table: Union[str, Enum] = None, filters: Dict[str, Any] = None, operator: str = "AND") -> Optional[tuple]:
     """
-    Возвращает одну единственную запись из таблицы, соответствующую заданным фильтрам
+    Возвращает первую строку из таблицы, соответствующую заданным фильтрам
+    Если фильтр пустой, то вернёт первую строку таблицы
+    :param cursor:   sqlite3.Cursor  --> Курсор подключения к датабазе
+    :param table:    enum, str       --> Название таблицы из Tables
+    :param filters:  dict            --> Фильтры поиска
+    :param operator: str             --> Оператор фильтра, "AND" или "OR"
+
+    :return: tuple --> кортеж строки
+
+    Пример использования
+    input: get(cursor=cursor, table="FACULTS", filters={"name": "<NAME>"})
+    output: Первая запись с заданным именем
     """
+
     # Разрешаем Enum или str --> название таблицы
     try:
         table_sql = _resolve_table(table)
@@ -166,26 +191,12 @@ def get(cursor=None, table: Union[str, Enum] = None, input:Union[int, str, float
         logger.exception("Invalid table argument")
         return None
 
-    # Если заданы фильтры, используем их
-    if filters:
-        logger.info(f'Getting single row from "{table_sql}" with filters={filters}...')
-        where_sql, params = _build_where_clause(filters, operator="AND")
-    # В ином случае используем стандратный старый интерфейс (input - значение, valueName - название значения)
-    else:
-        if input is None:
-            logger.error("Invalid input: None")
-            return False
-        try:
-            value_col = _safe_identifier(valueName)
-        except Exception:
-            logger.exception("Invalid column name for valueName")
-            return None
-        where_sql = f" WHERE {value_col} = ?"
-        params = (input,)
+    logger.info(f'Getting single row from "{table_sql}" with filters={filters}...')
 
     # Собираем запрос SQL
-    sql_query = f"SELECT rowid, * FROM {table_sql}{where_sql}"
     try:
+        where_sql, params = _build_where_clause(filters or {}, operator=operator)
+        sql_query = f"SELECT rowid, * FROM {table_sql} {where_sql}"
         logger.debug("SQL: %s -- params=%s", sql_query, params)
         cursor.execute(sql_query, params)
         output = cursor.fetchone()
@@ -195,7 +206,23 @@ def get(cursor=None, table: Union[str, Enum] = None, input:Union[int, str, float
         logger.exception(e)
         return None
 @require_cursor
-def isExists(cursor=None, table=None, filters: dict = None, operator: str = 'AND'):
+def isExists(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, filters:Dict[str, Any] = None, operator: str = 'AND') -> Optional[bool]:
+    """
+    Возвращает True, если запись, соответствующая заданным фильтрам, существует
+    Если вводные данные ошибочны, возвращает None
+
+    :param cursor:   sqlite3.Cursor  --> Курсор подключения к датабазе
+    :param table:    enum, str       --> Название таблицы из Tables
+    :param filters:  dict            --> Фильтры поиска
+    :param operator: str, None       --> Оператор фильтра, "AND" или "OR"
+
+    :return: bool --> Существует ли запись, соответствующая данным фильтрам
+
+    Пример использования
+    input: isExists(cursor=cursor, table="USERS", filters={"telegram_id": "abcdef"})
+    output: True, если пользователь
+    """
+
     logger.info(f'Check if "{table}" entry exists with filters={filters}...')
 
     try:
@@ -225,7 +252,17 @@ def isExists(cursor=None, table=None, filters: dict = None, operator: str = 'AND
         logger.exception(e)
         return None
 @require_cursor
-def remove(cursor=None, table=None, filters: Optional[Dict[str, Any]] = None, operator: str = "AND"):
+def remove(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, filters:Dict[str, Any] = None, operator: str = "AND") -> bool:
+    """
+    Удаляет запись в датабазе, соответствующую заданным фильтрам
+
+    :param cursor:   sqlite3.Cursor  --> Курсор подключения к датабазе
+    :param table:    enum, str       --> Название таблицы из Tables
+    :param filters:  dict            --> Фильтры поиска
+    :param operator: str, None       --> Оператор фильтра, "AND" или "OR"
+
+    :return: Было ли произведено удаление
+    """
     logger.info(f'Removing row from "{table}" with filters={filters}...')
 
     if not filters or not isinstance(filters, dict):
@@ -268,7 +305,17 @@ def remove(cursor=None, table=None, filters: Optional[Dict[str, Any]] = None, op
         logger.exception(e)
         return False
 @require_cursor
-def removeList(cursor=None, table=None, rowids: Iterable = None):
+def removeList(cursor=None, table=None, rowids: Iterable = None) -> Optional[int]:
+    """
+    Удаляет множество записей из датабазы
+
+    :param cursor: sqlite3.Cursor --> Курсор подключения к датабазе
+    :param table:  enum, str      --> Название таблицы из Tables
+    :param rowids: Iterable       --> Список всех rowid
+
+    :return: Кол-во удалённых записей или None
+    """
+
     logger.info(f'Removing rows from "{table}": rowids={rowids}...')
 
     if rowids is None:
@@ -309,32 +356,24 @@ def removeList(cursor=None, table=None, rowids: Iterable = None):
     except Exception as e:
         logger.exception(e)
         return None
-# def add(cursor=None, tableName=None, input=None):
-#     logger.info(f'Adding row to "{tableName}" with input={input}...')
-#     if not isinstance(input, list) or len(input) == 0:
-#         logger.error("Invalid input type or empty list")
-#         return False
-#
-#     placeholders = ['?'] * len(input)
-#     placeholders_str = "(" + ", ".join(placeholders) + ")"
-#
-#     sql_query = f"INSERT INTO {tableName} VALUES {placeholders_str}"
-#
-#     try:
-#         cursor.execute(sql_query, input)
-#         logger.info("Successfully added row")
-#         return True
-#     except Exception as e:
-#         logger.exception(e)
-#         return False
 @require_cursor
-def insert(cursor=None, table = None, values = None, columns = None):
+def insert(cursor:sqlite3.Cursor = None, table:Union[str, Enum] = None, values:Iterable = None, columns:Iterable = None) -> Union[bool, int]:
+    """
+
+    :param cursor:  sqlite3.Cursor --> Курсор подключения к датабазе
+    :param table:   enum, str      --> Название таблицы из Tables
+    :param values:  Iterable       --> Список значений
+    :param columns: Iterable       --> Список полей
+
+    :return: Истинность добавления или последний rowid, если доступен
+    """
+
     logger.info(f'Inserting into "{table}": values={values}, columns={columns}')
 
     if values is None:
         logger.error("Values must be provided")
-        return None
-
+        return False
+    vals = tuple()
     try:
         vals = tuple(values)
     except Exception:
@@ -342,13 +381,13 @@ def insert(cursor=None, table = None, values = None, columns = None):
 
     if len(vals) == 0:
         logger.error("Values must contain at least one value")
-        return None
+        return False
 
     try:
         table_sql = _resolve_table(table)
     except Exception:
         logger.exception("Invalid table argument")
-        return None
+        return False
 
     columns_sql = ""
     if columns is not None:
@@ -356,18 +395,18 @@ def insert(cursor=None, table = None, values = None, columns = None):
             cols = list(columns)
         except Exception:
             logger.exception("Columns must be an iterable of strings")
-            return None
+            return False
 
         if len(cols) != len(vals):
             logger.error(f'Number of columns ({len(cols)}) does not match number of values ({len(vals)})')
-            return None
+            return False
 
         try:
             safe_cols = ", ".join(_safe_identifier(c) for c in cols)
             columns_sql = f"({safe_cols})"
         except Exception:
             logger.exception("Invalid column name in columns")
-            return None
+            return False
 
         try:
             placeholders = ", ".join("?" for _ in vals)
@@ -384,4 +423,4 @@ def insert(cursor=None, table = None, values = None, columns = None):
                 return True
         except Exception as e:
             logger.exception(e)
-            return None
+            return False
