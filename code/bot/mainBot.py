@@ -27,14 +27,4 @@ async def registerUser(message):
         return
     else:
         await bot.send_message(chatID, "Запускаю процесс регистрации...")
-        # name = bot.register_next_step_handler(message, registerUser)
-        # await bot.send_message(chatID, name)
     database.close()
-
-# async def getName(message):
-#     chatID = message.chat.id
-#     await bot.send_message(chatID, "Введи своё имя")
-#     userName = message.text
-#     await bot.send_message(chatID, f"Приятно познакомиться, {userName}")
-#     return userName
-# asyncio.run(bot.infinity_polling())

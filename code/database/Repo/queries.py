@@ -75,7 +75,6 @@ def _safe_identifier(name: str, allow_quoted: bool = True) -> str:
             raise ValueError("Invalid identifier (null byte)")
         escaped = name.replace('"', '""')
         return f'"{escaped}"'
-
     raise ValueError(f"Invalid SQL identifier: {name!r}")
 
 def _resolve_table(table: Union[str, Enum]) -> str:
@@ -106,8 +105,20 @@ def _build_where_clause(filters, operator="AND"):
 
     parts = []
     params = []
-    for col, val in filters.items():
+    for col, specs in filters.items():
         _validate_identifier(col)
+        op = "="
+        if not isinstance(specs, (list, tuple)):
+            val = specs
+        else:
+            if specs[0] in ("LIKE", "ILIKE", "IN", "BETWEEN", "STARTS_WITH", "ENDS_WITH", "CONTAINS"):
+                val = specs[1]
+                op = specs[0]
+            else:
+                val = specs
+                op = "="
+
+        print(specs, val, op)
         if val is None:
             parts.append(f"{col} IS NULL")
         elif isinstance(val, (list, tuple)):
@@ -116,9 +127,10 @@ def _build_where_clause(filters, operator="AND"):
             else:
                 placeholders = ", ".join("?" for _ in val)
                 parts.append(f"{col} IN ({placeholders})")
+                print(parts)
                 params.extend(val)
         else:
-            parts.append(f"{col} = ?")
+            parts.append(f"{col} {op} ?")
             params.append(val)
 
     where_sql = " WHERE " + f" {operator} ".join(parts)
@@ -143,15 +155,12 @@ def getAll(
     input: getAll(cursor=cursor, table="USERS", filters = {"direction_id: "2"})
     output: список всех пользователей с ID направлением, равный 2
     """
-    # Проверка датабазы
+    # Проверка датабазы и инициализация курсора
     try:
         cursor = database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
-
-    # Инициализируем курсор
-
 
     # Проверяем существует ли таблица с заданными фильтрами
     try:
@@ -167,6 +176,8 @@ def getAll(
         where_sql, params = _build_where_clause(filters or {}, operator)
         sql_query = f"SELECT rowid, * FROM {table_sql}{where_sql}"
         logger.debug("SQL: %s -- params=%s", sql_query, params)
+
+        # Выполняем запрос SQL
         cursor.execute(sql_query, params)
         output = cursor.fetchall()
         logger.info("Successfully fetched rows")
@@ -193,7 +204,7 @@ def get(
     input: get(cursor=cursor, table="FACULTS", filters={"name": "<NAME>"})
     output: Первая запись с заданным именем
     """
-    # Проверка датабазы
+    # Проверка датабазы и инициализация курсора
     try:
         cursor = database.cursor()
     except Exception:
@@ -214,6 +225,8 @@ def get(
         where_sql, params = _build_where_clause(filters or {}, operator=operator)
         sql_query = f"SELECT rowid, * FROM {table_sql} {where_sql}"
         logger.debug("SQL: %s -- params=%s", sql_query, params)
+
+        # Выполняем запрос SQL
         cursor.execute(sql_query, params)
         output = cursor.fetchone()
         logger.info("Successfully fetched row")
@@ -241,6 +254,7 @@ def isExists(
     input: isExists(cursor=cursor, table="USERS", filters={"telegram_id": "abcdef"})
     output: True, если пользователь
     """
+    # Проверка датабазы и инициализация курсора
     try:
         cursor = database.cursor()
     except Exception:
@@ -249,21 +263,25 @@ def isExists(
 
     logger.info(f'Check if "{table}" entry exists with filters={filters}...')
 
+    # Решаем str или enum в таблицу SQL
     try:
         table_sql = _resolve_table(table)
     except Exception:
         logger.exception("Invalid table argument")
         return None
 
+    # Проверяем, заданы ли фильтры
     if not filters or not isinstance(filters, dict):
         logger.error("Invalid filter argument")
-        return False
+        return None
 
     try:
+        # Собираем запрос SQL
         where_sql, params = _build_where_clause(filters, operator)
-
         sql_query = f'SELECT 1 FROM {table_sql}{where_sql} LIMIT 1'
         logger.debug("SQL: %s -- params=%s", sql_query, params)
+
+        # Выполняем запрос SQL
         cursor.execute(sql_query, params)
         output = cursor.fetchone()
         exists = output is not None
@@ -292,31 +310,33 @@ def remove(
     """
     logger.info(f'Removing row from "{table}" with filters={filters}...')
 
+    # Проверка датабазы и инициализация курсора
     try:
         cursor = database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
 
+    # Проверка наличия фильтра
     if not filters or not isinstance(filters, dict):
         logger.error("Invalid filter argument")
         return False
 
+    # Решаем str или enum в таблицу SQL
     try:
         table_sql = _resolve_table(table)
     except Exception:
         logger.exception("Invalid table argument")
         return False
 
+    # Находим строку в таблице
     try:
+        # Собираем запрос SQL
         where_sql, params = _build_where_clause(filters, operator)
-    except Exception:
-        logger.exception("Invalid filter argument")
-        return False
-
-    try:
         select_sql = f"SELECT rowid from {table_sql} {where_sql} LIMIT 1"
         logger.debug("SQL (select rowid): %s -- params=%s", select_sql, params)
+
+        # Выполняем запрос SQL
         cursor.execute(select_sql, params)
         row = cursor.fetchone()
         if row is None:
@@ -328,9 +348,13 @@ def remove(
         logger.exception(e)
         return False
 
+    # Удаляем строку
     try:
+        # Собираем SQL запрос
         delete_sql = f"DELETE FROM {table_sql} WHERE rowid = ?"
         logger.debug("SQL (delete): %s -- params=%s", delete_sql, (rowid, ))
+
+        # Выполняем SQL запрос
         cursor.execute(delete_sql, (rowid,))
         logger.info("Successfully deleted row")
         return True
