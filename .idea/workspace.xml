@@ -5,13 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/9b0d492e-cdb3-4edc-b99a-27785a798bc0.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/9b0d492e-cdb3-4edc-b99a-27785a798bc0.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/bot/mainBot.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/bot/mainBot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/database/Repo/queries.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/Repo/queries.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/files/database/conspects.db" beforeDir="false" afterPath="$PROJECT_DIR$/files/database/conspects.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/app.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/app.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/repo/queries.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/queries.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,6 +165,9 @@
       <workItem from="1759994256922" duration="646000" />
       <workItem from="1760013709358" duration="308000" />
       <workItem from="1760026961553" duration="2257000" />
+      <workItem from="1760195678039" duration="59000" />
+      <workItem from="1761072869391" duration="257000" />
+      <workItem from="1761073270586" duration="562000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
