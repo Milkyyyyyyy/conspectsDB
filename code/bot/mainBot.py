@@ -1,3 +1,6 @@
+# TODO
+# ! Почистить говнокод в process_facult
+
 import asyncio
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
