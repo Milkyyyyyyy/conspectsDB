@@ -10,19 +10,19 @@ from typing import Union, Dict, Any, Optional, Iterable, Tuple
 CONSPECTS_DB = 'files/database/conspects.db'
 class Tables(str, Enum):
     FACULTS         = 'facults'
-    # name - название факультета
+    # wait_for_name - название факультета
 
     CHAIRS          = 'chairs'
     # facult_id - rowid факультета из таблицы FACULTS
-    # name - имя кафедры
+    # wait_for_name - имя кафедры
 
     DIRECTIONS = 'directions'
     # chair_id - rowid кафедры из таблицы CHAIRS
-    # name - имя направления
+    # wait_for_name - имя направления
 
     SUBJECTS = 'subjects'
     # direction_id - rowid направления из таблицы DIRECTIONS
-    # name - имя предмета
+    # wait_for_name - имя предмета
 
     CONSPECTS       = 'conspects'
     # subject_id - rowid из таблицы SUBJECTS
@@ -232,7 +232,7 @@ def get(
     :return: Кортеж строки; курсор (нужен для получения названий полей)
 
     Пример использования
-    input: get(cursor=cursor, table="FACULTS", filters={"name": "<NAME>"})
+    input: get(cursor=cursor, table="FACULTS", filters={"wait_for_name": "<NAME>"})
     output: Первая запись с заданным именем
     """
     # Проверка датабазы и инициализация курсора
@@ -509,7 +509,7 @@ def insert(
             safe_cols = ", ".join(_safe_identifier(c) for c in cols)
             columns_sql = f"({safe_cols})"
         except Exception:
-            logger.exception("Invalid column name in columns")
+            logger.exception("Invalid column wait_for_name in columns")
             return False
 
         try:

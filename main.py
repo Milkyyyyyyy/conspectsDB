@@ -18,9 +18,9 @@ bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 bot.setup_middleware(StateMiddleware(bot))
 
 class RegStates(StatesGroup):
-    name = State()
-    surname = State()
-    age = State()
+    wait_for_name = State()
+    wait_for_surname = State()
+    wait_for_age = State()
 
 @bot.message_handler(commands=['start'])
 async def start(message):
@@ -49,33 +49,33 @@ async def cmd_register(message=None, userID=None, chatID=None):
         userID = message.from_user.id
     if chatID is None:
         chatID = message.chat.id
-        
-    await bot.set_state(userID, RegStates.name, chatID)
+
+    await bot.set_state(userID, RegStates.wait_for_name, chatID)
     await bot.send_message(chatID, "Как Вас зовут? (имя)")
 
-@bot.message_handler(state=RegStates.name)
+@bot.message_handler(state=RegStates.wait_for_name)
 async def process_name(message=None):
     print(message.text)
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['name'] = message.text
+        data['wait_for_name'] = message.text
     print('setting next state')
-    await bot.set_state(message.from_user.id, RegStates.surname, message.chat.id)
+    await bot.set_state(message.from_user.id, RegStates.wait_for_surname, message.chat.id)
     await bot.send_message(message.chat.id, "А фамилия?")
 
-@bot.message_handler(state=RegStates.surname)
+@bot.message_handler(state=RegStates.wait_for_surname)
 async def process_surname(message):
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['surname'] = message.text
-    await bot.set_state(message.from_user.id, RegStates.age, message.chat.id)
+        data['wait_for_surname'] = message.text
+    await bot.set_state(message.from_user.id, RegStates.wait_for_age, message.chat.id)
     await bot.send_message(message.chat.id, "Из какой вы группы?")
 
-@bot.message_handler(state=RegStates.age)
+@bot.message_handler(state=RegStates.wait_for_age)
 async def process_age(message):
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['age'] = message.text
+        data['wait_for_age'] = message.text
         await bot.send_message(
             message.chat.id,
-            f"Регистрация завершена: {data['name']} {data['surname']}, {data['age']}"
+            f"Регистрация завершена: {data['wait_for_name']} {data['wait_for_surname']}, {data['wait_for_age']}"
         )
     # очищаем состояние
     await bot.delete_state(message.from_user.id, message.chat.id)

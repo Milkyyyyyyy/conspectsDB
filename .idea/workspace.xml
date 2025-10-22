@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96b4dba-cd5b-4b50-b114-3b77fb1eff9d" name="Changes" comment="Добавил дополнительные функции для факультетов">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/classes/namespaced.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/classes/namespaced.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/database/repo/queries.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/database/repo/queries.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/logging.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/logging.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -167,6 +170,7 @@
       <workItem from="1760195678039" duration="59000" />
       <workItem from="1761072869391" duration="257000" />
       <workItem from="1761073270586" duration="1437000" />
+      <workItem from="1761147425574" duration="2724000" />
     </task>
     <task id="LOCAL-00001" summary="Комментарии">
       <option name="closed" value="true" />
@@ -208,7 +212,7 @@
     <option name="LAST_COMMIT_MESSAGE" value="Добавил дополнительные функции для факультетов" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/conspectsDB$main.coverage" NAME="main Coverage Results" MODIFIED="1759953398857" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/dbProcessing_py$main.coverage" NAME="main Coverage Results" MODIFIED="1760032395349" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/conspectsDB$main.coverage" NAME="main Coverage Results" MODIFIED="1761149845865" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
