@@ -1,339 +1,488 @@
-[2025-10-09 21:36:05] - INFO - code.logging - Starts application...
-[2025-10-09 21:36:05] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:36:05] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:36:05] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:36:05] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:36:05] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:36:05] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:36:05] - ERROR - code.logging - name 'vel' is not defined
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 177, in getAll
-    where_sql, params = _build_where_clause(filters or {}, operator)
-                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 122, in _build_where_clause
-    print(specs, vel, op)
-                 ^^^
-NameError: name 'vel' is not defined. Did you mean: 'val'?
-[2025-10-09 21:36:25] - INFO - code.logging - Starts application...
-[2025-10-09 21:36:25] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:36:25] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:36:25] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:36:25] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:36:25] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:36:25] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:36:25] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name = ? -- params=('é',)
-[2025-10-09 21:36:25] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:36:48] - INFO - code.logging - Starts application...
-[2025-10-09 21:36:48] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:36:48] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:36:48] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:36:48] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:36:48] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:36:48] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:36:48] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name = ? -- params=('é',)
-[2025-10-09 21:36:48] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:37:40] - INFO - code.logging - Starts application...
-[2025-10-09 21:37:40] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:37:40] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:37:40] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:37:40] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:37:40] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:37:40] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:37:40] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name = ? -- params=('é',)
-[2025-10-09 21:37:40] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:41:48] - INFO - code.logging - Starts application...
-[2025-10-09 21:41:48] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:41:48] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:41:48] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:41:48] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:41:48] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:41:48] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:41:48] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name STARTS_WITH ? -- params=('é',)
-[2025-10-09 21:41:48] - ERROR - code.logging - near "STARTS_WITH": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 181, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "STARTS_WITH": syntax error
-[2025-10-09 21:42:16] - INFO - code.logging - Starts application...
-[2025-10-09 21:42:16] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:42:16] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:42:16] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:42:16] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:42:16] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:42:16] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:42:16] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name STARTS_WITH ? -- params=('é',)
-[2025-10-09 21:42:16] - ERROR - code.logging - near "STARTS_WITH": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 182, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "STARTS_WITH": syntax error
-[2025-10-09 21:42:29] - INFO - code.logging - Starts application...
-[2025-10-09 21:42:29] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:42:29] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:42:29] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:42:29] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:42:29] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:42:29] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:42:29] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name STARTS_WITH ? -- params=('é',)
-[2025-10-09 21:42:29] - ERROR - code.logging - near "STARTS_WITH": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 182, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "STARTS_WITH": syntax error
-[2025-10-09 21:43:41] - INFO - code.logging - Starts application...
-[2025-10-09 21:43:41] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:43:41] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:43:41] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:43:41] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:43:41] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:43:41] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:43:41] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name STARTS_WITH ? -- params=('é',)
-[2025-10-09 21:43:41] - ERROR - code.logging - near "STARTS_WITH": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 182, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "STARTS_WITH": syntax error
-[2025-10-09 21:43:57] - INFO - code.logging - Starts application...
-[2025-10-09 21:43:57] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:43:57] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:43:57] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:43:57] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:43:57] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:43:57] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:43:57] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name STARTS_WITH ? -- params=('é',)
-[2025-10-09 21:43:57] - ERROR - code.logging - near "STARTS_WITH": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 182, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "STARTS_WITH": syntax error
-[2025-10-09 21:44:22] - INFO - code.logging - Starts application...
-[2025-10-09 21:44:22] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:44:22] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:44:22] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:44:22] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:44:22] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:44:22] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('STARTS_WITH', 'é')}...
-[2025-10-09 21:44:22] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name STARTS_WITH ? -- params=('é',)
-[2025-10-09 21:44:22] - ERROR - code.logging - near "STARTS_WITH": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 182, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "STARTS_WITH": syntax error
-[2025-10-09 21:45:51] - INFO - code.logging - Starts application...
-[2025-10-09 21:45:51] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:45:51] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:45:51] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:45:51] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:45:51] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:45:51] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKES', 'é')}...
-[2025-10-09 21:45:51] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name IN (?, ?) -- params=('LIKES', 'é')
-[2025-10-09 21:45:51] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:45:59] - INFO - code.logging - Starts application...
-[2025-10-09 21:45:59] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:45:59] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:45:59] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:45:59] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:45:59] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:45:59] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', 'é')}...
-[2025-10-09 21:45:59] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('é',)
-[2025-10-09 21:45:59] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:46:53] - INFO - code.logging - Starts application...
-[2025-10-09 21:46:53] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:46:53] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:46:53] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:46:53] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:46:53] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:46:53] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', 'é%')}...
-[2025-10-09 21:46:53] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('é%',)
-[2025-10-09 21:46:53] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:12] - INFO - code.logging - Starts application...
-[2025-10-09 21:47:12] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:47:12] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:47:12] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:47:12] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:47:12] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:12] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%')}...
-[2025-10-09 21:47:12] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%',)
-[2025-10-09 21:47:12] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:13] - INFO - code.logging - Starts application...
-[2025-10-09 21:47:13] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:47:13] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:47:13] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:47:13] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:47:13] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:13] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%')}...
-[2025-10-09 21:47:13] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%',)
-[2025-10-09 21:47:13] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:14] - INFO - code.logging - Starts application...
-[2025-10-09 21:47:14] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:47:14] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:47:14] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:47:14] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:47:14] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:14] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%')}...
-[2025-10-09 21:47:14] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%',)
-[2025-10-09 21:47:14] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:24] - INFO - code.logging - Starts application...
-[2025-10-09 21:47:24] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:47:24] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:47:24] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:47:24] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:47:24] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:24] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', 'Éà%')}...
-[2025-10-09 21:47:24] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('Éà%',)
-[2025-10-09 21:47:24] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:29] - INFO - code.logging - Starts application...
-[2025-10-09 21:47:29] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:47:29] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:47:29] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:47:29] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:47:29] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:47:29] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', 'É%')}...
-[2025-10-09 21:47:29] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('É%',)
-[2025-10-09 21:47:29] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:48:39] - INFO - code.logging - Starts application...
-[2025-10-09 21:48:39] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:48:39] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:48:39] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:48:39] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:48:39] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:48:39] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('ILIKE', 'É%')}...
-[2025-10-09 21:48:39] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name ILIKE ? -- params=('É%',)
-[2025-10-09 21:48:39] - ERROR - code.logging - near "ILIKE": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 181, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "ILIKE": syntax error
-[2025-10-09 21:48:48] - INFO - code.logging - Starts application...
-[2025-10-09 21:48:48] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:48:48] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:48:48] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:48:48] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:48:48] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:48:48] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('ILIKE', 'É%')}...
-[2025-10-09 21:48:48] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name ILIKE ? -- params=('É%',)
-[2025-10-09 21:48:48] - ERROR - code.logging - near "ILIKE": syntax error
-Traceback (most recent call last):
-  File "C:\Users\Stas\Documents\Python\Projects\conspectsDB\code\database\repo\queries.py", line 181, in getAll
-    cursor.execute(sql_query, params)
-sqlite3.OperationalError: near "ILIKE": syntax error
-[2025-10-09 21:48:55] - INFO - code.logging - Starts application...
-[2025-10-09 21:48:55] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:48:55] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:48:55] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:48:55] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:48:55] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:48:55] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%É%')}...
-[2025-10-09 21:48:55] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%É%',)
-[2025-10-09 21:48:55] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:49:10] - INFO - code.logging - Starts application...
-[2025-10-09 21:49:10] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:49:10] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:49:10] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:49:10] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:49:10] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:49:10] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%è%')}...
-[2025-10-09 21:49:10] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%è%',)
-[2025-10-09 21:49:10] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:49:16] - INFO - code.logging - Starts application...
-[2025-10-09 21:49:16] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:49:16] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:49:16] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:49:16] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:49:16] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:49:16] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%È%')}...
-[2025-10-09 21:49:16] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%È%',)
-[2025-10-09 21:49:16] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:49:49] - INFO - code.logging - Starts application...
-[2025-10-09 21:49:49] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:49:49] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:49:49] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:49:49] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:49:49] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:49:49] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%È%')}...
-[2025-10-09 21:49:49] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%È%',)
-[2025-10-09 21:49:49] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:50:29] - INFO - code.logging - Starts application...
-[2025-10-09 21:50:29] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:50:29] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:50:29] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:50:29] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:50:29] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:50:29] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%è%')}...
-[2025-10-09 21:50:29] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%è%',)
-[2025-10-09 21:50:29] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:51:32] - INFO - code.logging - Starts application...
-[2025-10-09 21:51:32] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:51:32] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:51:32] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:51:32] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:51:32] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:51:32] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': ('LIKE', '%è?È%')}...
-[2025-10-09 21:51:32] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name LIKE ? -- params=('%è?È%',)
-[2025-10-09 21:51:32] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:53:15] - INFO - code.logging - Starts application...
-[2025-10-09 21:53:15] - INFO - code.logging - Connecting to database...
-[2025-10-09 21:53:15] - INFO - code.logging - Successfully connected to database.
-[2025-10-09 21:53:15] - INFO - code.logging - Getting rows from "CHAIRS" with filters=None...
-[2025-10-09 21:53:15] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS -- params=()
-[2025-10-09 21:53:15] - INFO - code.logging - Successfully fetched rows
-[2025-10-09 21:53:15] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': 'Èìÿ'}...
-[2025-10-09 21:53:15] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name = ? -- params=('Èìÿ',)
-[2025-10-09 21:53:15] - INFO - code.logging - Successfully fetched rows
-[2025-10-22 20:08:38] - DEBUG - asyncio - Using proactor: IocpProactor
-[2025-10-22 20:08:43] - INFO - code.logging - Connecting to database...
-[2025-10-22 20:08:43] - INFO - code.logging - Successfully connected to database.
-[2025-10-22 20:08:43] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
-[2025-10-22 20:08:43] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
-[2025-10-22 20:08:43] - INFO - code.logging - No matching rows found
-[2025-10-22 20:09:44] - ERROR - TeleBot - Infinity polling: polling exited
-[2025-10-22 20:09:44] - ERROR - TeleBot - Break infinity polling
-[2025-10-22 20:09:48] - DEBUG - asyncio - Using proactor: IocpProactor
-[2025-10-22 20:09:51] - INFO - code.logging - Connecting to database...
-[2025-10-22 20:09:51] - INFO - code.logging - Successfully connected to database.
-[2025-10-22 20:09:51] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
-[2025-10-22 20:09:51] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
-[2025-10-22 20:09:51] - INFO - code.logging - No matching rows found
-[2025-10-22 20:13:01] - ERROR - TeleBot - Infinity polling: polling exited
-[2025-10-22 20:13:01] - ERROR - TeleBot - Break infinity polling
-[2025-10-22 20:13:03] - DEBUG - asyncio - Using proactor: IocpProactor
-[2025-10-22 20:13:06] - INFO - code.logging - Connecting to database...
-[2025-10-22 20:13:06] - INFO - code.logging - Successfully connected to database.
-[2025-10-22 20:13:06] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
-[2025-10-22 20:13:06] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
-[2025-10-22 20:13:06] - INFO - code.logging - No matching rows found
-[2025-10-22 20:13:21] - ERROR - TeleBot - Infinity polling: polling exited
-[2025-10-22 20:13:21] - ERROR - TeleBot - Break infinity polling
-[2025-10-22 20:13:23] - DEBUG - asyncio - Using proactor: IocpProactor
-[2025-10-22 20:13:24] - INFO - code.logging - Connecting to database...
-[2025-10-22 20:13:24] - INFO - code.logging - Successfully connected to database.
-[2025-10-22 20:13:24] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
-[2025-10-22 20:13:24] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
-[2025-10-22 20:13:24] - INFO - code.logging - No matching rows found
-[2025-10-22 20:13:44] - ERROR - TeleBot - Infinity polling: polling exited
-[2025-10-22 20:13:44] - ERROR - TeleBot - Break infinity polling
-[2025-10-22 20:13:48] - DEBUG - asyncio - Using proactor: IocpProactor
-[2025-10-22 20:13:52] - INFO - code.logging - Connecting to database...
-[2025-10-22 20:13:52] - INFO - code.logging - Successfully connected to database.
-[2025-10-22 20:13:52] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
-[2025-10-22 20:13:52] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
-[2025-10-22 20:13:52] - INFO - code.logging - No matching rows found
-[2025-10-22 20:14:49] - ERROR - TeleBot - Infinity polling: polling exited
-[2025-10-22 20:14:49] - ERROR - TeleBot - Break infinity polling
-[2025-10-22 20:14:51] - DEBUG - asyncio - Using proactor: IocpProactor
-[2025-10-22 20:14:54] - INFO - code.logging - Connecting to database...
-[2025-10-22 20:14:54] - INFO - code.logging - Successfully connected to database.
-[2025-10-22 20:14:54] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
-[2025-10-22 20:14:54] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
-[2025-10-22 20:14:54] - INFO - code.logging - No matching rows found
-[2025-10-22 20:14:56] - ERROR - TeleBot - 'NoneType' object has no attribute 'from_user'
-[2025-10-22 20:17:25] - ERROR - TeleBot - Infinity polling: polling exited
-[2025-10-22 20:17:25] - ERROR - TeleBot - Break infinity polling
-[2025-10-22 20:17:26] - DEBUG - asyncio - Using proactor: IocpProactor
-[2025-10-22 20:17:29] - INFO - code.logging - Connecting to database...
-[2025-10-22 20:17:29] - INFO - code.logging - Successfully connected to database.
-[2025-10-22 20:17:29] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
-[2025-10-22 20:17:29] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
-[2025-10-22 20:17:29] - INFO - code.logging - No matching rows found
-[2025-10-22 20:18:00] - ERROR - TeleBot - Infinity polling: polling exited
-[2025-10-22 20:18:00] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:45:11] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:45:17] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:45:17] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:45:17] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:45:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:45:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:45:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:45:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:45:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:45:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:45:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:45:35] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:45:35] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:46:14] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:46:22] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:46:22] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:46:22] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:46:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:22] - ERROR - TeleBot - 'list' object has no attribute 'to_dict'
+[2025-10-22 22:46:33] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:46:33] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:46:35] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:46:38] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:46:38] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:46:38] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:46:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:51] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:46:51] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:46:52] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:46:56] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:46:56] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:46:56] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:46:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:46:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:46:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:27] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:47:27] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:47:28] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:47:32] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:47:32] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:47:32] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:47:32] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:47:32] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:47:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:32] - ERROR - TeleBot - 'InlineKeyboardMarkup' object is not callable
+[2025-10-22 22:47:40] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:47:40] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:47:42] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:47:45] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:47:45] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:47:45] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:47:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:47:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:47:45] - ERROR - TeleBot - 'list' object has no attribute 'to_dict'
+[2025-10-22 22:47:53] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:47:53] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:47:55] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:48:01] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:48:01] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:48:01] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:48:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:31] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:48:31] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:48:32] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:48:36] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:48:36] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:48:36] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:48:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:48:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:48:36] - ERROR - TeleBot - 'str' object has no attribute 'to_dict'
+[2025-10-22 22:49:11] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:49:11] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:49:40] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:49:45] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:49:45] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:49:45] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:49:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:45] - ERROR - TeleBot - 'str' object has no attribute 'to_dict'
+[2025-10-22 22:49:53] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:49:53] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:49:54] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:49:58] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:49:58] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:49:58] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:00] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:50:00] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:50:00] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:50:00] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:50:00] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:50:02] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:50:02] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:50:02] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:50:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:17] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:50:17] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:50:18] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:50:22] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:50:22] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:50:22] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:50:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:22] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:22] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:22] - ERROR - TeleBot - 'list' object has no attribute 'to_dict'
+[2025-10-22 22:50:45] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:50:45] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:50:46] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:50:54] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:50:54] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:50:54] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:50:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:55] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:50:55] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:50:55] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:50:55] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:50:55] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:50:57] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:50:57] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:50:57] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:50:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:50:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:50:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:10] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:51:10] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:51:12] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:51:34] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:51:34] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:51:35] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:51:39] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:51:39] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:51:39] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:51:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:41] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:51:41] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:51:41] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:51:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:42] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:51:42] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:51:42] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:51:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:51:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:51:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:30] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:52:30] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:52:31] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:52:37] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:52:37] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:52:37] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:52:37] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:37] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:37] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:37] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:37] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:37] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:37] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:38] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:52:38] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:52:38] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:52:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:40] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:52:40] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:52:40] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:52:40] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:40] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:40] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:40] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:40] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:40] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:52:40] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:52:56] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:52:56] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:52:58] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:53:03] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:53:03] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:53:03] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:53:03] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:03] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:03] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:03] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:03] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:03] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:03] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:05] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:53:05] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:53:05] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:53:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:05] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+[2025-10-22 22:53:11] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:53:11] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:53:11] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:53:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:12] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+[2025-10-22 22:53:13] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:53:13] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:53:13] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:53:13] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:13] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:13] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:13] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:13] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:13] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:13] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:13] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+[2025-10-22 22:53:14] - INFO - code.logging - Connecting to database...
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 22:53:14] - INFO - code.logging - Getting rows from "FACULTS" with filters=None...
+[2025-10-22 22:53:14] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 22:53:14] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:14] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:14] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:14] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:14] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:14] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-22 22:53:14] - INFO - code.logging - Successfully parsed columns names
+[2025-10-22 22:53:14] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+[2025-10-22 22:53:22] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:53:22] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 22:53:23] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 22:54:02] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 22:54:02] - ERROR - TeleBot - Break infinity polling

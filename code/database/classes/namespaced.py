@@ -35,9 +35,10 @@ def getRowNamespaces(cursor:Cursor=None, row:tuple=None):
 
 	# И теперь ты можешь получать все значения вот таким образом:
 	coolInterface.rowid
-	coolInterface.wait_for_name
+	coolInterface.name
 	coolInterface.someVariables
 	"""
+
 	try:
 		return SimpleNamespace(**rowToDict(cursor, row))
 	except Exception as e:
