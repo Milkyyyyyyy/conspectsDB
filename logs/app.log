@@ -280,3 +280,60 @@ sqlite3.OperationalError: near "ILIKE": syntax error
 [2025-10-09 21:53:15] - INFO - code.logging - Getting rows from "CHAIRS" with filters={'name': 'Èìÿ'}...
 [2025-10-09 21:53:15] - DEBUG - code.logging - SQL: SELECT rowid, * FROM CHAIRS WHERE name = ? -- params=('Èìÿ',)
 [2025-10-09 21:53:15] - INFO - code.logging - Successfully fetched rows
+[2025-10-22 20:08:38] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 20:08:43] - INFO - code.logging - Connecting to database...
+[2025-10-22 20:08:43] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 20:08:43] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-22 20:08:43] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-22 20:08:43] - INFO - code.logging - No matching rows found
+[2025-10-22 20:09:44] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 20:09:44] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 20:09:48] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 20:09:51] - INFO - code.logging - Connecting to database...
+[2025-10-22 20:09:51] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 20:09:51] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-22 20:09:51] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-22 20:09:51] - INFO - code.logging - No matching rows found
+[2025-10-22 20:13:01] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 20:13:01] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 20:13:03] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 20:13:06] - INFO - code.logging - Connecting to database...
+[2025-10-22 20:13:06] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 20:13:06] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-22 20:13:06] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-22 20:13:06] - INFO - code.logging - No matching rows found
+[2025-10-22 20:13:21] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 20:13:21] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 20:13:23] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 20:13:24] - INFO - code.logging - Connecting to database...
+[2025-10-22 20:13:24] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 20:13:24] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-22 20:13:24] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-22 20:13:24] - INFO - code.logging - No matching rows found
+[2025-10-22 20:13:44] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 20:13:44] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 20:13:48] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 20:13:52] - INFO - code.logging - Connecting to database...
+[2025-10-22 20:13:52] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 20:13:52] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-22 20:13:52] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-22 20:13:52] - INFO - code.logging - No matching rows found
+[2025-10-22 20:14:49] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 20:14:49] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 20:14:51] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 20:14:54] - INFO - code.logging - Connecting to database...
+[2025-10-22 20:14:54] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 20:14:54] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-22 20:14:54] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-22 20:14:54] - INFO - code.logging - No matching rows found
+[2025-10-22 20:14:56] - ERROR - TeleBot - 'NoneType' object has no attribute 'from_user'
+[2025-10-22 20:17:25] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 20:17:25] - ERROR - TeleBot - Break infinity polling
+[2025-10-22 20:17:26] - DEBUG - asyncio - Using proactor: IocpProactor
+[2025-10-22 20:17:29] - INFO - code.logging - Connecting to database...
+[2025-10-22 20:17:29] - INFO - code.logging - Successfully connected to database.
+[2025-10-22 20:17:29] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-22 20:17:29] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-22 20:17:29] - INFO - code.logging - No matching rows found
+[2025-10-22 20:18:00] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-22 20:18:00] - ERROR - TeleBot - Break infinity polling
