@@ -351,3 +351,956 @@ client_session: <aiohttp.client.ClientSession object at 0x0000023F9C8B33E0>
 [2025-10-23 10:52:00] - INFO - code.logging - Trying to get column names from cursor
 [2025-10-23 10:52:00] - INFO - code.logging - Successfully parsed columns names
 [2025-10-23 10:52:00] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+[2025-10-23 23:36:52] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:36:52] - INFO - code.logging - Starting polling...
+[2025-10-23 23:36:57] - DEBUG - code.logging - /start command
+[2025-10-23 23:36:57] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:36:57] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:36:57] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:36:57] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:36:57] - INFO - code.logging - No matching rows found
+[2025-10-23 23:37:03] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:37:03] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:37:03] - ERROR - TeleBot - cannot access local variable 'table' where it is not associated with a value
+[2025-10-23 23:37:23] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-23 23:37:23] - ERROR - TeleBot - Break infinity polling
+[2025-10-23 23:38:49] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:38:49] - INFO - code.logging - Starting polling...
+[2025-10-23 23:38:52] - DEBUG - code.logging - /start command
+[2025-10-23 23:38:52] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:38:52] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:38:52] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:38:52] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:38:52] - INFO - code.logging - No matching rows found
+[2025-10-23 23:38:55] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:38:55] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:38:55] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:38:55] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:38:55] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:38:55] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:38:55] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:38:55] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:38:55] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:38:55] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:38:55] - ERROR - TeleBot - AsyncTeleBot.send_message() missing 1 required positional argument: 'text'
+[2025-10-23 23:39:15] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-23 23:39:15] - ERROR - TeleBot - Break infinity polling
+[2025-10-23 23:39:16] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:39:16] - INFO - code.logging - Starting polling...
+[2025-10-23 23:39:16] - DEBUG - code.logging - /start command
+[2025-10-23 23:39:16] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:39:16] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:39:16] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:39:16] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:39:16] - INFO - code.logging - No matching rows found
+[2025-10-23 23:39:16] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-23 23:39:16] - ERROR - TeleBot - Break infinity polling
+[2025-10-23 23:39:19] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:39:19] - INFO - code.logging - Starting polling...
+[2025-10-23 23:39:22] - DEBUG - code.logging - /start command
+[2025-10-23 23:39:22] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:39:22] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:39:22] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:39:22] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:39:22] - INFO - code.logging - No matching rows found
+[2025-10-23 23:39:26] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:39:26] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:39:26] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:39:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:39:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:39:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:39:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:39:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:39:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:39:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:39:26] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse inline keyboard button: Text buttons are unallowed in the inline keyboard
+[2025-10-23 23:40:37] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:40:37] - INFO - code.logging - Starting polling...
+[2025-10-23 23:40:55] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:40:55] - INFO - code.logging - Starting polling...
+[2025-10-23 23:40:56] - DEBUG - code.logging - /start command
+[2025-10-23 23:40:56] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:40:56] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:40:56] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:40:56] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:40:56] - INFO - code.logging - No matching rows found
+[2025-10-23 23:41:01] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:41:01] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:41:01] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:41:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:01] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse inline keyboard button: Text buttons are unallowed in the inline keyboard
+[2025-10-23 23:41:19] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:41:19] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:41:19] - INFO - code.logging - Starting polling...
+[2025-10-23 23:41:19] - INFO - code.logging - Starting polling...
+[2025-10-23 23:41:21] - DEBUG - code.logging - /start command
+[2025-10-23 23:41:21] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:41:21] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:41:21] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:41:21] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:41:21] - INFO - code.logging - No matching rows found
+[2025-10-23 23:41:22] - ERROR - TeleBot - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2025-10-23 23:41:22] - ERROR - TeleBot - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2025-10-23 23:41:26] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:41:26] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:41:26] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:41:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:26] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse inline keyboard button: Text buttons are unallowed in the inline keyboard
+[2025-10-23 23:41:26] - ERROR - TeleBot - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2025-10-23 23:41:26] - ERROR - TeleBot - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2025-10-23 23:41:30] - ERROR - TeleBot - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2025-10-23 23:41:31] - ERROR - TeleBot - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2025-10-23 23:41:34] - ERROR - TeleBot - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2025-10-23 23:41:36] - INFO - code.logging - Interrupted by user (KeyboardInterrupt)
+[2025-10-23 23:41:46] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:41:46] - INFO - code.logging - Starting polling...
+[2025-10-23 23:41:47] - DEBUG - code.logging - /start command
+[2025-10-23 23:41:47] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:41:47] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:41:47] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:41:47] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:41:47] - INFO - code.logging - No matching rows found
+[2025-10-23 23:41:50] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:41:50] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:41:50] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:41:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:41:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:41:50] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse inline keyboard button: Text buttons are unallowed in the inline keyboard
+[2025-10-23 23:42:50] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:42:50] - INFO - code.logging - Starting polling...
+[2025-10-23 23:42:54] - DEBUG - code.logging - /start command
+[2025-10-23 23:42:54] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:42:54] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:42:54] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-23 23:42:54] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-23 23:42:54] - INFO - code.logging - No matching rows found
+[2025-10-23 23:42:58] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:42:58] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:42:58] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:42:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:42:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:42:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:42:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:42:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:42:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:42:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:42:58] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: can't parse inline keyboard button: Text buttons are unallowed in the inline keyboard
+[2025-10-23 23:46:21] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:46:21] - INFO - code.logging - Starting polling...
+[2025-10-23 23:46:28] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:46:28] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:46:28] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:46:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:46:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:46:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:46:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:46:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:46:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:46:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:49:51] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:49:51] - INFO - code.logging - Starting polling...
+[2025-10-23 23:49:58] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:49:58] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:49:58] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:49:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:49:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:50:16] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:50:16] - INFO - code.logging - Starting polling...
+[2025-10-23 23:50:20] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:50:20] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:50:20] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:50:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:50:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:50:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:50:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:50:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:50:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:50:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:50:21] - ERROR - TeleBot - decoding str is not supported
+[2025-10-23 23:50:56] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:50:56] - INFO - code.logging - Starting polling...
+[2025-10-23 23:51:01] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:51:01] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:51:01] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:51:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:01] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:01] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:11] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-23 23:51:11] - ERROR - TeleBot - Break infinity polling
+[2025-10-23 23:51:18] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:51:18] - INFO - code.logging - Starting polling...
+[2025-10-23 23:51:27] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:51:27] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:51:27] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:51:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:51:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:51:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:52:59] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:52:59] - INFO - code.logging - Starting polling...
+[2025-10-23 23:53:04] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:53:04] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:53:04] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:53:04] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:04] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:04] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:04] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:04] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:04] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:04] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:34] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:53:34] - INFO - code.logging - Starting polling...
+[2025-10-23 23:53:38] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:53:38] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:53:38] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:53:38] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:53:38] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:53:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:38] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:53:38] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:53:40] - ERROR - TeleBot - 'Message' object has no attribute 'chat_id'
+[2025-10-23 23:55:05] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:55:05] - INFO - code.logging - Starting polling...
+[2025-10-23 23:55:10] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:55:10] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:55:10] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:55:10] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:55:10] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:55:10] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:55:10] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:55:10] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:55:10] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:55:10] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:55:10] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:55:11] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:55:11] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:55:11] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:55:11] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:55:11] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:55:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:55:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:55:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:55:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:55:11] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:55:11] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:56:41] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:56:41] - INFO - code.logging - Starting polling...
+[2025-10-23 23:56:45] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:56:45] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:56:45] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:56:45] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:56:45] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:56:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:56:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:56:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:56:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:56:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:56:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:56:46] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:56:46] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:56:46] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:56:46] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:56:46] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:56:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:56:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:56:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:56:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:56:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:56:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:56:46] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message identifier is not specified
+[2025-10-23 23:57:28] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:57:28] - INFO - code.logging - Starting polling...
+[2025-10-23 23:57:32] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:57:32] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:57:32] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:57:32] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:57:32] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:57:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:33] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:57:33] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:57:33] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:57:33] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:57:33] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:57:33] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:33] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:33] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:33] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:33] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:33] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:33] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message identifier is not specified
+[2025-10-23 23:57:54] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:57:54] - INFO - code.logging - Starting polling...
+[2025-10-23 23:57:57] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:57:57] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:57:57] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:57:57] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:57:57] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:57:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:58] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:57:58] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:57:58] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:57:58] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:57:58] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:57:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:57:58] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:57:58] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:58:41] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:58:41] - INFO - code.logging - Starting polling...
+[2025-10-23 23:58:43] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:58:43] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:58:43] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:58:43] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:58:43] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:58:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:58:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:58:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:58:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:58:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:58:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:58:45] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:58:45] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:58:45] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:58:45] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:58:45] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:58:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:58:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:58:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:58:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:58:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:58:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:58:45] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message identifier is not specified
+[2025-10-23 23:59:33] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:59:33] - INFO - code.logging - Starting polling...
+[2025-10-23 23:59:39] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:59:39] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:59:39] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:59:39] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:59:39] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:59:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:42] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:59:42] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:59:42] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:59:42] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:59:42] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:59:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:45] - INFO - code.logging - Connecting to database...
+[2025-10-23 23:59:45] - INFO - code.logging - Successfully connected to database.
+[2025-10-23 23:59:45] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-23 23:59:45] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-23 23:59:45] - INFO - code.logging - Successfully fetched rows
+[2025-10-23 23:59:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-23 23:59:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-23 23:59:56] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-23 23:59:56] - INFO - code.logging - Starting polling...
+[2025-10-24 00:00:00] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:00:00] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:00:00] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:00:00] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:00:00] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:00:00] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:00] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:00] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:00] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:00] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:00] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:02] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:00:02] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:00:02] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:00:02] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:00:02] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:00:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:02] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:02] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:02] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message identifier is not specified
+[2025-10-24 00:00:21] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:00:21] - INFO - code.logging - Starting polling...
+[2025-10-24 00:00:24] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:00:24] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:00:24] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:00:24] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:00:24] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:00:24] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:24] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:24] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:24] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:24] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:24] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:25] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:00:25] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:00:25] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:00:25] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:00:25] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:00:25] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:25] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:25] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:25] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:25] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:00:25] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:00:25] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message identifier is not specified
+[2025-10-24 00:01:04] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:01:04] - INFO - code.logging - Starting polling...
+[2025-10-24 00:01:08] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:01:08] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:01:08] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:01:08] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:01:08] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:01:08] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:08] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:08] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:08] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:08] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:08] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:10] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:01:10] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:01:10] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:01:10] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:01:10] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:01:10] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:10] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:10] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:10] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:10] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:10] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:10] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message identifier is not specified
+[2025-10-24 00:01:49] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:01:49] - INFO - code.logging - Starting polling...
+[2025-10-24 00:01:52] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:01:52] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:01:52] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:01:52] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:01:52] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:01:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:54] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:01:54] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:01:54] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:01:54] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:01:54] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:01:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:01:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:01:54] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message identifier is not specified
+[2025-10-24 00:02:13] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:02:13] - INFO - code.logging - Starting polling...
+[2025-10-24 00:02:17] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:02:17] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:02:17] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:02:17] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:02:17] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:02:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:02:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:02:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:02:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:02:17] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:02:17] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:02:18] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:02:18] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:02:18] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:02:18] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:02:18] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:02:18] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:02:18] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:02:18] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:02:18] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:02:18] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:02:18] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:02:18] - ERROR - TeleBot - A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: chat not found
+[2025-10-24 00:03:02] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:03:02] - INFO - code.logging - Starting polling...
+[2025-10-24 00:03:05] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:05] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:05] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:05] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:05] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:05] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:05] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:06] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:06] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:06] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:06] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:06] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:06] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:06] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:06] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:06] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:06] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:06] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:08] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:08] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:08] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:08] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:08] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:08] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:08] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:08] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:08] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:08] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:08] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:09] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:09] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:09] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:09] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:09] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:09] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:09] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:09] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:09] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:09] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:09] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:18] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:03:18] - INFO - code.logging - Starting polling...
+[2025-10-24 00:03:23] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:23] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:23] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:23] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:23] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:23] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:23] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:23] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:23] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:23] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:23] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:25] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:25] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:25] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:25] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:25] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:25] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:25] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:25] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:25] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:25] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:25] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:27] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:27] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:27] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:27] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:27] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:27] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:27] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:45] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:45] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:45] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:45] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:45] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:46] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:46] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:46] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:46] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:46] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:48] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:48] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:48] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:48] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:48] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:48] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:48] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:48] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:48] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:48] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:48] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:49] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:49] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:49] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:49] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:49] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:49] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:49] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:49] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:49] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:49] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:49] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:50] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:50] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:50] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:50] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:50] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:50] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:50] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:52] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:52] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:52] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:52] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:52] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:57] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:57] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:57] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:57] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:57] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:57] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:57] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:59] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:03:59] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:03:59] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:03:59] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:03:59] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:03:59] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:59] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:59] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:59] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:03:59] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:03:59] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:15] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:04:15] - INFO - code.logging - Starting polling...
+[2025-10-24 00:04:19] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:04:19] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:04:19] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:04:19] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:04:19] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:04:19] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:19] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:19] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:19] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:19] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:19] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:20] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:04:20] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:04:20] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:04:20] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:04:20] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:04:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:20] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:20] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:28] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:04:28] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:04:28] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:04:28] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:04:28] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:04:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:28] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:28] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:29] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:04:29] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:04:29] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:04:29] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:04:29] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:04:29] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:29] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:29] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:29] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:29] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:29] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:30] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:04:30] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:04:30] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:04:30] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:04:30] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:04:30] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:30] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:30] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:30] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:30] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:04:30] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:04:47] - ERROR - TeleBot - Infinity polling: polling exited
+[2025-10-24 00:04:47] - ERROR - TeleBot - Break infinity polling
+[2025-10-24 00:07:37] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:07:37] - INFO - code.logging - Starting polling...
+[2025-10-24 00:07:42] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:07:42] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:07:42] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:07:42] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:07:42] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:07:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:42] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:42] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:43] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:07:43] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:07:43] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:07:43] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:07:43] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:07:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:45] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:07:45] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:07:45] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:07:45] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:07:45] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:07:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:45] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:45] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:46] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:07:46] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:07:46] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:07:46] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:07:46] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:07:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:46] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:46] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:47] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:07:47] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:07:47] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:07:47] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:07:47] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:07:47] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:47] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:47] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:47] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:47] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:47] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:49] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:07:49] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:07:49] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:07:49] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:07:49] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:07:49] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:49] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:49] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:49] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:07:49] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:07:49] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:30] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:08:30] - INFO - code.logging - Starting polling...
+[2025-10-24 00:08:39] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:08:39] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:08:39] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:08:39] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:08:39] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:08:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:39] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:39] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:41] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:08:41] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:08:41] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:08:41] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:08:41] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:08:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:41] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:41] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:43] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:08:43] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:08:43] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:08:43] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:08:43] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:08:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:08:43] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:08:43] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:09:12] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:09:12] - INFO - code.logging - Starting polling...
+[2025-10-24 00:09:19] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 00:09:19] - INFO - code.logging - Starting polling...
+[2025-10-24 00:09:26] - INFO - code.logging - Connecting to database...
+[2025-10-24 00:09:26] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 00:09:26] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 00:09:26] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 00:09:26] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 00:09:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:09:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:09:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:09:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 00:09:26] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 00:09:26] - INFO - code.logging - Successfully parsed columns names

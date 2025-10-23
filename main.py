@@ -46,6 +46,15 @@ async def start(message):
         kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
         await bot.reply_to(message, text, reply_markup=kb)
 
+# Обрабатывает кнопки, в случаях, если они ничего не должны делать
+@bot.callback_query_handler(func=lambda call: 'empty' in call.data)
+async def callback_start_register(call):
+    data = call.data.split()
+    if len(data) == 1:
+        await bot.answer_callback_query(call.id)
+    else:
+        message = ' '.join(data[1:])
+        await bot.answer_callback_query(call.id, text=message, show_alert=False)
 # Registration
 @bot.callback_query_handler(func=lambda call: call.data == 'register')
 async def callback_start_register(call):
@@ -85,44 +94,86 @@ async def process_group(message):
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['group'] = message.text
     await bot.set_state(message.from_user.id, RegStates.wait_for_facult, message.chat.id)
-    await process_facult(userID=message.from_user.id, chatID=message.chat.id)
-@bot.callback_query_handler(func=lambda call: 'change page' in call.data)
-async def change_facult_page(call):
+    await choose_direction(userID=message.from_user.id, chatID=message.chat.id)
+@bot.callback_query_handler(func=lambda call: 'page' in call.data)
+async def process_change_page_call(call):
     await bot.answer_callback_query(call.id)
-    new_page = call.data.strip().split()[-1]
-    new_page = int(new_page)
-    if new_page <= 0:
-        new_page = 1
-    await process_facult(page=new_page, userID=call.from_user.id, chatID=call.message.chat.id, previousMessageID=call.message.message_id)
+    async with bot.retrieve_data(call.message.chat.id) as data:
+        n = call.message.message_id
+        print(n)
+        data['previous_message_id'] = n
+        if 'next' in call.data:
+            data['page'] += 1
+        else:
+            data['page'] -= 1
+    await choose_direction(userID=call.from_user.id, chatID=call.message.chat.id)
+async def choose_direction(userID=None, chatID=None, previousMessageID=None):
+    # Получаем из даты информацию о текущей странице и таблице
+    async with bot.retrieve_data(userID, chatID) as data:
+        # Пробуем получить информации из data. Если её нет - записываем дефолтную
+        try:
+            previousMessageID=data['previous_message_id']
+        except:
+            previousMessageID=None
+        try:
+            page = data['page']
+        except:
+            data['page'] = 1
+            page = 1
+        try:
+            table = data['table']
+        except:
+            data['table'] = 'FACULTS'
+            table = 'FACULTS'
+        try:
+            filters = data['filters']
+        except:
+            data['filters'] = {}
+            filters = {}
 
-async def process_facult(page=None, userID=None, chatID=None, previousMessageID=None):
-    MAX_ELEMENTS = 6
+    # Получаем список из таблицы
     database = connectDB()
-    facults, cursor = getAll(database=database, table="FACULTS")
-    facults_amount = len(facults)
-    max_page = facults_amount // MAX_ELEMENTS
+    all_list, cursor = getAll(database=database, table=table, filters=filters)
     database.close()
-    if page is None:
-        page = 1
-    elif page > max_page:
+
+    MAX_ELEMENTS_PER_PAGE = 3
+    ELEMENTS_PER_ROW = 2
+    max_page = len(all_list) // MAX_ELEMENTS_PER_PAGE
+    if page > max_page:
         page = max_page
+    current_index = (page-1)*MAX_ELEMENTS_PER_PAGE
+    max_index = min(len(all_list), current_index + MAX_ELEMENTS_PER_PAGE)
+    new_row = []
+
     markup = InlineKeyboardMarkup()
-    newRow = []
-    currentFacult = (page-1)*MAX_ELEMENTS
-    for i in range(currentFacult, min(facults_amount, currentFacult+MAX_ELEMENTS)):
-        f = getRowNamespaces(cursor=cursor, row=facults[i])
-        facultButton = InlineKeyboardButton(text=f.name, callback_data=str(f.rowid))
-        newRow.append(facultButton)
-        if len(newRow) >= 2:
-            markup.row(*newRow)
-            newRow=[]
-    nextPageButton = InlineKeyboardButton("-->", callback_data=f'change page {page+1}')
-    previousPageButton = InlineKeyboardButton("<--", callback_data=f'change page {page-1}')
-    markup.row(previousPageButton, nextPageButton)
+    for ind in range(current_index, max_index):
+        row = all_list[ind]
+        ns = getRowNamespaces(row=row, cursor=cursor)
+        button = InlineKeyboardButton(ns.name, callback_data="next step {ns.rowid}")
+        new_row.append(button)
+        if len(new_row) >= ELEMENTS_PER_ROW:
+            markup.row(*new_row)
+            new_row = []
+    next_page_button = InlineKeyboardButton("--->", callback_data='empty' if page == max_page else 'next page')
+    previous_page_button = InlineKeyboardButton("<---", callback_data='empty' if page == 1 else 'previous page')
+    question_button = InlineKeyboardButton("Не могу найти", callback_data='message moderator')
+    markup.row(previous_page_button, question_button, next_page_button)
+    table_text = ''
+    match table:
+        case 'FACULTS':
+            table_text = 'факультет'
+        case 'CHAIRS':
+            table_text = 'кафедру'
+        case 'DIRECTIONS':
+            table_text = 'направление'
+    message_text = f"🔎 Выберите {table_text}\nСтр. {page} из {max_page}"
     if previousMessageID is None:
-        await bot.send_message(chatID, f"Выберите факультет {page}", reply_markup=markup)
+        await bot.send_message(chatID, message_text, reply_markup=markup)
     else:
+        await bot.edit_message_text(message_text, chatID, previousMessageID)
         await bot.edit_message_reply_markup(chatID, previousMessageID, reply_markup=markup)
+
+
 async def accept_registration(userID=None, chatID=None):
     async with bot.retrieve_data(userID, chatID) as data:
         name = data['name']
