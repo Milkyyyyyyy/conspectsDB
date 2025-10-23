@@ -43,5 +43,10 @@
         </introspection-scope>
       </schema-mapping>
     </data-source>
+    <data-source name="conspects [4]" uuid="a6c97ddb-fe02-4bfb-b14c-ceaf85b6b789">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" />
+      <auth-provider>no-auth</auth-provider>
+      <schema-mapping />
+    </data-source>
   </component>
 </project>
