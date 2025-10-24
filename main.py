@@ -15,8 +15,8 @@ from telebot.states.asyncio.middleware import StateMiddleware
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot import asyncio_filters
 
-from code.database.classes.namespaced import getRowNamespaces
-from code.database.repo.queries import connectDB, isExists, getAll, get, insert
+from code.database.namespaced import getRowNamespaces
+from code.database.queries import connectDB, isExists, getAll, get, insert
 
 load_dotenv()
 TOKEN = os.getenv("API_KEY")
@@ -45,6 +45,7 @@ class MenuStates(StatesGroup):
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start'])
 async def start(message):
+    logger.debug('The /start command has been invoked.')
     # Проверяем, существует ли пользователь
     user_id = str(message.from_user.id)
     database = connectDB()
@@ -52,15 +53,18 @@ async def start(message):
     database.close()
     # Если не существует, предлагаем пройти регистрацию
     if not isUserExists:
+        logger.debug(f'The user ({user_id}) does not exist')
         text = 'Похоже, что вы не зарегистрированы. Если хотите пройти регистрацию вызовите команду /register или нажмите на кнопку ниже'
         kb = InlineKeyboardMarkup()
         kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
         await bot.reply_to(message, text, reply_markup=kb)
 
-
+@bot.callback_query_handler(func=lambda call: True)
+async def process_all_button_clicks(call):
+    logger.debug(f'Button pressed. Data = {call.data}')
 # Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
-async def callback_start_register(call):
+async def empty_button(call):
     data = call.data.split()
     if len(data) == 1:
         await bot.answer_callback_query(call.id)
@@ -73,6 +77,7 @@ async def callback_start_register(call):
 # Обработка команды кнопки регистрации
 @bot.callback_query_handler(func=lambda call: call.data == 'register')
 async def callback_start_register(call):
+    logger.debug(f'The registration button has been pressed (user_id = {call.from_user.id})')
     await bot.answer_callback_query(call.id)
     # Удаляем кнопку регистрации из сообщения (если не получилось, то ничего не делаем
     try:
@@ -85,6 +90,7 @@ async def callback_start_register(call):
 # Обработка команды /register
 @bot.message_handler(commands=['register'])
 async def cmd_register(message=None, user_id=None, chat_id=None):
+    logger.debug('The /register command has been invoked')
     # Если на вход не подано user_id и chat_id, получаем эту информацию из объекта message
     if user_id is None:
         user_id = message.from_user.id
@@ -96,6 +102,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
     db.close()
     # Если пользователь найден, обрываем процесс регистрации
     if isUserExists:
+        logger.debug(f'The user ({user_id}) already exist.')
         await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
         return
     else:
