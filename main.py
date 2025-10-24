@@ -16,7 +16,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot import asyncio_filters
 
 from code.database.classes.namespaced import getRowNamespaces
-from code.database.repo.queries import connectDB, isExists, getAll
+from code.database.repo.queries import connectDB, isExists, getAll, get
 
 load_dotenv()
 TOKEN = os.getenv("API_KEY")
@@ -90,7 +90,11 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
         user_id = message.from_user.id
     if chat_id is None:
         chat_id = message.chat.id
-
+    async with bot.retrieve_data(user_id, chat_id) as data:
+        data['table'] = 'FACULTS'
+        data['page'] = 1
+        data['filters'] = {}
+        data['previous_message_id'] = None
     await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
     await bot.send_message(chat_id, "Введите имя:")
 
@@ -126,14 +130,35 @@ async def process_group(message):
 @bot.callback_query_handler(func=lambda call: 'page' in call.data)
 async def process_change_page_call(call):
     await bot.answer_callback_query(call.id)
-    async with bot.retrieve_data(call.message.chat.id) as data:
-        n = call.message.message_id
-        print(n)
-        data['previous_message_id'] = n
+    async with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
+        data['previous_message_id'] = call.message.message_id
         if 'next' in call.data:
             data['page'] += 1
         else:
             data['page'] -= 1
+    await choose_direction(userID=call.from_user.id, chatID=call.message.chat.id)
+
+
+@bot.callback_query_handler(func=lambda call: 'next step' in call.data)
+async def process_next_step_list(call):
+    await bot.answer_callback_query(call.id)
+    message = call.data.split()
+    choice = message[2]
+    async with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
+        data[data['table']] = choice
+        match data['table']:
+            case 'FACULTS':
+                data['table'] = 'CHAIRS'
+                data['filters'] = {'facult_id': int(choice)}
+            case 'CHAIRS':
+                data['table'] = 'DIRECTIONS'
+                data['filters'] = {'chair_id': int(choice)}
+            case 'DIRECTIONS':
+                data['table'] = 'END_CHOOSING'
+                data['filters'] = {}
+        data['page'] = 1
+        data['previous_message_id'] = call.message.message_id
+
     await choose_direction(userID=call.from_user.id, chatID=call.message.chat.id)
 
 
@@ -142,6 +167,14 @@ async def choose_direction(userID=None, chatID=None):
     # Получаем из даты информацию о текущей странице и таблице
     async with bot.retrieve_data(userID, chatID) as data:
         # Пробуем получить информации из data. Если её нет - записываем дефолтную
+        try:
+            table = data['table']
+            if table == 'END_CHOOSING':
+                await accept_registration(user_id=userID, chat_id=chatID)
+                return
+        except:
+            data['table'] = 'FACULTS'
+            table = 'FACULTS'
         try:
             previous_message_id = data['previous_message_id']
         except:
@@ -152,25 +185,18 @@ async def choose_direction(userID=None, chatID=None):
             data['page'] = 1
             page = 1
         try:
-            table = data['table']
-        except:
-            data['table'] = 'FACULTS'
-            table = 'FACULTS'
-        try:
             filters = data['filters']
         except:
             data['filters'] = {}
             filters = {}
-
     # Получаем список из таблицы
     database = connectDB()
     all_list, cursor = getAll(database=database, table=table, filters=filters)
     database.close()
-
     # Определяем текущий индекс, последний индекс
     MAX_ELEMENTS_PER_PAGE = 6
     ELEMENTS_PER_ROW = 2
-    max_page = len(all_list) // MAX_ELEMENTS_PER_PAGE
+    max_page = max(len(all_list) // MAX_ELEMENTS_PER_PAGE, 1)
     if page > max_page:
         page = max_page
     current_index = (page - 1) * MAX_ELEMENTS_PER_PAGE
@@ -181,7 +207,7 @@ async def choose_direction(userID=None, chatID=None):
     for ind in range(current_index, max_index):
         row = all_list[ind]
         ns = getRowNamespaces(row=row, cursor=cursor)
-        button = InlineKeyboardButton(ns.name, callback_data="next step {ns.rowid}")
+        button = InlineKeyboardButton(ns.name, callback_data=f"next step {ns.rowid}")
         new_row.append(button)
         if len(new_row) >= ELEMENTS_PER_ROW:
             markup.row(*new_row)
@@ -213,20 +239,36 @@ async def choose_direction(userID=None, chatID=None):
 # Если нет, просто заново начинаем процесс регистрации
 async def accept_registration(user_id=None, chat_id=None):
     async with bot.retrieve_data(user_id, chat_id) as data:
+        try:
+            await bot.delete_message(chat_id, data['previous_message_id'])
+        except Exception:
+            pass
         name = data['name']
         surname = data['surname']
         group = data['group']
+        direction_id = data['DIRECTIONS']
         # Возвращаем дефолтные значения для выбора списка
         data['previous_message_id'] = None
         data['table'] = 'FACULTS'
         data['filters'] = {}
         data['page'] = 1
+    database = connectDB()
+    direction, cursor = get(database=database, table='DIRECTIONS', filters={'rowid': direction_id})
+    direction_ns = getRowNamespaces(row=direction, cursor=cursor)
+
+    chair, cursor = get(database=database, table='CHAIRS', filters={'rowid': direction_ns.chair_id})
+    chair_ns = getRowNamespaces(row=chair, cursor=cursor)
+
+    facult, cursor = get(database=database, table='FACULTS', filters={'rowid': chair_ns.facult_id})
+    facult_ns = getRowNamespaces(row=facult, cursor=cursor)
+    database.close()
+
     # Собираем кнопки
     buttons = InlineKeyboardMarkup()
     buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
     buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
     await bot.send_message(chat_id,
-                           f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}",
+                           f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}\n\nФакультет: {facult_ns.name}\nКафедра: {chair_ns.name}\nНаправление: {direction_ns.name}",
                            reply_markup=buttons)
 
 
