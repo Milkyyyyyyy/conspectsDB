@@ -295,7 +295,6 @@ async def accept_registration(user_id=None, chat_id=None):
     await bot.send_message(chat_id,
                            f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}\n\nФакультет: {facult_ns.name}\nКафедра: {chair_ns.name}\nНаправление: {direction_ns.name}",
                            reply_markup=buttons)
-# TODO доделать
 # Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
 async def end_registration(call):
