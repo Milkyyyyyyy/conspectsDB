@@ -280,6 +280,8 @@ async def get_registration_info(user_id=None, chat_id=None):
     facult_ns = getRowNamespaces(row=facult, cursor=cursor)
     database.close()
     return name, surname, group, facult_ns, chair_ns, direction_ns
+
+# Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
 async def accept_registration(user_id=None, chat_id=None):
     async with bot.retrieve_data(user_id, chat_id) as data:
         try:
@@ -295,6 +297,7 @@ async def accept_registration(user_id=None, chat_id=None):
     await bot.send_message(chat_id,
                            f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}\n\nФакультет: {facult_ns.name}\nКафедра: {chair_ns.name}\nНаправление: {direction_ns.name}",
                            reply_markup=buttons)
+
 # Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
 async def end_registration(call):
@@ -317,6 +320,7 @@ async def end_registration(call):
     logger.info('Successfully saved user in database.')
     await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
 
+# Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
     for upd in updates:
         try:
