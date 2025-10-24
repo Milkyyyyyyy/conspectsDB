@@ -1,0 +1,3 @@
+- The main development branch is “develop.”
+- Every time you write some functionality, create a new branch called “feature” from the “develop” branch.
+- Every time you finish a sufficiently large part of the new functionality, merge it into the “main” branch.
