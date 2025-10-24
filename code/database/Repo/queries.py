@@ -1,18 +1,20 @@
-from enum import Enum
-import re
-from code.logging import logger
-import sqlite3
 import functools
+import re
+import sqlite3
+from enum import Enum
 from typing import Union, Dict, Any, Optional, Iterable, Tuple
 
+from code.logging import logger
 
 # ========== Константы ==========
 CONSPECTS_DB = 'files/database/conspects.db'
+
+
 class Tables(str, Enum):
-    FACULTS         = 'facults'
+    FACULTS = 'facults'
     # wait_for_name - название факультета
 
-    CHAIRS          = 'chairs'
+    CHAIRS = 'chairs'
     # facult_id - rowid факультета из таблицы FACULTS
     # wait_for_name - имя кафедры
 
@@ -24,7 +26,7 @@ class Tables(str, Enum):
     # direction_id - rowid направления из таблицы DIRECTIONS
     # wait_for_name - имя предмета
 
-    CONSPECTS       = 'conspects'
+    CONSPECTS = 'conspects'
     # subject_id - rowid из таблицы SUBJECTS
     # upload_date - дата публикации
     # conspect_date - дата написания конспекта (если не указывается, то равна upload_date)
@@ -40,7 +42,7 @@ class Tables(str, Enum):
     # conspect_id - rowid конспекта, к которому относится файл
     # path - путь до файла
 
-    USERS           = 'users'
+    USERS = 'users'
     # telegram_id - говорит само за себя
     # name - имя пользователя
     # surname - фамилия пользователя
@@ -68,6 +70,8 @@ def connectDB() -> Optional[sqlite3.Connection]:
     except sqlite3.Error as e:
         logger.error(e)
         return None
+
+
 def checkCursor(cursor: Union[sqlite3.Cursor] = None) -> bool:
     """
     Возвращает True, если cursor валидный
@@ -77,18 +81,25 @@ def checkCursor(cursor: Union[sqlite3.Cursor] = None) -> bool:
     if isinstance(cursor, sqlite3.Cursor):
         return True
     return False
-def checkDatabase(database:sqlite3.Connection) -> bool:
+
+
+def checkDatabase(database: sqlite3.Connection) -> bool:
     return isinstance(database, sqlite3.Connection)
+
+
 def require_cursor(func):
     """
     Проверка наличия курсора
     """
+
     @functools.wraps(func)
     def wrapper(cursor, *args, **kwargs):
         if not checkCursor(cursor):
             Exception("Invalid cursor")
         return func(cursor, *args, **kwargs)
+
     return wrapper
+
 
 def _safe_identifier(name: str, allow_quoted: bool = True) -> str:
     """
@@ -108,6 +119,7 @@ def _safe_identifier(name: str, allow_quoted: bool = True) -> str:
         return f'"{escaped}"'
     raise ValueError(f"Invalid SQL identifier: {name!r}")
 
+
 def _resolve_table(table: Union[str, Enum]) -> str:
     """
     Возвращает название таблицы из enum Tables
@@ -122,10 +134,12 @@ def _resolve_table(table: Union[str, Enum]) -> str:
         table_name = str(table)
     return _safe_identifier(table_name)
 
+
 def _validate_identifier(name: str = None):
     if not isinstance(name, str) or not _SIMPLE_IDENT_RE.match(name):
         raise ValueError(f"Invalid SQL identifier: {name!r}")
     return name
+
 
 def _build_where_clause(filters, operator="AND"):
     if not filters:
@@ -167,8 +181,9 @@ def _build_where_clause(filters, operator="AND"):
     where_sql = " WHERE " + f" {operator} ".join(parts)
     return where_sql, tuple(params)
 
+
 def getAll(
-        database:sqlite3.Connection = None,
+        database: sqlite3.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
         operator: str = "AND") -> Union[Tuple[list, sqlite3.Cursor], None]:
@@ -216,8 +231,10 @@ def getAll(
     except Exception as e:
         logger.exception(e)
         return None
+
+
 def get(
-        database:sqlite3.Connection = None,
+        database: sqlite3.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
         operator: str = "AND") -> Union[Tuple[tuple, sqlite3.Cursor], None]:
@@ -265,10 +282,12 @@ def get(
     except Exception as e:
         logger.exception(e)
         return None
+
+
 def isExists(
-        database:sqlite3.Connection = None,
-        table:Union[str, Enum] = None,
-        filters:Dict[str, Any] = None,
+        database: sqlite3.Connection = None,
+        table: Union[str, Enum] = None,
+        filters: Dict[str, Any] = None,
         operator: str = 'AND') -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
     """
     Возвращает True, если запись, соответствующая заданным фильтрам, существует
@@ -324,10 +343,12 @@ def isExists(
     except Exception as e:
         logger.exception(e)
         return None
+
+
 def remove(
-        database:sqlite3.Connection = None,
-        table:Union[str, Enum] = None,
-        filters:Dict[str, Any] = None,
+        database: sqlite3.Connection = None,
+        table: Union[str, Enum] = None,
+        filters: Dict[str, Any] = None,
         operator: str = "AND") -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
     """
     Удаляет запись в датабазе, соответствующую заданным фильтрам
@@ -383,7 +404,7 @@ def remove(
     try:
         # Собираем SQL запрос
         delete_sql = f"DELETE FROM {table_sql} WHERE rowid = ?"
-        logger.debug("SQL (delete): %s -- params=%s", delete_sql, (rowid, ))
+        logger.debug("SQL (delete): %s -- params=%s", delete_sql, (rowid,))
 
         # Выполняем SQL запрос
         cursor.execute(delete_sql, (rowid,))
@@ -392,9 +413,11 @@ def remove(
     except Exception as e:
         logger.exception(e)
         return False
+
+
 def removeList(
-        database:sqlite3.Connection = None,
-        table:Union[str, Enum] = None,
+        database: sqlite3.Connection = None,
+        table: Union[str, Enum] = None,
         rowids: Iterable = None) -> Union[int, Tuple[int, sqlite3.Cursor], None]:
     """
     Удаляет множество записей из датабазы
@@ -447,16 +470,18 @@ def removeList(
         deleted = cursor.rowcount if isinstance(cursor.rowcount, int) and cursor.rowcount >= 0 else None
         if deleted is None:
             deleted = len(rowid_list)
-        logger.info("Deleted %d rows (requested %d)",  deleted, len(rowid_list))
+        logger.info("Deleted %d rows (requested %d)", deleted, len(rowid_list))
         return deleted, cursor
     except Exception as e:
         logger.exception(e)
         return None
+
+
 def insert(
-        database:sqlite3.Connection = None,
-        table:Union[str, Enum] = None,
-        values:Iterable = None,
-        columns:Iterable = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
+        database: sqlite3.Connection = None,
+        table: Union[str, Enum] = None,
+        values: Iterable = None,
+        columns: Iterable = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
     """
     :param database: sqlite3.Connection  --> Датабаза
     :param table:   enum, str            --> Название таблицы из Tables
