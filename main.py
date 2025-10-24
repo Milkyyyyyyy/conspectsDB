@@ -1,9 +1,12 @@
 # TODO доделать end_registration
 
-from dotenv import load_dotenv
-import os
-from code.logging import logger
 import asyncio
+import os
+
+from dotenv import load_dotenv
+
+from code.logging import logger
+
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
@@ -22,6 +25,7 @@ bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 bot.setup_middleware(StateMiddleware(bot))
 
+
 # State регситрации
 class RegStates(StatesGroup):
     wait_for_name = State()
@@ -31,9 +35,12 @@ class RegStates(StatesGroup):
     wait_for_chair = State()
     wait_for_direction = State()
     accept_registration = State()
+
+
 # State главного меню
 class MenuStates(StatesGroup):
     main_menu = State()
+
 
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start'])
@@ -50,6 +57,7 @@ async def start(message):
         kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
         await bot.reply_to(message, text, reply_markup=kb)
 
+
 # Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
 async def callback_start_register(call):
@@ -59,6 +67,7 @@ async def callback_start_register(call):
     else:
         message = ' '.join(data[1:])
         await bot.answer_callback_query(call.id, text=message, show_alert=False)
+
 
 # =================== Регистрация ===================
 # Обработка команды кнопки регистрации
@@ -70,7 +79,9 @@ async def callback_start_register(call):
         await bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
     except Exception:
         pass
-    await cmd_register(user_id=call.from_user.id, chat_id= call.message.chat.id)
+    await cmd_register(user_id=call.from_user.id, chat_id=call.message.chat.id)
+
+
 # Обработка команды /register
 @bot.message_handler(commands=['register'])
 async def cmd_register(message=None, user_id=None, chat_id=None):
@@ -82,6 +93,8 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 
     await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
     await bot.send_message(chat_id, "Введите имя:")
+
+
 # Сохранение имени пользователя
 @bot.message_handler(state=RegStates.wait_for_name)
 async def process_name(message=None):
@@ -89,6 +102,8 @@ async def process_name(message=None):
         data['name'] = message.text
     await bot.set_state(message.from_user.id, RegStates.wait_for_surname, message.chat.id)
     await bot.send_message(message.chat.id, "Введите фамилию:")
+
+
 # Сохранение фамилии пользователя
 @bot.message_handler(state=RegStates.wait_for_surname)
 async def process_surname(message):
@@ -96,6 +111,8 @@ async def process_surname(message):
         data['surname'] = message.text
     await bot.set_state(message.from_user.id, RegStates.wait_for_group, message.chat.id)
     await bot.send_message(message.chat.id, "Из какой вы группы?")
+
+
 # Сохранение группы пользователя
 @bot.message_handler(state=RegStates.wait_for_group)
 async def process_group(message):
@@ -103,6 +120,7 @@ async def process_group(message):
         data['group'] = message.text
     await bot.set_state(message.from_user.id, RegStates.wait_for_facult, message.chat.id)
     await choose_direction(userID=message.from_user.id, chatID=message.chat.id)
+
 
 # Обработка изменения страницы
 @bot.callback_query_handler(func=lambda call: 'page' in call.data)
@@ -117,15 +135,17 @@ async def process_change_page_call(call):
         else:
             data['page'] -= 1
     await choose_direction(userID=call.from_user.id, chatID=call.message.chat.id)
+
+
 # Выводим список с выбором факультета, кафедры и направления
 async def choose_direction(userID=None, chatID=None):
     # Получаем из даты информацию о текущей странице и таблице
     async with bot.retrieve_data(userID, chatID) as data:
         # Пробуем получить информации из data. Если её нет - записываем дефолтную
         try:
-            previous_message_id=data['previous_message_id']
+            previous_message_id = data['previous_message_id']
         except:
-            previous_message_id=None
+            previous_message_id = None
         try:
             page = data['page']
         except:
@@ -153,7 +173,7 @@ async def choose_direction(userID=None, chatID=None):
     max_page = len(all_list) // MAX_ELEMENTS_PER_PAGE
     if page > max_page:
         page = max_page
-    current_index = (page-1)*MAX_ELEMENTS_PER_PAGE
+    current_index = (page - 1) * MAX_ELEMENTS_PER_PAGE
     max_index = min(len(all_list), current_index + MAX_ELEMENTS_PER_PAGE)
     # Собираем кнопки
     new_row = []
@@ -187,6 +207,7 @@ async def choose_direction(userID=None, chatID=None):
         await bot.edit_message_text(message_text, chatID, previous_message_id)
         await bot.edit_message_reply_markup(chatID, previous_message_id, reply_markup=markup)
 
+
 # Выводит сообщение, чтобы пользователь проверил правильность данных
 # Если всё правильно -> переходим в end_register, где сохраняем всю нужную информацию в датабазу
 # Если нет, просто заново начинаем процесс регистрации
@@ -204,7 +225,11 @@ async def accept_registration(user_id=None, chat_id=None):
     buttons = InlineKeyboardMarkup()
     buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
     buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
-    await bot.send_message(chat_id, f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}", reply_markup=buttons)
+    await bot.send_message(chat_id,
+                           f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}",
+                           reply_markup=buttons)
+
+
 # TODO доделать
 # Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
@@ -229,6 +254,7 @@ async def main():
                 logger.debug("bot.session closed")
         except Exception as e:
             logger.exception("End session %s", e)
+
 
 if __name__ == "__main__":
     try:
