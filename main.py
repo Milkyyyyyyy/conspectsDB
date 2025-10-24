@@ -1,5 +1,4 @@
-# TODO
-# ! Почистить говнокод в process_facult
+# TODO доделать end_registration
 
 from dotenv import load_dotenv
 import os
@@ -23,6 +22,7 @@ bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 bot.setup_middleware(StateMiddleware(bot))
 
+# State регситрации
 class RegStates(StatesGroup):
     wait_for_name = State()
     wait_for_surname = State()
@@ -31,22 +31,26 @@ class RegStates(StatesGroup):
     wait_for_chair = State()
     wait_for_direction = State()
     accept_registration = State()
+# State главного меню
 class MenuStates(StatesGroup):
     main_menu = State()
+
+# Обрабатываем команду /start
 @bot.message_handler(commands=['start'])
 async def start(message):
-    logger.debug('/start command')
-    userID = str(message.from_user.id)
+    # Проверяем, существует ли пользователь
+    user_id = str(message.from_user.id)
     database = connectDB()
-    isUserExists, _ = isExists(database=database, table="USERS", filters={"telegram_id": userID})
+    isUserExists, _ = isExists(database=database, table="USERS", filters={"telegram_id": user_id})
     database.close()
+    # Если не существует, предлагаем пройти регистрацию
     if not isUserExists:
-        text = 'Похоже, что вы не зарегистрированы. Если хотите пройти регистрацию вызовите команду `register`'
+        text = 'Похоже, что вы не зарегистрированы. Если хотите пройти регистрацию вызовите команду /register или нажмите на кнопку ниже'
         kb = InlineKeyboardMarkup()
         kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
         await bot.reply_to(message, text, reply_markup=kb)
 
-# Обрабатывает кнопки, в случаях, если они ничего не должны делать
+# Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
 async def callback_start_register(call):
     data = call.data.split()
@@ -55,46 +59,52 @@ async def callback_start_register(call):
     else:
         message = ' '.join(data[1:])
         await bot.answer_callback_query(call.id, text=message, show_alert=False)
-# Registration
+
+# =================== Регистрация ===================
+# Обработка команды кнопки регистрации
 @bot.callback_query_handler(func=lambda call: call.data == 'register')
 async def callback_start_register(call):
     await bot.answer_callback_query(call.id)
+    # Удаляем кнопку регистрации из сообщения (если не получилось, то ничего не делаем
     try:
         await bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
     except Exception:
         pass
-    await cmd_register(userID=call.from_user.id, chatID = call.message.chat.id)
-
+    await cmd_register(user_id=call.from_user.id, chat_id= call.message.chat.id)
+# Обработка команды /register
 @bot.message_handler(commands=['register'])
-async def cmd_register(message=None, userID=None, chatID=None):
-    if userID is None:
-        userID = message.from_user.id
-    if chatID is None:
-        chatID = message.chat.id
+async def cmd_register(message=None, user_id=None, chat_id=None):
+    # Если на вход не подано user_id и chat_id, получаем эту информацию из объекта message
+    if user_id is None:
+        user_id = message.from_user.id
+    if chat_id is None:
+        chat_id = message.chat.id
 
-    await bot.set_state(userID, RegStates.wait_for_name, chatID)
-    await bot.send_message(chatID, "Введите имя:")
-
+    await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
+    await bot.send_message(chat_id, "Введите имя:")
+# Сохранение имени пользователя
 @bot.message_handler(state=RegStates.wait_for_name)
 async def process_name(message=None):
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['name'] = message.text
     await bot.set_state(message.from_user.id, RegStates.wait_for_surname, message.chat.id)
     await bot.send_message(message.chat.id, "Введите фамилию:")
-
+# Сохранение фамилии пользователя
 @bot.message_handler(state=RegStates.wait_for_surname)
 async def process_surname(message):
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['surname'] = message.text
     await bot.set_state(message.from_user.id, RegStates.wait_for_group, message.chat.id)
     await bot.send_message(message.chat.id, "Из какой вы группы?")
-
+# Сохранение группы пользователя
 @bot.message_handler(state=RegStates.wait_for_group)
 async def process_group(message):
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['group'] = message.text
     await bot.set_state(message.from_user.id, RegStates.wait_for_facult, message.chat.id)
     await choose_direction(userID=message.from_user.id, chatID=message.chat.id)
+
+# Обработка изменения страницы
 @bot.callback_query_handler(func=lambda call: 'page' in call.data)
 async def process_change_page_call(call):
     await bot.answer_callback_query(call.id)
@@ -107,14 +117,15 @@ async def process_change_page_call(call):
         else:
             data['page'] -= 1
     await choose_direction(userID=call.from_user.id, chatID=call.message.chat.id)
-async def choose_direction(userID=None, chatID=None, previousMessageID=None):
+# Выводим список с выбором факультета, кафедры и направления
+async def choose_direction(userID=None, chatID=None):
     # Получаем из даты информацию о текущей странице и таблице
     async with bot.retrieve_data(userID, chatID) as data:
         # Пробуем получить информации из data. Если её нет - записываем дефолтную
         try:
-            previousMessageID=data['previous_message_id']
+            previous_message_id=data['previous_message_id']
         except:
-            previousMessageID=None
+            previous_message_id=None
         try:
             page = data['page']
         except:
@@ -136,15 +147,16 @@ async def choose_direction(userID=None, chatID=None, previousMessageID=None):
     all_list, cursor = getAll(database=database, table=table, filters=filters)
     database.close()
 
-    MAX_ELEMENTS_PER_PAGE = 3
+    # Определяем текущий индекс, последний индекс
+    MAX_ELEMENTS_PER_PAGE = 6
     ELEMENTS_PER_ROW = 2
     max_page = len(all_list) // MAX_ELEMENTS_PER_PAGE
     if page > max_page:
         page = max_page
     current_index = (page-1)*MAX_ELEMENTS_PER_PAGE
     max_index = min(len(all_list), current_index + MAX_ELEMENTS_PER_PAGE)
+    # Собираем кнопки
     new_row = []
-
     markup = InlineKeyboardMarkup()
     for ind in range(current_index, max_index):
         row = all_list[ind]
@@ -158,6 +170,7 @@ async def choose_direction(userID=None, chatID=None, previousMessageID=None):
     previous_page_button = InlineKeyboardButton("<---", callback_data='empty' if page == 1 else 'previous page')
     question_button = InlineKeyboardButton("Не могу найти", callback_data='message moderator')
     markup.row(previous_page_button, question_button, next_page_button)
+    # Собираем текст сообщения
     table_text = ''
     match table:
         case 'FACULTS':
@@ -167,22 +180,33 @@ async def choose_direction(userID=None, chatID=None, previousMessageID=None):
         case 'DIRECTIONS':
             table_text = 'направление'
     message_text = f"🔎 Выберите {table_text}\nСтр. {page} из {max_page}"
-    if previousMessageID is None:
+    # Выводим сообщение (если есть previous_message_id - меняем старое)
+    if previous_message_id is None:
         await bot.send_message(chatID, message_text, reply_markup=markup)
     else:
-        await bot.edit_message_text(message_text, chatID, previousMessageID)
-        await bot.edit_message_reply_markup(chatID, previousMessageID, reply_markup=markup)
+        await bot.edit_message_text(message_text, chatID, previous_message_id)
+        await bot.edit_message_reply_markup(chatID, previous_message_id, reply_markup=markup)
 
-
-async def accept_registration(userID=None, chatID=None):
-    async with bot.retrieve_data(userID, chatID) as data:
+# Выводит сообщение, чтобы пользователь проверил правильность данных
+# Если всё правильно -> переходим в end_register, где сохраняем всю нужную информацию в датабазу
+# Если нет, просто заново начинаем процесс регистрации
+async def accept_registration(user_id=None, chat_id=None):
+    async with bot.retrieve_data(user_id, chat_id) as data:
         name = data['name']
         surname = data['surname']
         group = data['group']
+        # Возвращаем дефолтные значения для выбора списка
+        data['previous_message_id'] = None
+        data['table'] = 'FACULTS'
+        data['filters'] = {}
+        data['page'] = 1
+    # Собираем кнопки
     buttons = InlineKeyboardMarkup()
     buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
     buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
-    await bot.send_message(chatID, f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}", reply_markup=buttons)
+    await bot.send_message(chat_id, f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}", reply_markup=buttons)
+# TODO доделать
+# Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
 async def end_registration(call):
     await bot.answer_callback_query(call.id)

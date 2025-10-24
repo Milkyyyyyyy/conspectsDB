@@ -1304,3 +1304,85 @@ client_session: <aiohttp.client.ClientSession object at 0x0000023F9C8B33E0>
 [2025-10-24 00:09:26] - INFO - code.logging - Successfully parsed columns names
 [2025-10-24 00:09:26] - INFO - code.logging - Trying to get column names from cursor
 [2025-10-24 00:09:26] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:19] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 11:43:19] - INFO - code.logging - Starting polling...
+[2025-10-24 11:43:26] - DEBUG - code.logging - /start command
+[2025-10-24 11:43:26] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:26] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:26] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-24 11:43:26] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-24 11:43:26] - INFO - code.logging - No matching rows found
+[2025-10-24 11:43:32] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:32] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:32] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 11:43:32] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 11:43:32] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 11:43:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:32] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:32] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:34] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:34] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:34] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 11:43:34] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 11:43:34] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 11:43:34] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:34] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:34] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:34] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:34] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:34] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:36] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:36] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:36] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 11:43:36] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 11:43:36] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 11:43:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:36] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:36] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:45] - DEBUG - asyncio - Using selector: SelectSelector
+[2025-10-24 11:43:45] - INFO - code.logging - Starting polling...
+[2025-10-24 11:43:47] - DEBUG - code.logging - /start command
+[2025-10-24 11:43:47] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:47] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:47] - INFO - code.logging - Check if "USERS" entry exists with filters={'telegram_id': '848623786'}...
+[2025-10-24 11:43:47] - DEBUG - code.logging - SQL: SELECT 1 FROM USERS WHERE telegram_id = ? LIMIT 1 -- params=('848623786',)
+[2025-10-24 11:43:47] - INFO - code.logging - No matching rows found
+[2025-10-24 11:43:52] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:52] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:52] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 11:43:52] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 11:43:52] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 11:43:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:52] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:52] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:54] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:54] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:54] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 11:43:54] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 11:43:54] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 11:43:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:54] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:54] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:56] - INFO - code.logging - Connecting to database...
+[2025-10-24 11:43:56] - INFO - code.logging - Successfully connected to database.
+[2025-10-24 11:43:56] - INFO - code.logging - Getting rows from "FACULTS" with filters={}...
+[2025-10-24 11:43:56] - DEBUG - code.logging - SQL: SELECT rowid, * FROM FACULTS -- params=()
+[2025-10-24 11:43:56] - INFO - code.logging - Successfully fetched rows
+[2025-10-24 11:43:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:56] - INFO - code.logging - Successfully parsed columns names
+[2025-10-24 11:43:56] - INFO - code.logging - Trying to get column names from cursor
+[2025-10-24 11:43:56] - INFO - code.logging - Successfully parsed columns names
