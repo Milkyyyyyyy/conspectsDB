@@ -2,7 +2,7 @@
 
 import asyncio
 import os
-
+import re
 from dotenv import load_dotenv
 
 from code.logging import logger
@@ -43,7 +43,16 @@ class RegStates(StatesGroup):
 class MenuStates(StatesGroup):
     main_menu = State()
 
-
+# Удаляет сообщение через некоторое количество времени
+async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
+    logger.debug(f'Delayed message deletion after {delay_seconds} seconds.')
+    await asyncio.sleep(delay_seconds)
+    try:
+        await bot.delete_message(chat_id, message_id)
+        logger.debug(f'Message {message_id} deleted')
+    except Exception as e:
+        logger.warning(f'Failed to delete message {message_id} in chat {chat_id}\n {e}')
+        pass
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start'])
 async def start(message):
@@ -60,10 +69,6 @@ async def start(message):
         kb = InlineKeyboardMarkup()
         kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
         await bot.reply_to(message, text, reply_markup=kb)
-
-@bot.callback_query_handler(func=lambda call: True)
-async def process_all_button_clicks(call):
-    logger.debug(f'Button pressed. Data = {call.data}')
 # Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
 async def empty_button(call):
@@ -120,8 +125,16 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 # Сохранение имени пользователя
 @bot.message_handler(state=RegStates.wait_for_name)
 async def process_name(message=None):
+    name = message.text
+    if not re.fullmatch(r"^[А-Яа-яA-Za-z\-]{2,30}$", name):
+        error_message = await bot.send_message(message.chat.id, "<b>Некорректное имя.</b>\n" 
+                                                "Оно должно содержать <b>только буквы</b> (от 2 до 30).\n" 
+                                                "Попробуйте ещё раз:", parse_mode='HTML')
+        asyncio.create_task(delete_message_after_delay(message.chat.id, error_message.message_id, 4))
+        asyncio.create_task(delete_message_after_delay(message.chat.id, message.id, 4))
+        return
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['name'] = message.text
+        data['name'] = name
     await bot.set_state(message.from_user.id, RegStates.wait_for_surname, message.chat.id)
     await bot.send_message(message.chat.id, "Введите фамилию:")
 
@@ -129,8 +142,16 @@ async def process_name(message=None):
 # Сохранение фамилии пользователя
 @bot.message_handler(state=RegStates.wait_for_surname)
 async def process_surname(message):
+    surname = message.text
+    if not re.fullmatch(r"^[А-Яа-яA-Za-z\-]{2,30}$", surname):
+        error_message = await bot.send_message(message.chat.id, "<b>Некорректная фамилия.</b>\n"
+                                            "Она должно содержать <b>только буквы</b> (от 2 до 30).\n"
+                                            "Попробуйте ещё раз:\n", parse_mode='HTML')
+        asyncio.create_task(delete_message_after_delay(message.chat.id, error_message.message_id, 4))
+        asyncio.create_task(delete_message_after_delay(message.chat.id, message.id, 4))
+        return
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['surname'] = message.text
+        data['surname'] = surname
     await bot.set_state(message.from_user.id, RegStates.wait_for_group, message.chat.id)
     await bot.send_message(message.chat.id, "Из какой вы группы?")
 
@@ -138,8 +159,16 @@ async def process_surname(message):
 # Сохранение группы пользователя
 @bot.message_handler(state=RegStates.wait_for_group)
 async def process_group(message):
+    group = message.text
+    if not re.fullmatch(r"^[А-Яа-я]{1,10}-\d{1,3}[А-Яа-я]?$", group):
+        error_message = await bot.send_message(message.chat.id, "<b>Некорректный формат группы</b>\n"
+                               "Ожидается что-то вроде <i>'ПИбд-12'</i> или <i>'МОАИСбд-11'</i>\n"
+                               "Попробуйте ещё раз:", parse_mode='HTML')
+        asyncio.create_task(await delete_message_after_delay(message.chat.id, error_message.message_id, 4))
+        asyncio.create_task(await delete_message_after_delay(message.chat.id, message.id, 4))
+        return
     async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['group'] = message.text
+        data['group'] = group
     await bot.set_state(message.from_user.id, RegStates.wait_for_facult, message.chat.id)
     await choose_direction(userID=message.from_user.id, chatID=message.chat.id)
 
@@ -295,15 +324,21 @@ async def accept_registration(user_id=None, chat_id=None):
     buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
     buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
     await bot.send_message(chat_id,
-                           f"Проверьте правильность данных.\n\nИмя: {name}\nФамилия: {surname}\nГруппа: {group}\n\nФакультет: {facult_ns.name}\nКафедра: {chair_ns.name}\nНаправление: {direction_ns.name}",
-                           reply_markup=buttons)
+                           f"Проверьте правильность данных\n\n"
+                           f"<blockquote><b>Имя</b>: {name}\n"
+                           f"<b>Фамилия</b>: {surname}\n"
+                           f"<b>Учебная группа</b>: {group}\n\n"
+                           f"<b>Факультет</b>: {facult_ns.name}\n"
+                           f"<b>Кафедра</b>: {chair_ns.name}\n"
+                           f"<b>Направление</b>: {direction_ns.name}</blockquote>\n",
+                           reply_markup=buttons, parse_mode='HTML')
 
 # Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
 async def end_registration(call):
     logger.info('Registration accepted.')
     await bot.answer_callback_query(call.id)
-    await bot.send_message(call.message.chat.id, 'Завершаю регистрацию...')
+    message = await bot.send_message(call.message.chat.id, 'Завершаю регистрацию...')
     try:
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     except Exception:
@@ -311,12 +346,15 @@ async def end_registration(call):
     # Сохраняем информацию в датабазу
     logger.info('Saving user in database.')
     name, surname, group, _, _, direction_ns = await get_registration_info(call.from_user.id, call.message.chat.id)
+
+    # Добавляю запись в датабазу
     db = connectDB()
-    values = [str(call.from_user.id), name, surname, group, direction_ns.rowid, 'user']
-    columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
+    values  = [str(call.from_user.id), name,   surname,   group,         direction_ns.rowid, 'user']
+    columns = ['telegram_id',         'name', 'surname', 'study_group', 'direction_id',      'role']
     insert(database=db, table = 'USERS', values=values, columns=columns)
-    db.commit()
+    # db.commit()
     db.close()
+    await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
     logger.info('Successfully saved user in database.')
     await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
 
