@@ -1,0 +1,5 @@
+/.idea/
+/.env
+.idea/workspace.xml
+logs/app.log
+__pycache__/
