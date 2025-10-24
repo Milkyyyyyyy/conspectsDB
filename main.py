@@ -323,6 +323,8 @@ async def end_registration(call):
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
     for upd in updates:
+        # Я как понял, в старых версиях upd был объектом со множеством подобъектов. Но сейчас это просто Message
+        # Но на всякий случай сделаю try-except
         try:
             msg = upd.message
         except:
