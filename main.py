@@ -18,6 +18,8 @@ from telebot import asyncio_filters
 from code.database.namespaced import getRowNamespaces
 from code.database.queries import connectDB, isExists, getAll, get, insert
 
+from datetime import datetime, timezone
+
 load_dotenv()
 TOKEN = os.getenv("API_KEY")
 bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
@@ -45,7 +47,7 @@ class MenuStates(StatesGroup):
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start'])
 async def start(message):
-    logger.debug('The /start command has been invoked.')
+    logger.info('The /start command has been invoked.')
     # Проверяем, существует ли пользователь
     user_id = str(message.from_user.id)
     database = connectDB()
@@ -53,7 +55,7 @@ async def start(message):
     database.close()
     # Если не существует, предлагаем пройти регистрацию
     if not isUserExists:
-        logger.debug(f'The user ({user_id}) does not exist')
+        logger.info(f'The user ({user_id}) does not exist')
         text = 'Похоже, что вы не зарегистрированы. Если хотите пройти регистрацию вызовите команду /register или нажмите на кнопку ниже'
         kb = InlineKeyboardMarkup()
         kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
@@ -77,7 +79,7 @@ async def empty_button(call):
 # Обработка команды кнопки регистрации
 @bot.callback_query_handler(func=lambda call: call.data == 'register')
 async def callback_start_register(call):
-    logger.debug(f'The registration button has been pressed (user_id = {call.from_user.id})')
+    logger.info(f'The registration button has been pressed (user_id = {call.from_user.id})')
     await bot.answer_callback_query(call.id)
     # Удаляем кнопку регистрации из сообщения (если не получилось, то ничего не делаем
     try:
@@ -90,7 +92,7 @@ async def callback_start_register(call):
 # Обработка команды /register
 @bot.message_handler(commands=['register'])
 async def cmd_register(message=None, user_id=None, chat_id=None):
-    logger.debug('The /register command has been invoked')
+    logger.info('The /register command has been invoked')
     # Если на вход не подано user_id и chat_id, получаем эту информацию из объекта message
     if user_id is None:
         user_id = message.from_user.id
@@ -102,7 +104,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
     db.close()
     # Если пользователь найден, обрываем процесс регистрации
     if isUserExists:
-        logger.debug(f'The user ({user_id}) already exist.')
+        logger.info(f'The user ({user_id}) already exist. Stopping registration')
         await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
         return
     else:
@@ -297,6 +299,7 @@ async def accept_registration(user_id=None, chat_id=None):
 # Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
 async def end_registration(call):
+    logger.info('Registration accepted.')
     await bot.answer_callback_query(call.id)
     await bot.send_message(call.message.chat.id, 'Завершаю регистрацию...')
     try:
@@ -304,6 +307,7 @@ async def end_registration(call):
     except Exception:
         pass
     # Сохраняем информацию в датабазу
+    logger.info('Saving user in database.')
     name, surname, group, _, _, direction_ns = await get_registration_info(call.from_user.id, call.message.chat.id)
     db = connectDB()
     values = [str(call.from_user.id), name, surname, group, direction_ns.rowid, 'user']
@@ -311,12 +315,22 @@ async def end_registration(call):
     insert(database=db, table = 'USERS', values=values, columns=columns)
     db.commit()
     db.close()
+    logger.info('Successfully saved user in database.')
     await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
 
-
+async def log_updates(updates):
+    for upd in updates:
+        try:
+            msg = upd.message
+        except:
+            msg = upd
+        if not msg: continue
+        logger.debug("%s | %s | %s | %s", datetime.now(timezone.utc).isoformat(),
+                    msg.from_user.id, msg.from_user.username, msg.text)
 async def main():
     try:
         logger.info("Starting polling...")
+        bot.set_update_listener(log_updates)
         await bot.infinity_polling()
     finally:
         # гарантированно закрываем сессию aiohttp, чтобы не было "Unclosed client session"
