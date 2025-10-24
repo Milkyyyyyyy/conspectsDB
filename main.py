@@ -1,4 +1,4 @@
-# TODO доделать end_registration
+# TODO Добавить работу с базой данных через менеджер контекста и сделать его асинхронным (aiosqlite)
 
 import asyncio
 import os
@@ -361,7 +361,7 @@ async def end_registration(call):
 	values = [str(call.from_user.id), name, surname, group, direction_ns.rowid, 'user']
 	columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
 	insert(database=db, table='USERS', values=values, columns=columns)
-	# db.commit()
+	db.commit()
 	db.close()
 	await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
 	logger.info('Successfully saved user in database.')
