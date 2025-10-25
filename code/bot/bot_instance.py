@@ -2,7 +2,8 @@
 Здесь происходит инициализация бота
 Если хочешь в каком-то файле "подключиться" к боту - импортируй его отсюда
 """
-
+import asyncio
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states.asyncio.middleware import StateMiddleware
