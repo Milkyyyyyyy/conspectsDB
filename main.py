@@ -34,11 +34,11 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from telebot import asyncio_filters
 from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_handler_backends import State, StatesGroup
 from telebot.asyncio_storage import StateMemoryStorage
 from telebot.callback_data import CallbackData
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from code.bot.states import RegStates, MenuStates
 
 from code.database.queries import connectDB, isExists, getAll, get, insert
 from code.logging import logger
@@ -54,22 +54,6 @@ bot.setup_middleware(StateMiddleware(bot))
 vote_cb = CallbackData('action', 'amount', prefix='vote')
 
 
-# State регистрации
-class RegStates(StatesGroup):
-	wait_for_name = State()
-	wait_for_surname = State()
-	wait_for_group = State()
-	wait_for_facult = State()
-	wait_for_chair = State()
-	wait_for_direction = State()
-	accept_registration = State()
-
-
-# State главного меню
-class MenuStates(StatesGroup):
-	main_menu = State()
-
-
 # Удаляет сообщение через некоторое количество времени
 async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
 	logger.debug(f'Delayed message deletion after {delay_seconds} seconds.')
@@ -80,7 +64,6 @@ async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
 	except Exception as e:
 		logger.warning(f'Failed to delete message {message_id} in chat {chat_id}\n {e}')
 		pass
-
 
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start', 'menu'])
