@@ -8,8 +8,6 @@ from multiprocessing.forkserver import connect_to_new_process
 from dotenv import load_dotenv
 
 from code.logging import logger
-
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 from telebot.asyncio_handler_backends import State, StatesGroup
@@ -20,8 +18,10 @@ from telebot import asyncio_filters
 from code.database.namespaced import getRowNamespaces
 from code.database.queries import connectDB, isExists, getAll, get, insert
 
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
+import random
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 load_dotenv()
 TOKEN = os.getenv("API_KEY")
 bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
@@ -59,7 +59,7 @@ async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
 
 
 # Обрабатываем команду /start
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start', 'menu'])
 async def start(message):
 	logger.info('The /start command has been invoked.')
 	# Проверяем, существует ли пользователь
@@ -75,6 +75,10 @@ async def start(message):
 		kb = InlineKeyboardMarkup()
 		kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
 		await bot.reply_to(message, text, reply_markup=kb)
+	else:
+		logger.info(f'The user ({user_id}) exists')
+		await bot.set_state(message.from_user.id, MenuStates.main_menu, message.chat.id)
+		await main_menu(user_id=message.from_user.id, chat_id=message.chat.id)
 
 
 # Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
@@ -340,6 +344,8 @@ async def accept_registration(user_id=None, chat_id=None):
 # Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
 async def end_registration(call):
+	async with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
+		data['previous_message_id'] = None
 	logger.info('Registration accepted.')
 	await bot.answer_callback_query(call.id)
 	message = await bot.send_message(call.message.chat.id, 'Завершаю регистрацию...')
@@ -359,6 +365,31 @@ async def end_registration(call):
 	await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
 	logger.info('Successfully saved user in database.')
 	await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
+	await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
+
+
+async def get_greeting():
+	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
+	hour = now.hour
+	greet = ''
+	if 5 <= hour < 12:
+		greet = 'Доброе утро'
+	elif 12 <= hour < 18:
+		greet = 'Добрый день'
+	elif 18 <= hour < 23:
+		greet = 'Добрый вечер'
+	else:
+		greet = 'Доброй ночи.'
+	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже', 'Рад вас видеть.\nВыберите действие']
+	return f'{greet}!\n{random.choice(phrases)}'
+async def main_menu(user_id, chat_id, previous_message_id=None):
+	logger.info(f'Printing main menu for user({user_id})')
+	greeting = await get_greeting()
+	async with bot.retrieve_data(user_id, chat_id) as data:
+		if previous_message_id is None:
+			await bot.send_message(chat_id=chat_id, text=greeting)
+		else:
+			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id)
 
 
 # Логирование всех обновлений (например, сообщений от пользователя)
