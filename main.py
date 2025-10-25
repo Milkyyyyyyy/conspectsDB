@@ -2,24 +2,22 @@
 
 import asyncio
 import os
+import random
 import re
-from argparse import Namespace
-from dotenv import load_dotenv
-
-from code.logging import logger
-from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_storage import StateMemoryStorage
-from telebot.asyncio_handler_backends import State, StatesGroup
-from telebot.states.asyncio.middleware import StateMiddleware
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
-from telebot import asyncio_filters
-from telebot.callback_data import CallbackData
-
-from code.database.queries import connectDB, isExists, getAll, get, insert
-
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-import random
+
+from dotenv import load_dotenv
+from telebot import asyncio_filters
+from telebot.async_telebot import AsyncTeleBot
+from telebot.asyncio_handler_backends import State, StatesGroup
+from telebot.asyncio_storage import StateMemoryStorage
+from telebot.callback_data import CallbackData
+from telebot.states.asyncio.middleware import StateMiddleware
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from code.database.queries import connectDB, isExists, getAll, get, insert
+from code.logging import logger
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 load_dotenv()
