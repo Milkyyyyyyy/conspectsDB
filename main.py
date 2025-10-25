@@ -111,10 +111,10 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 		user_id = message.from_user.id
 	if chat_id is None:
 		chat_id = message.chat.id
+	logger.debug(f'user_id={user_id}, chat_id={chat_id}')
 	# Проверяем, существует ли пользователь
 	async with connectDB() as database:
-		user_id = str(message.from_user.id)
-		isUserExists = isExists(database=database, table="USERS", filters={"telegram_id": user_id})
+		isUserExists = await isExists(database=database, table="USERS", filters={"telegram_id": user_id})
 	# Если пользователь найден, обрываем процесс регистрации
 	if isUserExists:
 		logger.info(f'The user ({user_id}) already exist. Stopping registration')
@@ -227,9 +227,6 @@ async def choose_direction(userID=None, chatID=None):
 		# Пробуем получить информации из data. Если её нет - записываем дефолтную
 		try:
 			table = data['table']
-			if table == 'END_CHOOSING':
-				await accept_registration(user_id=userID, chat_id=chatID)
-				return
 		except:
 			data['table'] = 'FACULTS'
 			table = 'FACULTS'
@@ -247,11 +244,13 @@ async def choose_direction(userID=None, chatID=None):
 		except:
 			data['filters'] = {}
 			filters = {}
-
+	if table == 'END_CHOOSING':
+		print('0')
+		await accept_registration(user_id=userID, chat_id=chatID)
+		return
 	# Получаем список из таблицы
-	database = connectDB()
-	all_list, cursor = getAll(database=database, table=table, filters=filters)
-	database.close()
+	async with connectDB() as database:
+		all_list = await getAll(database=database, table=table, filters=filters)
 
 	# Определяем текущий индекс, последний индекс
 	MAX_ELEMENTS_PER_PAGE = 6
@@ -267,8 +266,7 @@ async def choose_direction(userID=None, chatID=None):
 	markup = InlineKeyboardMarkup()
 	for ind in range(current_index, max_index):
 		row = all_list[ind]
-		ns = getRowNamespaces(row=row, cursor=cursor)
-		button = InlineKeyboardButton(ns.name, callback_data=f"next step {ns.rowid}")
+		button = InlineKeyboardButton(row['name'], callback_data=f"next step {row['rowid']}")
 		new_row.append(button)
 		if len(new_row) >= ELEMENTS_PER_ROW:
 			markup.row(*new_row)
@@ -276,7 +274,7 @@ async def choose_direction(userID=None, chatID=None):
 	# Кнопки перемещения страниц
 	next_page_button = InlineKeyboardButton("--->", callback_data='empty' if page == max_page else 'next page')
 	previous_page_button = InlineKeyboardButton("<---", callback_data='empty' if page == 1 else 'previous page')
-	question_button = InlineKeyboardButton("Не могу найти", callback_data='message moderator')
+	# question_button = InlineKeyboardButton("Не могу найти", callback_data='message moderator')
 	markup.row(previous_page_button, next_page_button)
 
 	# Собираем текст сообщения
@@ -307,10 +305,10 @@ async def get_registration_info(user_id=None, chat_id=None):
 		surname = data['surname']
 		group = data['group']
 		direction_id = data['DIRECTIONS']
-	async with connectDB as database:
-		direction = get(database=database, table='DIRECTIONS', filters={'rowid': direction_id})
-		chair = get(database=database, table='CHAIRS', filters={'rowid': direction['chair_id']})
-		facult = get(database=database, table='FACULTS', filters={'rowid': chair['facult_id']})
+	async with connectDB() as database:
+		direction = await get(database=database, table='DIRECTIONS', filters={'rowid': direction_id})
+		chair = await get(database=database, table='CHAIRS', filters={'rowid': direction['chair_id']})
+		facult = await get(database=database, table='FACULTS', filters={'rowid': chair['facult_id']})
 	return name, surname, group, facult, chair, direction
 
 
@@ -321,7 +319,7 @@ async def accept_registration(user_id=None, chat_id=None):
 			await bot.delete_message(chat_id, data['previous_message_id'])
 		except Exception:
 			pass
-	name, surname, group, facult_ns, chair_ns, direction_ns = await get_registration_info(user_id=user_id,
+	name, surname, group, facult, chair, direction = await get_registration_info(user_id=user_id,
 																						  chat_id=chat_id)
 
 	# Собираем кнопки
@@ -333,9 +331,9 @@ async def accept_registration(user_id=None, chat_id=None):
 						   f"<blockquote><b>Имя</b>: {name}\n"
 						   f"<b>Фамилия</b>: {surname}\n"
 						   f"<b>Учебная группа</b>: {group}\n\n"
-						   f"<b>Факультет</b>: {facult_ns['name']}\n"
-						   f"<b>Кафедра</b>: {chair_ns['name']}\n"
-						   f"<b>Направление</b>: {direction_ns['name']}</blockquote>\n",
+						   f"<b>Факультет</b>: {facult['name']}\n"
+						   f"<b>Кафедра</b>: {chair['name']}\n"
+						   f"<b>Направление</b>: {direction['name']}</blockquote>\n",
 						   reply_markup=buttons, parse_mode='HTML')
 
 
@@ -355,9 +353,9 @@ async def end_registration(call):
 
 	# Добавляю запись в датабазу
 	async with connectDB() as db:
-		values = [str(call.from_user.id), name, surname, group, direction_ns.rowid, 'user']
+		values = [str(call.from_user.id), name, surname, group, direction_ns["rowid"], 'user']
 		columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
-		insert(database=db, table='USERS', values=values, columns=columns)
+		await insert(database=db, table='USERS', values=values, columns=columns)
 	await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
 	logger.info('Successfully saved user in database.')
 	await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
