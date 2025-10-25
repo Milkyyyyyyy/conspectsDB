@@ -3,6 +3,7 @@ import re
 import sqlite3
 from enum import Enum
 from typing import Union, Dict, Any, Optional, Iterable, Tuple
+import aiosqlite
 
 from code.logging import logger
 
@@ -56,20 +57,25 @@ _SIMPLE_IDENT_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 
 
 # ======================================
-
-def connectDB() -> Optional[sqlite3.Connection]:
-    """
-    Возвращает датабазу conspects.db
-    :return: sqlite3.Connection
-    """
-    logger.info('Connecting to database...')
-    try:
-        output = sqlite3.connect(CONSPECTS_DB)
-        logger.info('Successfully connected to database.')
-        return output
-    except sqlite3.Error as e:
-        logger.error(e)
-        return None
+class AsyncDBConnection:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self.conn = None
+    async def __aenter__(self):
+        self.conn = await aiosqlite.connect(self.db_path)
+        self.conn.row_factory = aiosqlite.Row
+        return self.conn
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            await self.conn.commit()
+        else:
+            await self.conn.rollback()
+        await self.conn.close()
+def connectDB():
+    logger.debug('Async connecting to database...')
+    output = AsyncDBConnection(CONSPECTS_DB)
+    logger.debug(output)
+    return output
 
 
 def checkCursor(cursor: Union[sqlite3.Cursor] = None) -> bool:
@@ -183,10 +189,10 @@ def _build_where_clause(filters, operator="AND"):
 
 
 def getAll(
-        database: sqlite3.Connection = None,
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
-        operator: str = "AND") -> Union[Tuple[list, sqlite3.Cursor], None]:
+        operator: str = "AND") -> Union[list, None]:
     """
     Возвращает все записи из таблицы, которые соответствуют заданным фильтрам
 
@@ -203,7 +209,7 @@ def getAll(
     """
     # Проверка датабазы и инициализация курсора
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
@@ -227,7 +233,7 @@ def getAll(
         cursor.execute(sql_query, params)
         output = cursor.fetchall()
         logger.info("Successfully fetched rows")
-        return output, cursor
+        return output
     except Exception as e:
         logger.exception(e)
         return None
@@ -237,7 +243,7 @@ def get(
         database: sqlite3.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
-        operator: str = "AND") -> Union[Tuple[tuple, sqlite3.Cursor], None]:
+        operator: str = "AND") -> Union[tuple, None]:
     """
     Возвращает первую строку из таблицы, соответствующую заданным фильтрам
     Если фильтр пустой, то вернёт первую строку таблицы
@@ -278,17 +284,17 @@ def get(
         cursor.execute(sql_query, params)
         output = cursor.fetchone()
         logger.info("Successfully fetched row")
-        return output, cursor
+        return output
     except Exception as e:
         logger.exception(e)
         return None
 
 
-def isExists(
-        database: sqlite3.Connection = None,
+async def isExists(
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
-        operator: str = 'AND') -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
+        operator: str = 'AND') -> Union[bool, None]:
     """
     Возвращает True, если запись, соответствующая заданным фильтрам, существует
     Если вводные данные ошибочны, возвращает None
@@ -306,7 +312,7 @@ def isExists(
     """
     # Проверка датабазы и инициализация курсора
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
@@ -332,14 +338,8 @@ def isExists(
         logger.debug("SQL: %s -- params=%s", sql_query, params)
 
         # Выполняем запрос SQL
-        cursor.execute(sql_query, params)
-        output = cursor.fetchone()
-        exists = output is not None
-        if exists:
-            logger.info("Matching row exists")
-        else:
-            logger.info("No matching rows found")
-        return exists, cursor
+        await cursor.execute(sql_query, params)
+        return bool(await cursor.fetchone())
     except Exception as e:
         logger.exception(e)
         return None

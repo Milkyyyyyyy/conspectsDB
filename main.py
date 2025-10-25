@@ -3,6 +3,8 @@
 import asyncio
 import os
 import re
+from multiprocessing.forkserver import connect_to_new_process
+
 from dotenv import load_dotenv
 
 from code.logging import logger
@@ -61,10 +63,11 @@ async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
 async def start(message):
 	logger.info('The /start command has been invoked.')
 	# Проверяем, существует ли пользователь
-	user_id = str(message.from_user.id)
-	database = connectDB()
-	isUserExists, _ = isExists(database=database, table="USERS", filters={"telegram_id": user_id})
-	database.close()
+	logger.debug('Check if user exists')
+	async with connectDB() as database:
+		logger.debug(database)
+		user_id = str(message.from_user.id)
+		isUserExists = await isExists(database=database, table="USERS", filters={"telegram_id": user_id})
 	# Если не существует, предлагаем пройти регистрацию
 	if not isUserExists:
 		logger.info(f'The user ({user_id}) does not exist')
@@ -109,9 +112,9 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 	if chat_id is None:
 		chat_id = message.chat.id
 	# Проверяем, существует ли пользователь
-	db = connectDB()
-	isUserExists, _ = isExists(database=db, table='USERS', filters={'telegram_id': str(user_id)})
-	db.close()
+	async with connectDB() as database:
+		user_id = str(message.from_user.id)
+		isUserExists = isExists(database=database, table="USERS", filters={"telegram_id": user_id})
 	# Если пользователь найден, обрываем процесс регистрации
 	if isUserExists:
 		logger.info(f'The user ({user_id}) already exist. Stopping registration')
@@ -304,17 +307,11 @@ async def get_registration_info(user_id=None, chat_id=None):
 		surname = data['surname']
 		group = data['group']
 		direction_id = data['DIRECTIONS']
-	database = connectDB()
-	direction, cursor = get(database=database, table='DIRECTIONS', filters={'rowid': direction_id})
-	direction_ns = getRowNamespaces(row=direction, cursor=cursor)
-
-	chair, cursor = get(database=database, table='CHAIRS', filters={'rowid': direction_ns.chair_id})
-	chair_ns = getRowNamespaces(row=chair, cursor=cursor)
-
-	facult, cursor = get(database=database, table='FACULTS', filters={'rowid': chair_ns.facult_id})
-	facult_ns = getRowNamespaces(row=facult, cursor=cursor)
-	database.close()
-	return name, surname, group, facult_ns, chair_ns, direction_ns
+	async with connectDB as database:
+		direction = get(database=database, table='DIRECTIONS', filters={'rowid': direction_id})
+		chair = get(database=database, table='CHAIRS', filters={'rowid': direction['chair_id']})
+		facult = get(database=database, table='FACULTS', filters={'rowid': chair['facult_id']})
+	return name, surname, group, facult, chair, direction
 
 
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
@@ -336,9 +333,9 @@ async def accept_registration(user_id=None, chat_id=None):
 						   f"<blockquote><b>Имя</b>: {name}\n"
 						   f"<b>Фамилия</b>: {surname}\n"
 						   f"<b>Учебная группа</b>: {group}\n\n"
-						   f"<b>Факультет</b>: {facult_ns.name}\n"
-						   f"<b>Кафедра</b>: {chair_ns.name}\n"
-						   f"<b>Направление</b>: {direction_ns.name}</blockquote>\n",
+						   f"<b>Факультет</b>: {facult_ns['name']}\n"
+						   f"<b>Кафедра</b>: {chair_ns['name']}\n"
+						   f"<b>Направление</b>: {direction_ns['name']}</blockquote>\n",
 						   reply_markup=buttons, parse_mode='HTML')
 
 
@@ -357,12 +354,10 @@ async def end_registration(call):
 	name, surname, group, _, _, direction_ns = await get_registration_info(call.from_user.id, call.message.chat.id)
 
 	# Добавляю запись в датабазу
-	db = connectDB()
-	values = [str(call.from_user.id), name, surname, group, direction_ns.rowid, 'user']
-	columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
-	insert(database=db, table='USERS', values=values, columns=columns)
-	db.commit()
-	db.close()
+	async with connectDB() as db:
+		values = [str(call.from_user.id), name, surname, group, direction_ns.rowid, 'user']
+		columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
+		insert(database=db, table='USERS', values=values, columns=columns)
 	await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
 	logger.info('Successfully saved user in database.')
 	await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
