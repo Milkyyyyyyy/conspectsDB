@@ -1,6 +1,9 @@
 from code.logging import logger
 from code.database.queries import connectDB, isExists
 import asyncio
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+from random import choice
 
 # Удаляет сообщение через некоторое количество времени
 async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10):
@@ -12,9 +15,18 @@ async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10)
 	except Exception as e:
 		logger.warning(f'Failed to delete message {message_id} in chat {chat_id}\n {e}')
 		pass
-async def is_user_exists(user_id):
-	async with connectDB() as database:
-		logger.debug(database)
-		user_id = str(user_id)
-		isUserExists = await isExists(database=database, table="USERS", filters={"telegram_id": user_id})
-	return isUserExists
+
+async def get_greeting():
+	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
+	hour = now.hour
+	if 5 <= hour < 12:
+		greet = 'Доброе утро'
+	elif 12 <= hour < 18:
+		greet = 'Добрый день'
+	elif 18 <= hour < 23:
+		greet = 'Добрый вечер'
+	else:
+		greet = 'Доброй ночи.'
+	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже',
+			   'Рад вас видеть.\nВыберите действие']
+	return f'<b>{greet}!</b>\n\n{choice(phrases)}'

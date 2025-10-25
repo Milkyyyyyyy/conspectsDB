@@ -1,6 +1,7 @@
 from code.bot.bot_instance import bot
 import asyncio
-from code.bot.utils import delete_message_after_delay, is_user_exists
+from code.bot.utils import delete_message_after_delay
+from code.bot.services.user_service import is_user_exists
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from code.logging import logger
 from code.bot.states import MenuStates

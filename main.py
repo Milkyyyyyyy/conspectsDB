@@ -35,31 +35,23 @@ from code.bot.bot_instance import bot
 from telebot.callback_data import CallbackData
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from code.bot.states import RegStates, MenuStates
-from code.bot.utils import delete_message_after_delay, is_user_exists
-from code.bot.handlers.info import get_user_info
+from code.bot.utils import delete_message_after_delay
+from code.bot.services.user_service import is_user_exists, get_user_info
+
 
 from code.database.queries import connectDB, isExists, getAll, get, insert
 from code.logging import logger
+from code.bot.handlers.main_menu import main_menu
 
 import code.bot.handlers.start
+import code.bot.handlers.misc
+
+from code.bot.callbacks import vote_cb
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-vote_cb = CallbackData('action', 'amount', prefix='vote')
 
-
-
-
-# Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
-@bot.callback_query_handler(func=lambda call: 'empty' in call.data)
-async def empty_button(call):
-	data = call.data.split()
-	if len(data) == 1:
-		await bot.answer_callback_query(call.id)
-	else:
-		message = ' '.join(data[1:])
-		await bot.answer_callback_query(call.id, text=message, show_alert=False)
 
 
 # =================== Регистрация ===================
@@ -337,20 +329,7 @@ async def end_registration(call):
 	await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
 
 
-async def get_greeting():
-	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
-	hour = now.hour
-	if 5 <= hour < 12:
-		greet = 'Доброе утро'
-	elif 12 <= hour < 18:
-		greet = 'Добрый день'
-	elif 18 <= hour < 23:
-		greet = 'Добрый вечер'
-	else:
-		greet = 'Доброй ночи.'
-	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже',
-			   'Рад вас видеть.\nВыберите действие']
-	return f'<b>{greet}!</b>\n\n{random.choice(phrases)}'
+
 
 
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
@@ -359,48 +338,7 @@ async def open_menu(call):
 	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
 
 
-async def main_menu(user_id, chat_id, previous_message_id=None):
-	logger.info(f'Printing main menu for user({user_id})')
-	greeting = await get_greeting()
-	# Собираем markup
-	markup = InlineKeyboardMarkup()
-	show_info = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
-	markup.row(show_info)
-	async with bot.retrieve_data(user_id, chat_id) as data:
-		if previous_message_id is None:
-			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
-		else:
-			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id,
-										parse_mode='HTML')
-			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
 
-
-
-
-
-@bot.callback_query_handler(func=lambda call: call.data == 'show_info')
-async def print_user_info(call):
-	await bot.answer_callback_query(call.id)
-	user_id = call.from_user.id
-	chat_id = call.message.chat.id
-	user_info = await get_user_info(chat_id=chat_id, user_id=user_id)
-	text_message = ("<blockquote><b>Информация о пользователе</b>\n\n"
-					f"<b>Имя</b>: {user_info['name']}\n"
-					f"<b>Фамилия</b>: {user_info['surname']}\n"
-					f"<b>Юзернейм</b>: @{call.from_user.username}\n\n"
-					f"<b>Учебная группа</b>: {user_info['study_group']}\n"
-					f"<b>Факультет</b>: {user_info['facult_name']}\n"
-					f"<b>Кафедра</b>: {user_info['chair_name']}\n"
-					f"<b>Направление</b>: {user_info['direction_name']}\n\n"
-					f"<b>Кол-во загруженных конспектов</b>: В РАЗРАБОТКЕ</blockquote>")
-	markup = InlineKeyboardMarkup()
-	back_button = InlineKeyboardButton('Назад', callback_data=vote_cb.new(action='open menu',
-																		  amount=str(call.message.message_id)))
-	markup.row(back_button)
-
-	await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=call.message.message_id,
-									  parse_mode='HTML')
-	await bot.edit_message_reply_markup(chat_id=chat_id, message_id=call.message.message_id, reply_markup=markup)
 
 
 # Логирование всех обновлений (например, сообщений от пользователя)
