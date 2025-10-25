@@ -20,6 +20,7 @@ from code.database.queries import connectDB, isExists, getAll, get, insert
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import random
+
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 load_dotenv()
 TOKEN = os.getenv("API_KEY")
@@ -28,7 +29,9 @@ bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 bot.setup_middleware(StateMiddleware(bot))
 
-vote_cb = CallbackData('action','amount', prefix='vote')
+vote_cb = CallbackData('action', 'amount', prefix='vote')
+
+
 # State регистрации
 class RegStates(StatesGroup):
 	wait_for_name = State()
@@ -325,7 +328,7 @@ async def accept_registration(user_id=None, chat_id=None):
 		except Exception:
 			pass
 	name, surname, group, facult, chair, direction = await get_registration_info(user_id=user_id,
-																						  chat_id=chat_id)
+																				 chat_id=chat_id)
 
 	# Собираем кнопки
 	buttons = InlineKeyboardMarkup()
@@ -380,12 +383,17 @@ async def get_greeting():
 		greet = 'Добрый вечер'
 	else:
 		greet = 'Доброй ночи.'
-	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже', 'Рад вас видеть.\nВыберите действие']
+	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже',
+			   'Рад вас видеть.\nВыберите действие']
 	return f'<b>{greet}!</b>\n\n{random.choice(phrases)}'
+
+
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):
 	await bot.answer_callback_query(call.id)
 	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
+
+
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'Printing main menu for user({user_id})')
 	greeting = await get_greeting()
@@ -397,8 +405,10 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		if previous_message_id is None:
 			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
 		else:
-			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
+			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id,
+										parse_mode='HTML')
 			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
+
 
 async def get_user_info(chat_id=None, user_id=None):
 	if chat_id is None or user_id is None:
@@ -408,7 +418,6 @@ async def get_user_info(chat_id=None, user_id=None):
 		direction = await get(database=db, table='DIRECTIONS', filters={'rowid': user['direction_id']})
 		chair = await get(database=db, table='CHAIRS', filters={'rowid': direction['chair_id']})
 		facult = await get(database=db, table='FACULTS', filters={'rowid': chair['facult_id']})
-
 
 	output = {
 		'telegram_id': user['telegram_id'],
@@ -423,6 +432,7 @@ async def get_user_info(chat_id=None, user_id=None):
 		'facult_name': facult['name']
 	}
 	return output
+
 
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
 async def print_user_info(call):
@@ -439,11 +449,14 @@ async def print_user_info(call):
 					f"<b>Кафедра</b>: {user_info['chair_name']}\n"
 					f"<b>Направление</b>: {user_info['direction_name']}</blockquote>")
 	markup = InlineKeyboardMarkup()
-	back_button = InlineKeyboardButton('Назад', callback_data=vote_cb.new(action='open menu', amount=str(call.message.message_id)))
+	back_button = InlineKeyboardButton('Назад', callback_data=vote_cb.new(action='open menu',
+																		  amount=str(call.message.message_id)))
 	markup.row(back_button)
 
-	print(await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=call.message.message_id, parse_mode='HTML'))
+	print(await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=call.message.message_id,
+									  parse_mode='HTML'))
 	print(await bot.edit_message_reply_markup(chat_id=chat_id, message_id=call.message.message_id, reply_markup=markup))
+
 
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
