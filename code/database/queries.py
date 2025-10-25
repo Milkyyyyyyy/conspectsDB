@@ -2,7 +2,8 @@ import functools
 import re
 import sqlite3
 from enum import Enum
-from typing import Union, Dict, Any, Optional, Iterable, Tuple
+from typing import Union, Dict, Any, Optional, Iterable, Tuple, List
+import aiosqlite
 
 from code.logging import logger
 
@@ -56,20 +57,25 @@ _SIMPLE_IDENT_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 
 
 # ======================================
-
-def connectDB() -> Optional[sqlite3.Connection]:
-    """
-    Возвращает датабазу conspects.db
-    :return: sqlite3.Connection
-    """
-    logger.info('Connecting to database...')
-    try:
-        output = sqlite3.connect(CONSPECTS_DB)
-        logger.info('Successfully connected to database.')
-        return output
-    except sqlite3.Error as e:
-        logger.error(e)
-        return None
+class AsyncDBConnection:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self.conn = None
+    async def __aenter__(self):
+        self.conn = await aiosqlite.connect(self.db_path)
+        self.conn.row_factory = aiosqlite.Row
+        return self.conn
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            await self.conn.commit()
+        else:
+            await self.conn.rollback()
+        await self.conn.close()
+def connectDB():
+    logger.debug('Async connecting to database...')
+    output = AsyncDBConnection(CONSPECTS_DB)
+    logger.debug(output)
+    return output
 
 
 def checkCursor(cursor: Union[sqlite3.Cursor] = None) -> bool:
@@ -163,7 +169,6 @@ def _build_where_clause(filters, operator="AND"):
                 val = specs
                 op = "="
 
-        print(specs, val, op)
         if val is None:
             parts.append(f"{col} IS NULL")
         elif isinstance(val, (list, tuple)):
@@ -172,7 +177,6 @@ def _build_where_clause(filters, operator="AND"):
             else:
                 placeholders = ", ".join("?" for _ in val)
                 parts.append(f"{col} IN ({placeholders})")
-                print(parts)
                 params.extend(val)
         else:
             parts.append(f"{col} {op} ?")
@@ -182,11 +186,11 @@ def _build_where_clause(filters, operator="AND"):
     return where_sql, tuple(params)
 
 
-def getAll(
-        database: sqlite3.Connection = None,
+async def getAll(
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
-        operator: str = "AND") -> Union[Tuple[list, sqlite3.Cursor], None]:
+        operator: str = "AND") -> Union[List[dict], None]:
     """
     Возвращает все записи из таблицы, которые соответствуют заданным фильтрам
 
@@ -203,7 +207,7 @@ def getAll(
     """
     # Проверка датабазы и инициализация курсора
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
@@ -224,20 +228,20 @@ def getAll(
         logger.debug("SQL: %s -- params=%s", sql_query, params)
 
         # Выполняем запрос SQL
-        cursor.execute(sql_query, params)
-        output = cursor.fetchall()
+        await cursor.execute(sql_query, params)
+        output = await cursor.fetchall()
         logger.info("Successfully fetched rows")
-        return output, cursor
+        return output
     except Exception as e:
         logger.exception(e)
         return None
 
 
-def get(
-        database: sqlite3.Connection = None,
+async def get(
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
-        operator: str = "AND") -> Union[Tuple[tuple, sqlite3.Cursor], None]:
+        operator: str = "AND") -> Union[dict, None]:
     """
     Возвращает первую строку из таблицы, соответствующую заданным фильтрам
     Если фильтр пустой, то вернёт первую строку таблицы
@@ -254,7 +258,7 @@ def get(
     """
     # Проверка датабазы и инициализация курсора
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
@@ -275,20 +279,20 @@ def get(
         logger.debug("SQL: %s -- params=%s", sql_query, params)
 
         # Выполняем запрос SQL
-        cursor.execute(sql_query, params)
-        output = cursor.fetchone()
+        await cursor.execute(sql_query, params)
+        output = await cursor.fetchone()
         logger.info("Successfully fetched row")
-        return output, cursor
+        return output
     except Exception as e:
         logger.exception(e)
         return None
 
 
-def isExists(
-        database: sqlite3.Connection = None,
+async def isExists(
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
-        operator: str = 'AND') -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
+        operator: str = 'AND') -> Union[bool, None]:
     """
     Возвращает True, если запись, соответствующая заданным фильтрам, существует
     Если вводные данные ошибочны, возвращает None
@@ -306,7 +310,7 @@ def isExists(
     """
     # Проверка датабазы и инициализация курсора
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
@@ -332,21 +336,15 @@ def isExists(
         logger.debug("SQL: %s -- params=%s", sql_query, params)
 
         # Выполняем запрос SQL
-        cursor.execute(sql_query, params)
-        output = cursor.fetchone()
-        exists = output is not None
-        if exists:
-            logger.info("Matching row exists")
-        else:
-            logger.info("No matching rows found")
-        return exists, cursor
+        await cursor.execute(sql_query, params)
+        return bool(await cursor.fetchone())
     except Exception as e:
         logger.exception(e)
         return None
 
 
-def remove(
-        database: sqlite3.Connection = None,
+async def remove(
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         filters: Dict[str, Any] = None,
         operator: str = "AND") -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
@@ -364,7 +362,7 @@ def remove(
 
     # Проверка датабазы и инициализация курсора
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
@@ -389,8 +387,8 @@ def remove(
         logger.debug("SQL (select rowid): %s -- params=%s", select_sql, params)
 
         # Выполняем запрос SQL
-        cursor.execute(select_sql, params)
-        row = cursor.fetchone()
+        await cursor.execute(select_sql, params)
+        row = await cursor.fetchone()
         if row is None:
             logger.error("No matching rows found")
             return False
@@ -415,8 +413,8 @@ def remove(
         return False
 
 
-def removeList(
-        database: sqlite3.Connection = None,
+async def removeList(
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         rowids: Iterable = None) -> Union[int, Tuple[int, sqlite3.Cursor], None]:
     """
@@ -430,7 +428,7 @@ def removeList(
     """
 
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return None
@@ -466,7 +464,7 @@ def removeList(
         placeholders = ", ".join("?" for _ in rowid_list)
         delete_sql = f"DELETE FROM {table_sql} WHERE rowid IN ({placeholders})"
         logger.debug("SQL (bulk delete): %s -- params=%s", delete_sql, rowid_list)
-        cursor.execute(delete_sql, tuple(rowid_list))
+        await cursor.execute(delete_sql, tuple(rowid_list))
         deleted = cursor.rowcount if isinstance(cursor.rowcount, int) and cursor.rowcount >= 0 else None
         if deleted is None:
             deleted = len(rowid_list)
@@ -477,8 +475,8 @@ def removeList(
         return None
 
 
-def insert(
-        database: sqlite3.Connection = None,
+async def insert(
+        database: aiosqlite.Connection = None,
         table: Union[str, Enum] = None,
         values: Iterable = None,
         columns: Iterable = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
@@ -492,7 +490,7 @@ def insert(
     """
 
     try:
-        cursor = database.cursor()
+        cursor = await database.cursor()
     except Exception:
         logger.error("Invalid database connection")
         return False
@@ -541,7 +539,7 @@ def insert(
             placeholders = ", ".join("?" for _ in vals)
             sql_query = f'INSERT INTO {table_sql} {columns_sql} VALUES ({placeholders})'
             logger.debug("SQL (insert): %s -- params=%s", sql_query, values)
-            cursor.execute(sql_query, values)
+            await cursor.execute(sql_query, values)
 
             last_id = getattr(cursor, "lastrowid", None)
             if isinstance(last_id, int) and last_id > 0:
