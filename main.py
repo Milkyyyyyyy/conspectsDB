@@ -1,5 +1,3 @@
-# TODO Добавить работу с базой данных через менеджер контекста и сделать его асинхронным (aiosqlite)
-
 import asyncio
 import os
 import random
