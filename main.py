@@ -13,6 +13,7 @@ from telebot.asyncio_handler_backends import State, StatesGroup
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from telebot import asyncio_filters
+from telebot.callback_data import CallbackData
 
 from code.database.queries import connectDB, isExists, getAll, get, insert
 
@@ -27,7 +28,7 @@ bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 bot.setup_middleware(StateMiddleware(bot))
 
-
+vote_cb = CallbackData('action','amount', prefix='vote')
 # State регистрации
 class RegStates(StatesGroup):
 	wait_for_name = State()
@@ -381,21 +382,20 @@ async def get_greeting():
 		greet = 'Доброй ночи.'
 	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже', 'Рад вас видеть.\nВыберите действие']
 	return f'<b>{greet}!</b>\n\n{random.choice(phrases)}'
-async def main_menu(user_id, chat_id):
+@bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
+async def open_menu(call):
+	await bot.answer_callback_query(call.id)
+	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
+async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'Printing main menu for user({user_id})')
 	greeting = await get_greeting()
 	# Собираем markup
 	markup = InlineKeyboardMarkup()
-	show_info = InlineKeyboardButton('Обо мне 👤', callback_data='show_info')
+	show_info = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
 	markup.row(show_info)
 	async with bot.retrieve_data(user_id, chat_id) as data:
-		try:
-			previous_message_id = data['menu_message_id']
-		except:
-			previous_message_id = None
 		if previous_message_id is None:
 			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
-			data['menu_message_id'] = message.message_id
 		else:
 			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
 			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
@@ -426,6 +426,7 @@ async def get_user_info(chat_id=None, user_id=None):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
 async def print_user_info(call):
+	await bot.answer_callback_query(call.id)
 	user_id = call.from_user.id
 	chat_id = call.message.chat.id
 	user_info = await get_user_info(chat_id=chat_id, user_id=user_id)
@@ -438,17 +439,11 @@ async def print_user_info(call):
 					f"<b>Кафедра</b>: {user_info['chair_name']}\n"
 					f"<b>Направление</b>: {user_info['direction_name']}</blockquote>")
 	markup = InlineKeyboardMarkup()
-	back_button = InlineKeyboardButton('Назад', callback_data='run menu')
-	async with bot.retrieve_data(user_id, chat_id) as data:
-		try:
-			menu_message_id = data['menu_message_id']
-		except:
-			menu_message_id = None
-		if menu_message_id is None:
-			message = await bot.send_message(chat_id, text_message, parse_mode='HTML')
-			data['menu_message_id'] = message.message_id
-		else:
-			await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=menu_message_id, parse_mode='HTML')
+	back_button = InlineKeyboardButton('Назад', callback_data=vote_cb.new(action='open menu', amount=str(call.message.message_id)))
+	markup.row(back_button)
+
+	print(await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=call.message.message_id, parse_mode='HTML'))
+	print(await bot.edit_message_reply_markup(chat_id=chat_id, message_id=call.message.message_id, reply_markup=markup))
 
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
