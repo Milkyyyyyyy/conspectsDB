@@ -16,11 +16,16 @@ from code.database.service import connectDB
 from code.logging import logger
 
 import code.bot.handlers.info
-import code.bot.handlers.main_menu
-import code.bot.handlers.misc
-import code.bot.handlers.start
+_info = code.bot.handlers.info
 
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+import code.bot.handlers.main_menu
+_main_menu = code.bot.handlers.main_menu
+
+import code.bot.handlers.misc
+_misc = code.bot.handlers.misc
+
+import code.bot.handlers.start
+_start = code.bot.handlers.start.start
 
 
 # =================== Регистрация ===================
