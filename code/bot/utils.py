@@ -1,9 +1,14 @@
-from code.logging import logger
-from code.database.queries import connectDB, isExists
+"""
+Здесь различные утилиты для работы с ботом
+"""
+
 import asyncio
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime
 from random import choice
+from zoneinfo import ZoneInfo
+
+from code.logging import logger
+
 
 # Удаляет сообщение через некоторое количество времени
 async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10):
@@ -15,6 +20,7 @@ async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10)
 	except Exception as e:
 		logger.warning(f'Failed to delete message {message_id} in chat {chat_id}\n {e}')
 		pass
+
 
 async def get_greeting():
 	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))

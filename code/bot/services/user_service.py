@@ -1,11 +1,24 @@
+"""
+Здесь обрабатываются все запросы к датабазе для юзеров
+Получение информации, проверка, существует ли пользователь и т.д
+
+TODO вынести добавление юзера в дб как отдельную функцию сюда
+"""
+
+from code.database.queries import isExists, get
+from code.database.service import connectDB
 from code.logging import logger
-from code.database.queries import connectDB, isExists, get
+
+
+# Возвращает True, если пользователь зарегистрирован
 async def is_user_exists(user_id):
 	async with connectDB() as database:
 		logger.debug(database)
 		user_id = str(user_id)
 		isUserExists = await isExists(database=database, table="USERS", filters={"telegram_id": user_id})
 	return isUserExists
+
+
 async def get_user_info(chat_id=None, user_id=None):
 	if chat_id is None or user_id is None:
 		return None

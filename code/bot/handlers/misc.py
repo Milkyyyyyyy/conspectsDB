@@ -1,5 +1,11 @@
+"""
+Прочие утилиты
+"""
 from code.bot.bot_instance import bot
 
+
+# Обрабатывает нажатия на кнопки, которые ничего не должны делать
+# При необходимости высвечивает сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
 async def empty_button(call):
 	data = call.data.split()

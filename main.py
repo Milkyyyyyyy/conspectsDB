@@ -1,33 +1,26 @@
 # TODO !СДЕЛАТЬ РЕФАКТОРИНГ, ВСЁ ПЕРЕМЕСТИТЬ В РАЗНЫЕ ФАЙЛЫ!!! (почти готово)
 
 import asyncio
-import os
-import random
 import re
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from telebot.callback_data import CallbackData
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from code.bot.callbacks import vote_cb
+from code.bot.handlers.main_menu import main_menu
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
-from code.bot.services.user_service import is_user_exists, get_user_info
-
-
-from code.database.queries import connectDB, isExists, getAll, get, insert
+from code.database.queries import isExists, getAll, get, insert
+from code.database.service import connectDB
 from code.logging import logger
-from code.bot.handlers.main_menu import main_menu
 
-import code.bot.handlers.start
+import code.bot.handlers.info
+import code.bot.handlers.main_menu
 import code.bot.handlers.misc
-
-from code.bot.callbacks import vote_cb
+import code.bot.handlers.start
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-
-
 
 
 # =================== Регистрация ===================
@@ -305,16 +298,10 @@ async def end_registration(call):
 	await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
 
 
-
-
-
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):
 	await bot.answer_callback_query(call.id)
 	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
-
-
-
 
 
 # Логирование всех обновлений (например, сообщений от пользователя)

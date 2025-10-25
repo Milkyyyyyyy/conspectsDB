@@ -1,13 +1,20 @@
-from code.bot.bot_instance import bot
-import asyncio
-from code.bot.utils import delete_message_after_delay
-from code.bot.services.user_service import is_user_exists
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from code.logging import logger
-from code.bot.states import MenuStates
+"""
+Обработка команды start и menu
+Проверка регистрации пользователя
+"""
 
-# TEMP
-from main import main_menu
+import asyncio
+
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from code.bot.bot_instance import bot
+from code.bot.handlers.main_menu import main_menu
+from code.bot.services.user_service import is_user_exists
+from code.bot.states import MenuStates
+from code.bot.utils import delete_message_after_delay
+from code.logging import logger
+
+
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start', 'menu'])
 async def start(message):

@@ -1,9 +1,14 @@
-from code.bot.bot_instance import bot
-from code.logging import logger
+"""
+В этом файле происходит обработка главного меню (пока что это только само главное меню и вывод информации о пользователе)
+"""
+
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from code.bot.utils import get_greeting
-from code.bot.services.user_service import get_user_info
+
+from code.bot.bot_instance import bot
 from code.bot.callbacks import vote_cb
+from code.bot.services.user_service import get_user_info
+from code.bot.utils import get_greeting
+from code.logging import logger
 
 
 async def main_menu(user_id, chat_id, previous_message_id=None):
@@ -20,9 +25,6 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id,
 										parse_mode='HTML')
 			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
-
-
-
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
@@ -46,5 +48,5 @@ async def print_user_info(call):
 	markup.row(back_button)
 
 	await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=call.message.message_id,
-									  parse_mode='HTML')
+								parse_mode='HTML')
 	await bot.edit_message_reply_markup(chat_id=chat_id, message_id=call.message.message_id, reply_markup=markup)

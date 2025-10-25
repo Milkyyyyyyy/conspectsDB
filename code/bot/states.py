@@ -1,4 +1,9 @@
+"""
+Здесь хранить все State юзера
+"""
+
 from telebot.asyncio_handler_backends import State, StatesGroup
+
 
 # State регистрации
 class RegStates(StatesGroup):

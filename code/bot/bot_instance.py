@@ -1,5 +1,8 @@
-from dotenv import load_dotenv
-import os
+"""
+Здесь происходит инициализация бота
+Если хочешь в каком-то файле "подключиться" к боту - импортируй его отсюда
+"""
+
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states.asyncio.middleware import StateMiddleware
