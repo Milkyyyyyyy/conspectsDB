@@ -1,5 +1,28 @@
 # TODO !СДЕЛАТЬ РЕФАКТОРИНГ, ВСЁ ПЕРЕМЕСТИТЬ В РАЗНЫЕ ФАЙЛЫ!!!
 # !!!!!!!!!!!!!!!!!!!!!!
+# bot_project/
+# ├─ code/
+# │  ├─ database/queries.py        # у тебя уже есть
+# │  ├─ logging.py                 # у тебя уже есть
+# │  └─ ... 
+# ├─ bot/
+# │  ├─ __init__.py                # опционально — точка доступа к bot instance
+# │  ├─ app.py                     # entrypoint: создание ботa, middlewares, polling
+# │  ├─ config.py                  # чтение env и констант (TOKEN, DOWNLOAD_DIR и т.д.)
+# │  ├─ states.py                  # RegStates, MenuStates
+# │  ├─ utils.py                   # утилиты (delete_message_after_delay, get_greeting, др.)
+# │  ├─ keyboards.py (?)           # фабрики InlineKeyboardMarkup / InlineKeyboardButton
+# │  ├─ handlers/
+# │  │  ├─ __init__.py
+# │  │  ├─ start.py                # /start, меню открытия
+# │  │  ├─ registration.py         # все state-обработчики регистрации
+# │  │  ├─ navigation.py (?)       # choose_direction, пагинация, кнопки "next page"
+# │  │  ├─ info.py                 # show_info, get_user_info
+# │  │  └─ misc.py                 # логирование апдейтов, пустые колбэки и пр.
+# │  ├─ services/
+# │  │  └─ user_service.py         # get_user_info, сохранение пользователя, валидации
+# │  └─ callbacks.py               # CallbackData фабрики и вспом. функции
+# └─ README.md
 
 import asyncio
 import os
