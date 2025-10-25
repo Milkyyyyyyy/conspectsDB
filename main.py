@@ -3,25 +3,24 @@
 import asyncio
 import os
 import re
-from multiprocessing.forkserver import connect_to_new_process
-
+from argparse import Namespace
 from dotenv import load_dotenv
 
 from code.logging import logger
-
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 from telebot.asyncio_handler_backends import State, StatesGroup
 from telebot.states.asyncio.middleware import StateMiddleware
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from telebot import asyncio_filters
+from telebot.callback_data import CallbackData
 
-from code.database.namespaced import getRowNamespaces
 from code.database.queries import connectDB, isExists, getAll, get, insert
 
 from datetime import datetime, timezone
-
+from zoneinfo import ZoneInfo
+import random
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 load_dotenv()
 TOKEN = os.getenv("API_KEY")
 bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
@@ -29,8 +28,8 @@ bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 bot.setup_middleware(StateMiddleware(bot))
 
-
-# State регситрации
+vote_cb = CallbackData('action','amount', prefix='vote')
+# State регистрации
 class RegStates(StatesGroup):
 	wait_for_name = State()
 	wait_for_surname = State()
@@ -59,11 +58,13 @@ async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
 
 
 # Обрабатываем команду /start
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start', 'menu'])
 async def start(message):
+	asyncio.create_task(delete_message_after_delay(message.chat.id, message.message_id, delay_seconds=2))
 	logger.info('The /start command has been invoked.')
 	# Проверяем, существует ли пользователь
 	logger.debug('Check if user exists')
+
 	async with connectDB() as database:
 		logger.debug(database)
 		user_id = str(message.from_user.id)
@@ -75,6 +76,10 @@ async def start(message):
 		kb = InlineKeyboardMarkup()
 		kb.add(InlineKeyboardButton("Зарегистрироваться", callback_data="register"))
 		await bot.reply_to(message, text, reply_markup=kb)
+	else:
+		logger.info(f'The user ({user_id}) exists')
+		await bot.set_state(message.from_user.id, MenuStates.main_menu, message.chat.id)
+		await main_menu(user_id=message.from_user.id, chat_id=message.chat.id)
 
 
 # Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
@@ -340,6 +345,8 @@ async def accept_registration(user_id=None, chat_id=None):
 # Сохраняем информацию в датабазу
 @bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
 async def end_registration(call):
+	async with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
+		data['previous_message_id'] = None
 	logger.info('Registration accepted.')
 	await bot.answer_callback_query(call.id)
 	message = await bot.send_message(call.message.chat.id, 'Завершаю регистрацию...')
@@ -359,7 +366,84 @@ async def end_registration(call):
 	await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
 	logger.info('Successfully saved user in database.')
 	await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
+	await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
 
+
+async def get_greeting():
+	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
+	hour = now.hour
+	if 5 <= hour < 12:
+		greet = 'Доброе утро'
+	elif 12 <= hour < 18:
+		greet = 'Добрый день'
+	elif 18 <= hour < 23:
+		greet = 'Добрый вечер'
+	else:
+		greet = 'Доброй ночи.'
+	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже', 'Рад вас видеть.\nВыберите действие']
+	return f'<b>{greet}!</b>\n\n{random.choice(phrases)}'
+@bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
+async def open_menu(call):
+	await bot.answer_callback_query(call.id)
+	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
+async def main_menu(user_id, chat_id, previous_message_id=None):
+	logger.info(f'Printing main menu for user({user_id})')
+	greeting = await get_greeting()
+	# Собираем markup
+	markup = InlineKeyboardMarkup()
+	show_info = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
+	markup.row(show_info)
+	async with bot.retrieve_data(user_id, chat_id) as data:
+		if previous_message_id is None:
+			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
+		else:
+			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
+			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
+
+async def get_user_info(chat_id=None, user_id=None):
+	if chat_id is None or user_id is None:
+		return None
+	async with connectDB() as db:
+		user = await get(database=db, table='USERS', filters={'telegram_id': user_id})
+		direction = await get(database=db, table='DIRECTIONS', filters={'rowid': user['direction_id']})
+		chair = await get(database=db, table='CHAIRS', filters={'rowid': direction['chair_id']})
+		facult = await get(database=db, table='FACULTS', filters={'rowid': chair['facult_id']})
+
+
+	output = {
+		'telegram_id': user['telegram_id'],
+		'name': user['name'],
+		'surname': user['surname'],
+		'study_group': user['study_group'],
+		'direction_id': direction['rowid'],
+		'direction_name': direction['name'],
+		'chair_id': chair['rowid'],
+		'chair_name': chair['name'],
+		'facult_id': facult['rowid'],
+		'facult_name': facult['name']
+	}
+	return output
+
+@bot.callback_query_handler(func=lambda call: call.data == 'show_info')
+async def print_user_info(call):
+	await bot.answer_callback_query(call.id)
+	user_id = call.from_user.id
+	chat_id = call.message.chat.id
+	user_info = await get_user_info(chat_id=chat_id, user_id=user_id)
+	text_message = ("<blockquote><b>Информация о пользователе</b>\n\n"
+					f"<b>Имя</b>: {user_info['name']}\n"
+					f"<b>Фамилия</b>: {user_info['surname']}\n"
+					f"<b>Юзернейм</b>: {call.from_user.username}\n\n"
+					f"<b>Учебная группа</b>: {user_info['study_group']}\n"
+					f"<b>Факультет</b>: {user_info['facult_name']}\n"
+					f"<b>Кафедра</b>: {user_info['chair_name']}\n"
+					f"<b>Направление</b>: {user_info['direction_name']}</blockquote>")
+	markup = InlineKeyboardMarkup()
+	back_button = InlineKeyboardButton('Назад', callback_data=vote_cb.new(action='open menu', amount=str(call.message.message_id)))
+	markup.row(back_button)
+
+	print(await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=call.message.message_id, parse_mode='HTML'))
+	print(await bot.edit_message_reply_markup(chat_id=chat_id, message_id=call.message.message_id, reply_markup=markup))
 
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
