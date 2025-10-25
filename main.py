@@ -51,9 +51,6 @@ vote_cb = CallbackData('action', 'amount', prefix='vote')
 
 
 
-
-
-
 # Обрабатывает кнопки, в случаях, если они ничего не должны делать, и при необходимости выводит сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
 async def empty_button(call):
