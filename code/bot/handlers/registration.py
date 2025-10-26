@@ -45,13 +45,12 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 		await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
 		return
 	else:
-		async with bot.retrieve_data(user_id, chat_id) as data:
+		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 			data['table'] = 'FACULTS'
 			data['page'] = 1
 			data['filters'] = {}
 			data['previous_message_id'] = None
-		await request_name(user_id, chat_id)
-
+		await request_name(user_id=user_id, chat_id=chat_id)
 
 async def request_name(user_id, chat_id):
 	await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
@@ -69,9 +68,10 @@ async def process_name(message=None):
 		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
 		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, message.id, 4))
 		return
-	async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+	async with bot.retrieve_data(user_id=message.from_user.id, chat_id=message.chat.id) as data:
+		print(data)
 		data['name'] = name
-	await request_surname(message.from_user.id, message.chat.id)
+	await request_surname(user_id=message.from_user.id, chat_id=message.chat.id)
 
 
 async def request_surname(user_id, chat_id):
@@ -113,7 +113,6 @@ async def process_group(message):
 		return
 	async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
 		data['group'] = group
-	await bot.set_state(message.from_user.id, RegStates.wait_for_facult, message.chat.id)
 	await choose_direction(userID=message.from_user.id, chatID=message.chat.id)
 
 
