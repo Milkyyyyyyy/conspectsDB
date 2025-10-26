@@ -2,7 +2,7 @@ from code.bot.bot_instance import bot
 from code.bot.utils import send_temporary_message, delete_message_after_delay
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import asyncio
-from typing import Pattern, Optional, Tuple, Dict
+from typing import Pattern, Optional, Tuple, Dict, List
 awaiters: dict[tuple[int, int], asyncio.Future] = {}
 
 async def request(user_id, chat_id,
@@ -88,7 +88,6 @@ async def _generate_markup(start_index: int, end_index: int, confirmation_mode: 
 	markup = InlineKeyboardMarkup()
 	if not confirmation_mode:
 		row = []
-		print(start_index, end_index)
 		for i in range(start_index, end_index):
 			button = InlineKeyboardButton(f'{i+1}', callback_data=f'{i}')
 			row.append(button)
@@ -112,6 +111,8 @@ async def request_list(
 		previous_message_id: int | None = None,
 		items_list: list | tuple = None,
 		waiting_for: str = '',
+		input_field: str = '',
+		output_field: str | List[str]= '',
 ):
 	if items_list is None:
 		raise ValueError('items_list cannot be None')
@@ -130,13 +131,21 @@ async def request_list(
 			awaiters[key] = fut
 
 			max_index = min(len(items_list), list_index + MAX_ITEMS_ON_PAGE)
-			
+
 			if confirmation_mode:
-				text=f'<b>Ваш выбор:</b> {choice}\n\nЭто верно?'
+				if isinstance(items_list[choice], dict) and input_field in items_list[choice]:
+					item = items_list[choice][input_field]
+				else:
+					item = items_list[choice]
+				text=f'<b>Ваш выбор:</b> {item}\n\nЭто верно?'
 			else:
 				text = f'{header}\n'
 				for i in range(list_index, max_index):
-					text += f'<b>{i+1}. </b> {items_list[i]}\n'
+					if isinstance(items_list[i], dict) and input_field in items_list[i]:
+						item = items_list[i][input_field]
+					else:
+						item = items_list[i]
+					text += f'<b>{i+1}. </b> {item}\n'
 			markup = await _generate_markup(list_index, max_index, confirmation_mode)
 			if previous_message_id:
 				await bot.edit_message_text(chat_id=chat_id, message_id=previous_message_id, text=text, parse_mode='HTML')
@@ -161,7 +170,6 @@ async def request_list(
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
 				return None
-			print(response)
 			if 'page' in response:
 				p = response.split()
 				match p[0]:
@@ -171,7 +179,7 @@ async def request_list(
 						list_index -= MAX_ITEMS_ON_PAGE
 				list_index = max(0, min(list_index, len(items_list)))
 			elif response.isnumeric():
-				choice = items_list[int(response)]
+				choice = int(response)
 				confirmation_mode = True
 			elif 'repeat' in response:
 				choice = None
@@ -180,7 +188,18 @@ async def request_list(
 				continue
 			elif 'accept' in response and choice:
 				try:
-					return choice
+					if isinstance(output_field, str):
+						output_field = [output_field]
+					if isinstance(items_list[choice], dict):
+						output = []
+						for field in output_field:
+							if field in items_list[choice]:
+								output.append(items_list[choice][field])
+					else:
+						output = items_list[choice]
+					if isinstance(output, list) and len(output) == 1:
+						output = output[0]
+					return output
 				except:
 					return None
 				finally:
