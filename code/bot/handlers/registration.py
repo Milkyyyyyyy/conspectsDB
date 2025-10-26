@@ -10,6 +10,8 @@ from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay, send_temporary_message
 from code.database.queries import getAll, get
 from code.database.service import connectDB
+from code.bot.services.requests import request
+from code.bot.services.validation import validators
 from code.logging import logger
 
 
@@ -50,7 +52,8 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 			data['page'] = 1
 			data['filters'] = {}
 			data['previous_message_id'] = None
-		await request_name(user_id=user_id, chat_id=chat_id)
+		await bot.set_state(user_id=user_id, state = RegStates.wait_for_direction, chat_id=chat_id)
+		await choose_direction(userID=user_id, chatID=chat_id)
 
 async def request_name(user_id, chat_id):
 	await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
@@ -179,6 +182,9 @@ async def choose_direction(userID=None, chatID=None):
 		except:
 			data['filters'] = {}
 			filters = {}
+
+	async with bot.retrieve_data(userID, chatID) as data:
+		print(data)
 	if table == 'END_CHOOSING':
 		await accept_registration(user_id=userID, chat_id=chatID)
 		return
@@ -249,11 +255,32 @@ async def get_registration_info(user_id=None, chat_id=None):
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
 async def accept_registration(user_id=None, chat_id=None):
 	async with bot.retrieve_data(user_id, chat_id) as data:
+		name = request(
+			user_id=user_id,
+			chat_id=chat_id,
+			request_message='Введите ваше имя:',
+			validator=validators.name,
+		)
+		surname = request(
+			user_id=user_id,
+			chat_id=chat_id,
+			request_message='Введите вашу фамилию:',
+			validator=validators.surname,
+		)
+		group = request(
+			user_id=user_id,
+			chat_id=chat_id,
+			request_message='Введите вашу группу:',
+			validator=validators.group,
+		)
+		if None in (name, surname, group):
+			await bot.send_message(chat_id, 'Отменяю регистрацию...')
+			return
 		try:
 			await bot.delete_message(chat_id, data['previous_message_id'])
 		except Exception:
 			pass
-	name, surname, group, facult, chair, direction = await get_registration_info(user_id=user_id,
+	_, _, _, facult, chair, direction = await get_registration_info(user_id=user_id,
 																				 chat_id=chat_id)
 
 	# Собираем кнопки

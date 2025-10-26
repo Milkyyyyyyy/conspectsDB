@@ -28,9 +28,21 @@ _registration = code.bot.handlers.registration
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from code.bot.services.requests import request
+from code.bot.services.requests import request_list
 from code.bot.services.validation import validators
-
+@bot.message_handler(commands=['test'])
+async def test(message):
+	items_list = ['Что-то первое', 'Второе', 'Третье', 'Четвёртое', 'Пятое', 'Шестое', 'Угабуга', 'уааауа']
+	response = await request_list(
+		user_id=message.from_user.id,
+		chat_id=message.chat.id,
+		timeout = 60.0,
+		header = 'Выберите вот это вот',
+		items_list = items_list,
+		waiting_for = 'что-то'
+	)
+	print(response)
+	await bot.send_message(chat_id=message.chat.id, text=f'Ваш выбор: {response}')
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):
 	await bot.answer_callback_query(call.id)
