@@ -1,14 +1,18 @@
-from code.bot.bot_instance import bot
-from code.logging import logger
-from code.database.service import connectDB
-from code.database.queries import getAll, get, insert
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from code.bot.services.user_service import is_user_exists
-from code.bot.states import RegStates, MenuStates
-from code.bot.utils import delete_message_after_delay
 import asyncio
 import re
+
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from code.bot.bot_instance import bot
 from code.bot.handlers.main_menu import main_menu
+from code.bot.services.user_service import is_user_exists, save_user_in_database
+from code.bot.states import RegStates, MenuStates
+from code.bot.utils import delete_message_after_delay, send_temporary_message
+from code.database.queries import getAll, get
+from code.database.service import connectDB
+from code.logging import logger
+
+
 # =================== Регистрация ===================
 # Обработка команды кнопки регистрации
 @bot.callback_query_handler(func=lambda call: call.data == 'register')
@@ -46,8 +50,12 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 			data['page'] = 1
 			data['filters'] = {}
 			data['previous_message_id'] = None
-		await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
-		await bot.send_message(chat_id, "Введите имя:")
+		await request_name(user_id, chat_id)
+
+
+async def request_name(user_id, chat_id):
+	await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
+	await bot.send_message(chat_id, "Введите имя:")
 
 
 # Сохранение имени пользователя
@@ -55,16 +63,20 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 async def process_name(message=None):
 	name = message.text
 	if not re.fullmatch(r"^[А-Яа-яA-Za-z\-]{2,30}$", name):
-		error_message = await bot.send_message(message.chat.id, "<b>Некорректное имя.</b>\n"
-																"Оно должно содержать <b>только буквы</b> (от 2 до 30).\n"
-																"Попробуйте ещё раз:", parse_mode='HTML')
-		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, error_message.message_id, 4))
+		error_text = ("<b>Некорректное имя.</b>\n"
+					  "Оно должно содержать <b>только кириллицу или латиницу буквы</b> (от 2 до 30 букв).\n"
+					  "Попробуйте ещё раз:")
+		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
 		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, message.id, 4))
 		return
 	async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
 		data['name'] = name
-	await bot.set_state(message.from_user.id, RegStates.wait_for_surname, message.chat.id)
-	await bot.send_message(message.chat.id, "Введите фамилию:")
+	await request_surname(message.from_user.id, message.chat.id)
+
+
+async def request_surname(user_id, chat_id):
+	await bot.set_state(user_id, RegStates.wait_for_surname, chat_id)
+	await bot.send_message(chat_id, "Введите фамилию:")
 
 
 # Сохранение фамилии пользователя
@@ -72,16 +84,20 @@ async def process_name(message=None):
 async def process_surname(message):
 	surname = message.text
 	if not re.fullmatch(r"^[А-Яа-яA-Za-z\-]{2,30}$", surname):
-		error_message = await bot.send_message(message.chat.id, "<b>Некорректная фамилия.</b>\n"
-																"Она должно содержать <b>только буквы</b> (от 2 до 30).\n"
-																"Попробуйте ещё раз:\n", parse_mode='HTML')
-		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, error_message.message_id, 4))
+		error_text = ("<b>Некорректная фамилия.</b>\n"
+					  "Она должно содержать <b>только буквы</b> (от 2 до 30).\n"
+					  "Попробуйте ещё раз:\n")
+		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
 		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, message.id, 4))
 		return
 	async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
 		data['surname'] = surname
-	await bot.set_state(message.from_user.id, RegStates.wait_for_group, message.chat.id)
-	await bot.send_message(message.chat.id, "Из какой вы группы?")
+	await request_group(message.from_user.id, message.chat.id)
+
+
+async def request_group(user_id, chat_id):
+	await bot.set_state(user_id, RegStates.wait_for_group, chat_id)
+	await bot.send_message(chat_id, "Из какой вы группы?")
 
 
 # Сохранение группы пользователя
@@ -89,10 +105,10 @@ async def process_surname(message):
 async def process_group(message):
 	group = message.text
 	if not re.fullmatch(r"^[А-Яа-я]{1,10}-\d{1,3}[А-Яа-я]?$", group):
-		error_message = await bot.send_message(message.chat.id, "<b>Некорректный формат группы</b>\n"
-																"Ожидается что-то вроде <i>'ПИбд-12'</i> или <i>'МОАИСбд-11'</i>\n"
-																"Попробуйте ещё раз:", parse_mode='HTML')
-		asyncio.create_task(await delete_message_after_delay(bot, message.chat.id, error_message.message_id, 4))
+		error_text = ("<b>Некорректный формат группы</b>\n"
+					  "Ожидается что-то вроде <i>'ПИбд-12'</i> или <i>'МОАИСбд-11'</i>\n"
+					  "Попробуйте ещё раз:")
+		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
 		asyncio.create_task(await delete_message_after_delay(bot, message.chat.id, message.id, 4))
 		return
 	async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
@@ -269,15 +285,21 @@ async def end_registration(call):
 	except Exception:
 		pass
 	# Сохраняем информацию в датабазу
-	logger.info('Saving user in database.')
 	name, surname, group, _, _, direction_ns = await get_registration_info(call.from_user.id, call.message.chat.id)
 
 	# Добавляю запись в датабазу
-	async with connectDB() as db:
-		values = [str(call.from_user.id), name, surname, group, direction_ns["rowid"], 'user']
-		columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
-		await insert(database=db, table='USERS', values=values, columns=columns)
-	await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
-	logger.info('Successfully saved user in database.')
-	await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
-	await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
+	saved = await save_user_in_database(
+		user_id=call.from_user.id,
+		name=name,
+		surname=surname,
+		group=group,
+		direction_id=direction_ns['rowid'],
+		role='user'
+	)
+	if saved:
+		await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
+		logger.info('Successfully saved user in database.')
+		await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
+		await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
+	else:
+		await bot.send_message(call.message.chat.id, 'Не удалось зарегестрироваться')

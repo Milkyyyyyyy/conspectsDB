@@ -29,10 +29,12 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
 async def print_user_info(call):
+	logger.info(f"Showing user ({call.from_user.id}) user info")
 	await bot.answer_callback_query(call.id)
 	user_id = call.from_user.id
 	chat_id = call.message.chat.id
 	user_info = await get_user_info(chat_id=chat_id, user_id=user_id)
+	logger.debug(f'user_info = {user_info}')
 	text_message = ("<blockquote><b>Информация о пользователе</b>\n\n"
 					f"<b>Имя</b>: {user_info['name']}\n"
 					f"<b>Фамилия</b>: {user_info['surname']}\n"
