@@ -10,7 +10,7 @@ from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay, send_temporary_message
 from code.database.queries import getAll, get
 from code.database.service import connectDB
-from code.bot.services.requests import request
+from code.bot.services.requests import request, request_list
 from code.bot.services.validation import validators
 from code.logging import logger
 
@@ -47,242 +47,85 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 		await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
 		return
 	else:
+		# async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+		# 	data['table'] = 'FACULTS'
+		# 	data['page'] = 1
+		# 	data['filters'] = {}
+		# 	data['previous_message_id'] = None
+		# await bot.set_state(user_id=user_id, state = RegStates.wait_for_direction, chat_id=chat_id)
+		# await choose_direction(userID=user_id, chatID=chat_id)
+		name = await request(
+			user_id=user_id,
+			chat_id=chat_id,
+			request_message='Введите <b>ваше</b> имя:',
+			waiting_for='name',
+			validator=validators.name
+		)
+		surname = await request(
+			user_id=user_id,
+			chat_id=chat_id,
+			request_message='Введите <b>вашу</b> фамилию:',
+			waiting_for='surname',
+			validator=validators.surname
+		)
+		group = await request(
+			user_id=user_id,
+			chat_id=chat_id,
+			request_message='Введите учебную группу:',
+			waiting_for='group',
+			validator=validators.group
+		)
+		async with connectDB() as db:
+			facult_db = await getAll(database=db, table='FACULTS')
+			facult = await request_list(
+				user_id=user_id,
+				chat_id=chat_id,
+				header='Выберите ваш <b>факультет</b>\n',
+				items_list=facult_db,
+				input_field = 'name',
+				output_field = ['name', 'rowid']
+			)
+
+			chair_db = await getAll(database=db, table='CHAIRS', filters={'facult_id': facult[1]})
+			chair = await request_list(
+				user_id=user_id,
+				chat_id=chat_id,
+				header='Выберите вашу <b>кафедру</b>\n',
+				items_list=chair_db,
+				input_field='name',
+				output_field=['name', 'rowid']
+			)
+
+			direction_db = await getAll(database=db, table='DIRECTIONS', filters={'chair_id': chair[1]})
+			direction = await request_list(
+				user_id=user_id,
+				chat_id=chat_id,
+				header='Выберите ваше <b>направление</b>\n',
+				items_list=direction_db,
+				input_field='name',
+				output_field=['name', 'rowid']
+			)
+
 		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-			data['table'] = 'FACULTS'
-			data['page'] = 1
-			data['filters'] = {}
-			data['previous_message_id'] = None
-		await bot.set_state(user_id=user_id, state = RegStates.wait_for_direction, chat_id=chat_id)
-		await choose_direction(userID=user_id, chatID=chat_id)
-
-async def request_name(user_id, chat_id):
-	await bot.set_state(user_id, RegStates.wait_for_name, chat_id)
-	await bot.send_message(chat_id, "Введите имя:")
-
-
-# Сохранение имени пользователя
-@bot.message_handler(state=RegStates.wait_for_name)
-async def process_name(message=None):
-	name = message.text
-	if not re.fullmatch(r"^[А-Яа-яA-Za-z\-]{2,30}$", name):
-		error_text = ("<b>Некорректное имя.</b>\n"
-					  "Оно должно содержать <b>только кириллицу или латиницу буквы</b> (от 2 до 30 букв).\n"
-					  "Попробуйте ещё раз:")
-		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
-		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, message.id, 4))
-		return
-	async with bot.retrieve_data(user_id=message.from_user.id, chat_id=message.chat.id) as data:
-		print(data)
-		data['name'] = name
-	await request_surname(user_id=message.from_user.id, chat_id=message.chat.id)
-
-
-async def request_surname(user_id, chat_id):
-	await bot.set_state(user_id, RegStates.wait_for_surname, chat_id)
-	await bot.send_message(chat_id, "Введите фамилию:")
-
-
-# Сохранение фамилии пользователя
-@bot.message_handler(state=RegStates.wait_for_surname)
-async def process_surname(message):
-	surname = message.text
-	if not re.fullmatch(r"^[А-Яа-яA-Za-z\-]{2,30}$", surname):
-		error_text = ("<b>Некорректная фамилия.</b>\n"
-					  "Она должно содержать <b>только буквы</b> (от 2 до 30).\n"
-					  "Попробуйте ещё раз:")
-		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
-		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, message.id, 4))
-		return
-	async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-		data['surname'] = surname
-	await request_group(message.from_user.id, message.chat.id)
-
-
-async def request_group(user_id, chat_id):
-	await bot.set_state(user_id, RegStates.wait_for_group, chat_id)
-	await bot.send_message(chat_id, "Из какой вы группы?")
-
-
-# Сохранение группы пользователя
-@bot.message_handler(state=RegStates.wait_for_group)
-async def process_group(message):
-	group = message.text
-	if not re.fullmatch(r"^[А-Яа-я]{1,10}-\d{1,3}[А-Яа-я]?$", group):
-		error_text = ("<b>Некорректный формат группы</b>\n"
-					  "Ожидается что-то вроде <i>'ПИбд-12'</i> или <i>'МОАИСбд-11'</i>\n"
-					  "Попробуйте ещё раз:")
-		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
-		asyncio.create_task(await delete_message_after_delay(bot, message.chat.id, message.id, 4))
-		return
-	async with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-		data['group'] = group
-	await choose_direction(userID=message.from_user.id, chatID=message.chat.id)
-
-
-# Обработка изменения страницы
-@bot.callback_query_handler(func=lambda call: 'page' in call.data)
-async def process_change_page_call(call):
-	await bot.answer_callback_query(call.id)
-	async with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
-		data['previous_message_id'] = call.message.message_id
-		if 'next' in call.data:
-			data['page'] += 1
-		else:
-			data['page'] -= 1
-	await choose_direction(userID=call.from_user.id, chatID=call.message.chat.id)
-
-
-# Обработка выбора пользователя
-@bot.callback_query_handler(func=lambda call: 'next step' in call.data)
-async def process_next_step_list(call):
-	await bot.answer_callback_query(call.id)
-	message = call.data.split()
-	choice = message[2]
-	async with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
-		# Получаем rowid
-		data[data['table']] = choice
-		# Определяем следующую таблицу и фильтры
-		match data['table']:
-			case 'FACULTS':
-				data['table'] = 'CHAIRS'
-				data['filters'] = {'facult_id': int(choice)}
-			case 'CHAIRS':
-				data['table'] = 'DIRECTIONS'
-				data['filters'] = {'chair_id': int(choice)}
-			case 'DIRECTIONS':
-				data['table'] = 'END_CHOOSING'
-				data['filters'] = {}
-		data['page'] = 1
-		data['previous_message_id'] = call.message.message_id
-
-	await choose_direction(userID=call.from_user.id, chatID=call.message.chat.id)
-
-
-# Выводим список с выбором факультета, кафедры и направления
-async def choose_direction(userID=None, chatID=None):
-	# Получаем из даты информацию о текущей странице и таблице
-	async with bot.retrieve_data(userID, chatID) as data:
-		# Пробуем получить информации из data. Если её нет - записываем дефолтную
-		try:
-			table = data['table']
-		except:
-			data['table'] = 'FACULTS'
-			table = 'FACULTS'
-		try:
-			previous_message_id = data['previous_message_id']
-		except:
-			previous_message_id = None
-		try:
-			page = data['page']
-		except:
-			data['page'] = 1
-			page = 1
-		try:
-			filters = data['filters']
-		except:
-			data['filters'] = {}
-			filters = {}
-
-	async with bot.retrieve_data(userID, chatID) as data:
-		print(data)
-	if table == 'END_CHOOSING':
-		await accept_registration(user_id=userID, chat_id=chatID)
-		return
-	# Получаем список из таблицы
-	async with connectDB() as database:
-		all_list = await getAll(database=database, table=table, filters=filters)
-
-	# Определяем текущий индекс, последний индекс
-	MAX_ELEMENTS_PER_PAGE = 6
-	ELEMENTS_PER_ROW = 2
-	max_page = max(len(all_list) // MAX_ELEMENTS_PER_PAGE, 1)
-	if page > max_page:
-		page = max_page
-	current_index = (page - 1) * MAX_ELEMENTS_PER_PAGE
-	max_index = min(len(all_list), current_index + MAX_ELEMENTS_PER_PAGE)
-
-	# Собираем кнопки
-	new_row = []
-	markup = InlineKeyboardMarkup()
-	for ind in range(current_index, max_index):
-		row = all_list[ind]
-		button = InlineKeyboardButton(row['name'], callback_data=f"next step {row['rowid']}")
-		new_row.append(button)
-		if len(new_row) >= ELEMENTS_PER_ROW:
-			markup.row(*new_row)
-			new_row = []
-	# Кнопки перемещения страниц
-	next_page_button = InlineKeyboardButton("--->", callback_data='empty' if page == max_page else 'next page')
-	previous_page_button = InlineKeyboardButton("<---", callback_data='empty' if page == 1 else 'previous page')
-	# question_button = InlineKeyboardButton("Не могу найти", callback_data='message moderator')
-	markup.row(previous_page_button, next_page_button)
-
-	# Собираем текст сообщения
-	table_text = ''
-	match table:
-		case 'FACULTS':
-			table_text = 'факультет'
-		case 'CHAIRS':
-			table_text = 'кафедру'
-		case 'DIRECTIONS':
-			table_text = 'направление'
-	message_text = f"🔎 Выберите {table_text}\nСтр. {page} из {max_page}"
-
-	# Выводим сообщение (если есть previous_message_id - меняем старое)
-	if previous_message_id is None:
-		await bot.send_message(chatID, message_text, reply_markup=markup)
-	else:
-		await bot.edit_message_text(message_text, chatID, previous_message_id)
-		await bot.edit_message_reply_markup(chatID, previous_message_id, reply_markup=markup)
-
-
-# Выводит сообщение, чтобы пользователь проверил правильность данных
-# Если всё правильно -> переходим в end_register, где сохраняем всю нужную информацию в датабазу
-# Если нет, просто заново начинаем процесс регистрации
-async def get_registration_info(user_id=None, chat_id=None):
-	async with bot.retrieve_data(user_id, chat_id) as data:
-		name = data['name']
-		surname = data['surname']
-		group = data['group']
-		direction_id = data['DIRECTIONS']
-	async with connectDB() as database:
-		direction = await get(database=database, table='DIRECTIONS', filters={'rowid': direction_id})
-		chair = await get(database=database, table='CHAIRS', filters={'rowid': direction['chair_id']})
-		facult = await get(database=database, table='FACULTS', filters={'rowid': chair['facult_id']})
-	return name, surname, group, facult, chair, direction
-
+			data['name'] = name
+			data['surname'] = surname
+			data['group'] = group
+			data['facult_id']=facult[1]
+			data['chair_id'] = chair[1]
+			data['direction_id'] = direction[1]
+		await accept_registration(
+			user_id=user_id,
+			chat_id=chat_id,
+			name=name,
+			surname=surname,
+			group=group,
+			facult_name=facult[0],
+			chair_name=chair[0],
+			direction_name=direction[0]
+		)
 
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
-async def accept_registration(user_id=None, chat_id=None):
-	async with bot.retrieve_data(user_id, chat_id) as data:
-		name = request(
-			user_id=user_id,
-			chat_id=chat_id,
-			request_message='Введите ваше имя:',
-			validator=validators.name,
-		)
-		surname = request(
-			user_id=user_id,
-			chat_id=chat_id,
-			request_message='Введите вашу фамилию:',
-			validator=validators.surname,
-		)
-		group = request(
-			user_id=user_id,
-			chat_id=chat_id,
-			request_message='Введите вашу группу:',
-			validator=validators.group,
-		)
-		if None in (name, surname, group):
-			await bot.send_message(chat_id, 'Отменяю регистрацию...')
-			return
-		try:
-			await bot.delete_message(chat_id, data['previous_message_id'])
-		except Exception:
-			pass
-	_, _, _, facult, chair, direction = await get_registration_info(user_id=user_id,
-																				 chat_id=chat_id)
-
+async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult_name=None, chair_name=None, direction_name=None):
 	# Собираем кнопки
 	buttons = InlineKeyboardMarkup()
 	buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
@@ -292,9 +135,9 @@ async def accept_registration(user_id=None, chat_id=None):
 						   f"<blockquote><b>Имя</b>: {name}\n"
 						   f"<b>Фамилия</b>: {surname}\n"
 						   f"<b>Учебная группа</b>: {group}\n\n"
-						   f"<b>Факультет</b>: {facult['name']}\n"
-						   f"<b>Кафедра</b>: {chair['name']}\n"
-						   f"<b>Направление</b>: {direction['name']}</blockquote>\n",
+						   f"<b>Факультет</b>: {facult_name}\n"
+						   f"<b>Кафедра</b>: {chair_name}\n"
+						   f"<b>Направление</b>: {direction_name}</blockquote>\n",
 						   reply_markup=buttons, parse_mode='HTML')
 
 
@@ -311,7 +154,11 @@ async def end_registration(call):
 	except Exception:
 		pass
 	# Сохраняем информацию в датабазу
-	name, surname, group, _, _, direction_ns = await get_registration_info(call.from_user.id, call.message.chat.id)
+	async with bot.retrieve_data(user_id=call.from_user.id, chat_id=call.message.chat.id) as data:
+		name = data['name']
+		surname = data['surname']
+		group = data['group']
+		direction_id = data['direction_id']
 
 	# Добавляю запись в датабазу
 	saved = await save_user_in_database(
@@ -319,7 +166,7 @@ async def end_registration(call):
 		name=name,
 		surname=surname,
 		group=group,
-		direction_id=direction_ns['rowid'],
+		direction_id=direction_id,
 		role='user'
 	)
 	if saved:

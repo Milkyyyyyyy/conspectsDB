@@ -1,3 +1,5 @@
+# TODO Сделать request_accept, который просто будет выводить информацию и две кнопки, возвращать True или False
+
 from code.bot.bot_instance import bot
 from code.bot.utils import send_temporary_message, delete_message_after_delay
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -102,14 +104,19 @@ async def _generate_markup(start_index: int, end_index: int, confirmation_mode: 
 		markup.add(accept_button, repeat_button)
 	return markup
 
-
+async def _is_key_in_row(row=None, key=None):
+	try:
+		_ = row[key]
+		return True
+	except Exception:
+		return False
 async def request_list(
 		user_id: int,
 		chat_id: int,
 		timeout: float=60.0,
 		header: str = '',
 		previous_message_id: int | None = None,
-		items_list: list | tuple = None,
+		items_list: list | tuple | dict = None,
 		waiting_for: str = '',
 		input_field: str = '',
 		output_field: str | List[str]= '',
@@ -121,6 +128,7 @@ async def request_list(
 		raise RuntimeError('Already waiting for a response from the user')
 
 	loop = asyncio.get_running_loop()
+
 	list_index = 0
 	MAX_ITEMS_ON_PAGE = 5
 	choice = None
@@ -133,7 +141,7 @@ async def request_list(
 			max_index = min(len(items_list), list_index + MAX_ITEMS_ON_PAGE)
 
 			if confirmation_mode:
-				if isinstance(items_list[choice], dict) and input_field in items_list[choice]:
+				if await _is_key_in_row(row=items_list[choice], key=input_field):
 					item = items_list[choice][input_field]
 				else:
 					item = items_list[choice]
@@ -141,7 +149,7 @@ async def request_list(
 			else:
 				text = f'{header}\n'
 				for i in range(list_index, max_index):
-					if isinstance(items_list[i], dict) and input_field in items_list[i]:
+					if await _is_key_in_row(row=items_list[i], key=input_field):
 						item = items_list[i][input_field]
 					else:
 						item = items_list[i]
@@ -174,31 +182,34 @@ async def request_list(
 				p = response.split()
 				match p[0]:
 					case 'next':
-						list_index += MAX_ITEMS_ON_PAGE
+						if list_index + MAX_ITEMS_ON_PAGE < len(items_list):
+							list_index += MAX_ITEMS_ON_PAGE
 					case 'previous':
 						list_index -= MAX_ITEMS_ON_PAGE
 				list_index = max(0, min(list_index, len(items_list)))
 			elif response.isnumeric():
 				choice = int(response)
+				print(choice)
 				confirmation_mode = True
 			elif 'repeat' in response:
 				choice = None
 				confirmation_mode = False
 				list_index = 0
 				continue
-			elif 'accept' in response and choice:
+
+			elif 'accept' in response and not choice is None:
 				try:
 					if isinstance(output_field, str):
 						output_field = [output_field]
-					if isinstance(items_list[choice], dict):
-						output = []
-						for field in output_field:
-							if field in items_list[choice]:
-								output.append(items_list[choice][field])
-					else:
-						output = items_list[choice]
-					if isinstance(output, list) and len(output) == 1:
-						output = output[0]
+					output = []
+					for field in output_field:
+						if await _is_key_in_row(row=items_list[choice], key=field):
+							output.append(items_list[choice][field])
+					if isinstance(output, list):
+						if len(output) == 1:
+							output = output[0]
+						elif len(output) == 0:
+							output = None
 					return output
 				except:
 					return None
