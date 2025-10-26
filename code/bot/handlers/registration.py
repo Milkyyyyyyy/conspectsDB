@@ -86,7 +86,7 @@ async def process_surname(message):
 	if not re.fullmatch(r"^[А-Яа-яA-Za-z\-]{2,30}$", surname):
 		error_text = ("<b>Некорректная фамилия.</b>\n"
 					  "Она должно содержать <b>только буквы</b> (от 2 до 30).\n"
-					  "Попробуйте ещё раз:\n")
+					  "Попробуйте ещё раз:")
 		await send_temporary_message(bot, message.chat.id, error_text, delay_seconds=4)
 		asyncio.create_task(delete_message_after_delay(bot, message.chat.id, message.id, 4))
 		return

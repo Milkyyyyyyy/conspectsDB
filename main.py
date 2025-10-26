@@ -28,12 +28,13 @@ _registration = code.bot.handlers.registration
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+from code.bot.services.requests import request
+from code.bot.services.validation import validators
 
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):
 	await bot.answer_callback_query(call.id)
 	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
-
 
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
