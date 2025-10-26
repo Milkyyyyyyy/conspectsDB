@@ -1,29 +1,14 @@
-# TODO !СДЕЛАТЬ РЕФАКТОРИНГ, ВСЁ ПЕРЕМЕСТИТЬ В РАЗНЫЕ ФАЙЛЫ!!! (почти готово)
-
-import asyncio
-import re
-from datetime import datetime, timezone
-
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
 from code.bot.bot_instance import bot
-from code.bot.callbacks import vote_cb
-from code.bot.handlers.main_menu import main_menu
+from code.logging import logger
+from code.database.service import connectDB
+from code.database.queries import getAll, get, insert
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from code.bot.services.user_service import is_user_exists
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
-from code.database.queries import isExists, getAll, get, insert
-from code.database.service import connectDB
-from code.logging import logger
-
-import code.bot.handlers.info
-import code.bot.handlers.main_menu
-import code.bot.handlers.misc
-import code.bot.handlers.start
-<<<<<<< Updated upstream
-
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-
+import asyncio
+import re
+from code.bot.handlers.main_menu import main_menu
 # =================== Регистрация ===================
 # Обработка команды кнопки регистрации
 @bot.callback_query_handler(func=lambda call: call.data == 'register')
@@ -49,8 +34,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 		chat_id = message.chat.id
 	logger.debug(f'user_id={user_id}, chat_id={chat_id}')
 	# Проверяем, существует ли пользователь
-	async with connectDB() as database:
-		isUserExists = await isExists(database=database, table="USERS", filters={"telegram_id": user_id})
+	isUserExists = await is_user_exists(user_id)
 	# Если пользователь найден, обрываем процесс регистрации
 	if isUserExists:
 		logger.info(f'The user ({user_id}) already exist. Stopping registration')
@@ -297,50 +281,3 @@ async def end_registration(call):
 	logger.info('Successfully saved user in database.')
 	await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
 	await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
-=======
-_start = code.bot.handlers.start
->>>>>>> Stashed changes
-
-import code.bot.handlers.registration
-_registration = code.bot.handlers.registration
-
-@bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
-async def open_menu(call):
-	await bot.answer_callback_query(call.id)
-	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
-
-
-# Логирование всех обновлений (например, сообщений от пользователя)
-async def log_updates(updates):
-	for upd in updates:
-		# Я как понял, в старых версиях upd был объектом со множеством подобъектов. Но сейчас это просто Message
-		# Но на всякий случай сделаю try-except
-		try:
-			msg = upd.message
-		except:
-			msg = upd
-		if not msg: continue
-		logger.debug("%s | %s | %s | %s", datetime.now(timezone.utc).isoformat(),
-					 msg.from_user.id, msg.from_user.username, msg.text)
-
-
-async def main():
-	try:
-		logger.info("Starting polling...")
-		bot.set_update_listener(log_updates)
-		await bot.infinity_polling()
-	finally:
-		# гарантированно закрываем сессию aiohttp, чтобы не было "Unclosed client session"
-		try:
-			if hasattr(bot, "session") and bot.session:
-				await bot.session.close()
-				logger.debug("bot.session closed")
-		except Exception as e:
-			logger.exception("End session %s", e)
-
-
-if __name__ == "__main__":
-	try:
-		asyncio.run(main())
-	except KeyboardInterrupt:
-		logger.info("Interrupted by user (KeyboardInterrupt)")
