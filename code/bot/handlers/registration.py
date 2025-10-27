@@ -148,7 +148,7 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 	if response is None:
 		await send_temporary_message(bot, chat_id, text='Отменяю регситрацию...', delay_seconds=5)
 		return
-	if response is True:
+	if response:
 		await end_registration(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -158,6 +158,9 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 			direction_id=direction[1],
 			role='user'
 		)
+	else:
+		await cmd_register(user_id=user_id, chat_id=chat_id)
+		return
 
 
 
@@ -180,4 +183,6 @@ async def end_registration(user_id=None, chat_id=None, name=None, surname=None, 
 		text = 'Регистрация прошла успешно' if saved else 'Не удалось зарегистрироваться.'
 		await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id)
 		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+		if saved:
+			await main_menu(user_id=user_id, chat_id=chat_id)
 

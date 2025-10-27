@@ -485,3 +485,50 @@ async def insert(
 		except Exception as e:
 			logger.exception(e)
 			return False
+async def update(
+		database: aiosqlite.Connection = None,
+		table: Union[str, Enum] = None,
+		values: Iterable = None,
+		columns: Iterable = None,
+		filters: dict = {},
+):
+	try:
+		cursor = await database.cursor()
+	except Exception:
+		logger.error("Invalid database connection")
+		return False
+
+	if values is None:
+		logger.error("Values must be provided")
+		return False
+	vals = tuple()
+	try:
+		vals = tuple(values)
+	except Exception:
+		logger.exception("Values must be an iterable")
+
+	columns_sql = ""
+	if columns is not None:
+		try:
+			cols = list(columns)
+		except Exception:
+			logger.exception("Columns must be an iterable of strings")
+			return False
+
+		if len(cols) != len(vals):
+			logger.error(f'Number of columns ({len(cols)}) does not match number of values ({len(vals)})')
+			return False
+
+		try:
+			safe_cols = ", ".join(_safe_identifier(c) for c in cols)
+			columns_sql = f"({safe_cols})"
+		except Exception:
+			logger.exception("Invalid column name in columns")
+			return False
+
+	try:
+		where_sql, params = None, None
+		# TODO ДОДЕЛАТЬ!!!!
+	except Exception as e:
+		logger.exception(e)
+		return False

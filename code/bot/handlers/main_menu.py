@@ -47,8 +47,12 @@ async def print_user_info(call):
 	markup = InlineKeyboardMarkup()
 	back_button = InlineKeyboardButton('Назад', callback_data=vote_cb.new(action='open menu',
 																		  amount=str(call.message.message_id)))
+	change_
 	markup.row(back_button)
 
-	await bot.edit_message_text(text=text_message, chat_id=chat_id, message_id=call.message.message_id,
+	await bot.edit_message_text(text=text_message,
+								chat_id=chat_id,
+								message_id=call.message.message_id,
 								parse_mode='HTML')
 	await bot.edit_message_reply_markup(chat_id=chat_id, message_id=call.message.message_id, reply_markup=markup)
+
