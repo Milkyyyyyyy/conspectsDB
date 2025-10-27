@@ -11,7 +11,7 @@ from code.logging import logger
 
 
 # Удаляет сообщение через некоторое количество времени
-async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10):
+async def delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_seconds=10):
 	logger.debug(f'Delayed message deletion after {delay_seconds} seconds.')
 	await asyncio.sleep(delay_seconds)
 	try:
@@ -20,8 +20,11 @@ async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10)
 	except Exception as e:
 		logger.warning(f'Failed to delete message {message_id} in chat {chat_id}\n {e}')
 		pass
-
-
+async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10):
+	asyncio.create_task(delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_seconds))
+async def send_temporary_message(bot, chat_id, text, delay_seconds=10):
+	message = await bot.send_message(chat_id, text, parse_mode='HTML')
+	asyncio.create_task(delete_message_after_delay_interrupt(bot=bot, chat_id=chat_id, message_id=message.message_id, delay_seconds=delay_seconds))
 async def get_greeting():
 	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
 	hour = now.hour

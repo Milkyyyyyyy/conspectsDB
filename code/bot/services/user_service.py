@@ -5,7 +5,7 @@
 TODO вынести добавление юзера в дб как отдельную функцию сюда
 """
 
-from code.database.queries import isExists, get
+from code.database.queries import isExists, get, insert
 from code.database.service import connectDB
 from code.logging import logger
 
@@ -41,3 +41,25 @@ async def get_user_info(chat_id=None, user_id=None):
 		'facult_name': facult['name']
 	}
 	return output
+async def save_user_in_database(user_id=None, name=None, surname=None, group=None, direction_id=None, role=None):
+	logger.info('Saving user in database...')
+	if None in (user_id, name, surname, group, direction_id, role):
+		logger.error("Invalid arguments")
+		return False
+	if await is_user_exists(user_id):
+		logger.error(f"User ({user_id}) already exists")
+		return False
+	logger.debug(f'User info:\n'
+				 f'user_id={user_id}\n'
+				 f'name={name}\n'
+				 f'surname={surname}\n'
+				 f'group={group}\n'
+				 f'direction_id={direction_id}\n'
+				 f'role={role}')
+	async with connectDB() as db:
+		values = [str(user_id), name, surname, group, direction_id, 'user']
+		columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
+		await insert(database=db, table='USERS', values=values, columns=columns)
+	# Проверяем, сохранился ли пользователь
+	return await is_user_exists(user_id)
+
