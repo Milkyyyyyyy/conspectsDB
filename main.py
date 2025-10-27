@@ -26,18 +26,17 @@ _registration = code.bot.handlers.registration
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from code.bot.services.requests import request_list, request_confirmation
+from code.bot.services.requests import request_list, request_confirmation, request_files
 from code.bot.services.validation import validators
 @bot.message_handler(commands=['test'])
 async def test(message):
-	response = await request_confirmation(
-		user_id=message.from_user.id,
-		chat_id=message.chat.id,
-		text='Подтвердите вот это вот\n\n',
-		accept_text='Да',
-		decline_text='Нет',
-		waiting_for='confirmation'
+	user_id, chat_id = message.from_user.id, message.chat.id
+	response = await request_files(
+		user_id=user_id,
+		chat_id=chat_id,
+
 	)
+	print('Get response')
 	print(response)
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):
