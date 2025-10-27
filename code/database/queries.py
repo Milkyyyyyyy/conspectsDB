@@ -486,49 +486,101 @@ async def insert(
 			logger.exception(e)
 			return False
 async def update(
-		database: aiosqlite.Connection = None,
-		table: Union[str, Enum] = None,
-		values: Iterable = None,
-		columns: Iterable = None,
-		filters: dict = {},
-):
-	try:
-		cursor = await database.cursor()
-	except Exception:
-		logger.error("Invalid database connection")
-		return False
+        database: aiosqlite.Connection = None,
+        table: Union[str, Enum] = None,
+        values: Union[Dict[str, Any], Iterable] = None,
+        columns: Iterable = None,
+        filters: Dict[str, Any] = None,
+        operator: str = "AND"
+) -> Union[bool, Tuple[bool, sqlite3.Cursor], None]:
+    """
+    Обновляет строку(и) в таблице.
 
-	if values is None:
-		logger.error("Values must be provided")
-		return False
-	vals = tuple()
-	try:
-		vals = tuple(values)
-	except Exception:
-		logger.exception("Values must be an iterable")
+    Варианты передачи новых значений:
+      - values: dict {column: value, ...}
+      - или columns: iterable, values: iterable (порядок совпадает)
 
-	columns_sql = ""
-	if columns is not None:
-		try:
-			cols = list(columns)
-		except Exception:
-			logger.exception("Columns must be an iterable of strings")
-			return False
+    filters: dict фильтров (обязательно, иначе функция вернёт False).
+    operator: "AND" или "OR" для WHERE.
 
-		if len(cols) != len(vals):
-			logger.error(f'Number of columns ({len(cols)}) does not match number of values ({len(vals)})')
-			return False
+    Возвращает (True, cursor) при успехе, False при ошибке, None при проблеме с DB.
+    """
+    logger.info(f'Updating "{table}" with values={values} columns={columns} filters={filters}...')
 
-		try:
-			safe_cols = ", ".join(_safe_identifier(c) for c in cols)
-			columns_sql = f"({safe_cols})"
-		except Exception:
-			logger.exception("Invalid column name in columns")
-			return False
+    # инициализация курсора
+    try:
+        cursor = await database.cursor()
+    except Exception:
+        logger.error("Invalid database connection")
+        return None
 
-	try:
-		where_sql, params = None, None
-		# TODO ДОДЕЛАТЬ!!!!
-	except Exception as e:
-		logger.exception(e)
-		return False
+    # Преобразуем входные значения в список пар (col, val)
+    items: List[Tuple[str, Any]] = []
+    try:
+        if isinstance(values, dict):
+            items = list(values.items())
+        else:
+            # values может быть iterable; тогда columns обязателен
+            if columns is None:
+                logger.error("When values is not a dict, 'columns' must be provided")
+                return False
+            cols = list(columns)
+            vals = list(values)
+            if len(cols) != len(vals):
+                logger.error(f'Number of columns ({len(cols)}) does not match number of values ({len(vals)})')
+                return False
+            items = list(zip(cols, vals))
+    except Exception:
+        logger.exception("Invalid values/columns arguments")
+        return False
+
+    if not items:
+        logger.error("Values must contain at least one column to update")
+        return False
+
+    # filters обязателен для безопасного обновления
+    if not filters or not isinstance(filters, dict):
+        logger.error("Invalid filter argument (must be non-empty dict)")
+        return False
+
+    # разрешаем имя таблицы
+    try:
+        table_sql = _resolve_table(table)
+    except Exception:
+        logger.exception("Invalid table argument")
+        return False
+
+    # Составляем SET часть
+    try:
+        set_parts = []
+        set_params: List[Any] = []
+        for col, val in items:
+            # безопасно формируем идентификатор колонки (позволяет тоже quoted names)
+            safe_col = _safe_identifier(col)
+            set_parts.append(f"{safe_col} = ?")
+            set_params.append(val)
+        set_sql = ", ".join(set_parts)
+    except Exception:
+        logger.exception("Invalid column name in values")
+        return False
+
+    # Составляем WHERE часть через существующую функцию
+    try:
+        where_sql, where_params = _build_where_clause(filters, operator)
+    except Exception:
+        logger.exception("Failed to build WHERE clause")
+        return False
+
+    # Финальный SQL
+    sql_query = f"UPDATE {table_sql} SET {set_sql}{where_sql}"
+    params = tuple(set_params) + tuple(where_params)
+    logger.debug("SQL (update): %s -- params=%s", sql_query, params)
+
+    # Выполняем
+    try:
+        await cursor.execute(sql_query, params)
+        logger.info("Update executed successfully")
+        return True, cursor
+    except Exception as e:
+        logger.exception(e)
+        return False
