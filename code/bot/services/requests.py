@@ -17,7 +17,9 @@ async def request(user_id, chat_id,
                   waiting_for: str = 'temp',
                   validator=None,
                   max_retries: int | None = 3,
-                  previous_message_id: int | None = None, ):
+                  previous_message_id: int | None = None,
+                  delete_request_message: bool = True
+                  ):
     """
     :param user_id: Айди юзера
     :param chat_id: Айди чата
@@ -36,6 +38,7 @@ async def request(user_id, chat_id,
 
     loop = asyncio.get_running_loop()
     attempts = 0
+    request_message_id = None
     try:
         while True:
             attempts += 1
@@ -45,7 +48,7 @@ async def request(user_id, chat_id,
                 if attempts > 1:
                     await send_temporary_message(bot, chat_id, request_message, delay_seconds=5)
                 else:
-                    await bot.send_message(chat_id, request_message, parse_mode='HTML')
+                    request_message_id = (await bot.send_message(chat_id, request_message, parse_mode='HTML')).id
 
             async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
                 data['waiting_for'] = waiting_for
@@ -85,8 +88,10 @@ async def request(user_id, chat_id,
                 request_message = f"{err}\nПопробуйте ещё раз или отмените командой /cancel."
                 continue
             async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-                data[waiting_for] = message
+                data[waiting_for] = message.text.strip()
                 data.pop('waiting_for', None)
+            await delete_message_after_delay(bot, chat_id, message.id, delay_seconds=2)
+            await delete_message_after_delay(bot, chat_id, request_message_id, delay_seconds=2)
             return message.text.strip()
     finally:
         awaiters.pop(key, None)

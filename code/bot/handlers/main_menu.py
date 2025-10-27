@@ -30,21 +30,21 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 										parse_mode='HTML')
 			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
 
-
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
-async def print_user_info(call=None, user_id=None, chat_id=None, previous_message_id=None):
-	logger.info(f"Showing user ({call.from_user.id}) user info")
-	if call:
-		await bot.answer_callback_query(call.id)
-		user_id = call.from_user.id
-		chat_id = call.message.chat.id
-		previous_message_id = call.message.message_id
+async def call_show_info(call):
+	user_id = call.from_user.id
+	chat_id = call.message.chat.id
+	previous_message_id = call.message.id
+	username = call.from_user.username
+	await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id, username=username)
+async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, username=None):
+	logger.info(f"Showing user ({user_id}) user info")
 	user_info = await get_user_info(chat_id=chat_id, user_id=user_id)
 	logger.debug(f'user_info = {user_info}')
 	text_message = ("<blockquote><b>Информация о пользователе</b>\n\n"
 					f"<b>Имя</b>: {user_info['name']}\n"
 					f"<b>Фамилия</b>: {user_info['surname']}\n"
-					f"<b>Юзернейм</b>: @{call.from_user.username}\n\n"
+					f"<b>Юзернейм</b>: @{username}\n\n"
 					f"<b>Учебная группа</b>: {user_info['study_group']}\n"
 					f"<b>Факультет</b>: {user_info['facult_name']}\n"
 					f"<b>Кафедра</b>: {user_info['chair_name']}\n"
@@ -53,8 +53,8 @@ async def print_user_info(call=None, user_id=None, chat_id=None, previous_messag
 	markup = InlineKeyboardMarkup()
 	back_button = InlineKeyboardButton('Назад',
 									   callback_data=vote_cb.new(action='open menu', amount=str(previous_message_id)))
-	change_name = InlineKeyboardButton('Изменить имя', callback_data='change_name')
-	markup.row(change_name)
+	change_name_button = InlineKeyboardButton('Изменить имя', callback_data='change_name')
+	markup.row(change_name_button)
 	markup.row(back_button)
 
 	await bot.edit_message_text(text=text_message,
@@ -65,8 +65,8 @@ async def print_user_info(call=None, user_id=None, chat_id=None, previous_messag
 
 @bot.callback_query_handler(func=lambda call: call.data == 'change_name')
 async def change_name(call):
-	bot.answer_callback_query(call.id)
-	user_id, chat_id = call.from_user.id, call.message.chat.id
+	await bot.answer_callback_query(call.id)
+	user_id, chat_id, username = call.from_user.id, call.message.chat.id, call.from_user.username
 	name = await request(
 		user_id=user_id,
 		chat_id=chat_id,
@@ -89,4 +89,4 @@ async def change_name(call):
 		finally:
 			text = 'Обновлено' if update else 'Не удалось обновить'
 			await send_temporary_message(bot, chat_id, text=text, delay_seconds=3)
-			await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id)
+			await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)
