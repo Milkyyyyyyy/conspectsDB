@@ -10,7 +10,7 @@ from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay, send_temporary_message
 from code.database.queries import getAll, get
 from code.database.service import connectDB
-from code.bot.services.requests import request, request_list
+from code.bot.services.requests import request, request_list, request_confirmation
 from code.bot.services.validation import validators
 from code.logging import logger
 
@@ -119,60 +119,65 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 			name=name,
 			surname=surname,
 			group=group,
-			facult_name=facult[0],
-			chair_name=chair[0],
-			direction_name=direction[0]
+			facult=facult,
+			chair=chair,
+			direction=direction
 		)
 
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
-async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult_name=None, chair_name=None, direction_name=None):
+async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None, direction=None):
 	# Собираем кнопки
 	buttons = InlineKeyboardMarkup()
 	buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
 	buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
-	await bot.send_message(chat_id,
-						   f"Проверьте правильность данных\n\n"
+	text = (f"Проверьте правильность данных\n\n"
 						   f"<blockquote><b>Имя</b>: {name}\n"
 						   f"<b>Фамилия</b>: {surname}\n"
 						   f"<b>Учебная группа</b>: {group}\n\n"
-						   f"<b>Факультет</b>: {facult_name}\n"
-						   f"<b>Кафедра</b>: {chair_name}\n"
-						   f"<b>Направление</b>: {direction_name}</blockquote>\n",
-						   reply_markup=buttons, parse_mode='HTML')
-
-
-# Сохраняем информацию в датабазу
-@bot.callback_query_handler(func=lambda call: call.data == 'registration_accepted')
-async def end_registration(call):
-	async with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
-		data['previous_message_id'] = None
-	logger.info('Registration accepted.')
-	await bot.answer_callback_query(call.id)
-	message = await bot.send_message(call.message.chat.id, 'Завершаю регистрацию...')
-	try:
-		await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-	except Exception:
-		pass
-	# Сохраняем информацию в датабазу
-	async with bot.retrieve_data(user_id=call.from_user.id, chat_id=call.message.chat.id) as data:
-		name = data['name']
-		surname = data['surname']
-		group = data['group']
-		direction_id = data['direction_id']
-
-	# Добавляю запись в датабазу
-	saved = await save_user_in_database(
-		user_id=call.from_user.id,
-		name=name,
-		surname=surname,
-		group=group,
-		direction_id=direction_id,
-		role='user'
+						   f"<b>Факультет</b>: {facult[0]}\n"
+						   f"<b>Кафедра</b>: {chair[0]}\n"
+						   f"<b>Направление</b>: {direction[0]}</blockquote>\n")
+	response = await request_confirmation(
+		user_id=user_id,
+		chat_id=chat_id,
+		text=text,
+		accept_text='Всё правильно',
+		decline_text='Повторить регистрацию',
+		waiting_for='accept_registration'
 	)
-	if saved:
-		await bot.edit_message_text('Готово!', call.message.chat.id, message.message_id)
-		logger.info('Successfully saved user in database.')
-		await bot.set_state(call.from_user.id, MenuStates.main_menu, call.message.chat.id)
-		await main_menu(user_id=call.from_user.id, chat_id=call.message.chat.id)
-	else:
-		await bot.send_message(call.message.chat.id, 'Не удалось зарегестрироваться')
+	if response is None:
+		await send_temporary_message(bot, chat_id, text='Отменяю регситрацию...', delay_seconds=5)
+		return
+	if response is True:
+		await end_registration(
+			user_id=user_id,
+			chat_id=chat_id,
+			name=name,
+			surname=surname,
+			group=group,
+			direction_id=direction[1],
+			role='user'
+		)
+
+
+
+async def end_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None, role=None):
+	previous_message_id = (await bot.send_message(chat_id, 'Завершаю регистрацию...')).id
+	saved = False
+	try:
+		saved = await save_user_in_database(
+			user_id=user_id,
+			name=name,
+			surname=surname,
+			group=group,
+			direction_id=direction_id,
+			role=role
+		)
+	except:
+		await bot.edit_message_text(text='Произошла ошибка. Повторите попытку позже', chat_id=chat_id, message_id=previous_message_id)
+		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+	finally:
+		text = 'Регистрация прошла успешно' if saved else 'Не удалось зарегистрироваться.'
+		await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id)
+		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+

@@ -218,6 +218,54 @@ async def request_list(
 	finally:
 		awaiters.pop(key, None)
 
+async def request_confirmation(
+		user_id: int,
+		chat_id: int,
+		text: str = '\n',
+		timeout: float = 60.0,
+		accept_text: str = 'Подтвердить',
+		decline_text: str = 'Отменить',
+		waiting_for: str = 'temp',
+		previous_message_id: int = None,
+		delete_message_after: bool = True
+):
+	key = (user_id, chat_id)
+	if key in awaiters and not awaiters[key].done():
+		raise RuntimeError('Already waiting for a response from the user')
+	loop = asyncio.get_running_loop()
+	fut = loop.create_future()
+	awaiters[key] = fut
+	accept_button = InlineKeyboardButton(text=accept_text, callback_data='accept')
+	decline_button = InlineKeyboardButton(text=decline_text, callback_data='decline')
+	markup = InlineKeyboardMarkup()
+	markup.row(accept_button, decline_button)
+	if previous_message_id:
+		await bot.edit_message_text(chat_id=chat_id, message_id=previous_message_id, text=text, parse_mode='HTML')
+		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
+	else:
+		previous_message_id = (await bot.send_message(chat_id, text, reply_markup=markup, parse_mode='HTML')).id
+	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+		data['waiting_for'] = waiting_for
+	try:
+		response = await asyncio.wait_for(fut, timeout)
+	except asyncio.TimeoutError:
+		await bot.edit_message_text(text='Время ввода истекло.', chat_id=chat_id, message_id=previous_message_id)
+		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=None)
+		if delete_message_after:
+			await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=1)
+		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+			data.pop('waiting_for', None)
+		return False
+	finally:
+		awaiters.pop(key, None)
+	if response is None:
+		return None
+	if 'decline' in response:
+		return False
+	elif 'accept' in response:
+		return True
+	return False
+
 
 @bot.callback_query_handler(func=lambda call: (call.from_user.id, call.message.chat.id) in awaiters)
 async def _handle_awaited_callback(call):
