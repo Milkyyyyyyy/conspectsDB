@@ -47,13 +47,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 		await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
 		return
 	else:
-		# async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-		# 	data['table'] = 'FACULTS'
-		# 	data['page'] = 1
-		# 	data['filters'] = {}
-		# 	data['previous_message_id'] = None
-		# await bot.set_state(user_id=user_id, state = RegStates.wait_for_direction, chat_id=chat_id)
-		# await choose_direction(userID=user_id, chatID=chat_id)
+		# Запрашиваем у пользователя всю нужную информаццию
 		name = await request(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -113,6 +107,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 			data['facult_id']=facult[1]
 			data['chair_id'] = chair[1]
 			data['direction_id'] = direction[1]
+		# Вызываем подтверждение регистрации
 		await accept_registration(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -145,9 +140,11 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 		decline_text='Повторить регистрацию',
 		waiting_for='accept_registration'
 	)
+	# Пользователь вызвал команду /cancel
 	if response is None:
 		await send_temporary_message(bot, chat_id, text='Отменяю регситрацию...', delay_seconds=5)
 		return
+	# Сохраняем пользователя в датабазу и выводим сообщение
 	if response:
 		await end_registration(
 			user_id=user_id,
@@ -163,7 +160,7 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 		return
 
 
-
+# Завершает регистрацию
 async def end_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None, role=None):
 	previous_message_id = (await bot.send_message(chat_id, 'Завершаю регистрацию...')).id
 	saved = False
