@@ -10,7 +10,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from code.bot.bot_instance import bot
 from code.bot.handlers.main_menu import main_menu
 from code.bot.services.user_service import is_user_exists
-from code.bot.states import MenuStates
+from code.bot.states import MenuStates, MainStates
 from code.bot.utils import delete_message_after_delay
 from code.logging import logger
 
@@ -33,5 +33,5 @@ async def start(message):
 		await bot.reply_to(message, text, reply_markup=kb)
 	else:
 		logger.info(f'The user ({user_id}) exists')
-		await bot.set_state(message.from_user.id, MenuStates.main_menu, message.chat.id)
+		await bot.set_state(user_id=user_id, chat_id=message.chat.id, state=MainStates.default_state)
 		await main_menu(user_id=message.from_user.id, chat_id=message.chat.id)

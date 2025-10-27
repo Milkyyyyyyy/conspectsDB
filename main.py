@@ -15,8 +15,6 @@ from code.database.queries import isExists, getAll, get, insert
 from code.database.service import connectDB
 from code.logging import logger
 
-import code.bot.handlers.info
-_info = code.bot.handlers.info
 import code.bot.handlers.main_menu
 _main_menu = code.bot.handlers.main_menu
 import code.bot.handlers.misc

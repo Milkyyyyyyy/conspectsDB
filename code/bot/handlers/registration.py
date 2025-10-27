@@ -43,77 +43,78 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 		await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
 		return
 	else:
-		# Запрашиваем у пользователя всю нужную информаццию
-		name = await request(
-			user_id=user_id,
-			chat_id=chat_id,
-			request_message='Введите <b>ваше</b> имя:',
-			waiting_for='name',
-			validator=validators.name
-		)
-		surname = await request(
-			user_id=user_id,
-			chat_id=chat_id,
-			request_message='Введите <b>вашу</b> фамилию:',
-			waiting_for='surname',
-			validator=validators.surname
-		)
-		group = await request(
-			user_id=user_id,
-			chat_id=chat_id,
-			request_message='Введите учебную группу:',
-			waiting_for='group',
-			validator=validators.group
-		)
-		async with connectDB() as db:
-			facult_db = await getAll(database=db, table='FACULTS')
-			facult = await request_list(
+		# Запрашиваем у пользователя всю нужную информацию
+		name, surname, group = '', '', ''
+		try:
+			name = await request(
 				user_id=user_id,
 				chat_id=chat_id,
-				header='Выберите ваш <b>факультет</b>\n',
-				items_list=facult_db,
-				input_field='name',
-				output_field=['name', 'rowid']
+				request_message='Введите <b>ваше</b> имя:',
+				waiting_for='name',
+				validator=validators.name
 			)
-
-			chair_db = await getAll(database=db, table='CHAIRS', filters={'facult_id': facult[1]})
-			chair = await request_list(
+			if name is None:
+				await stop_registration(chat_id)
+			surname = await request(
 				user_id=user_id,
 				chat_id=chat_id,
-				header='Выберите вашу <b>кафедру</b>\n',
-				items_list=chair_db,
-				input_field='name',
-				output_field=['name', 'rowid']
+				request_message='Введите <b>вашу</b> фамилию:',
+				waiting_for='surname',
+				validator=validators.surname
 			)
-
-			direction_db = await getAll(database=db, table='DIRECTIONS', filters={'chair_id': chair[1]})
-			direction = await request_list(
+			group = await request(
 				user_id=user_id,
 				chat_id=chat_id,
-				header='Выберите ваше <b>направление</b>\n',
-				items_list=direction_db,
-				input_field='name',
-				output_field=['name', 'rowid']
+				request_message='Введите учебную группу:',
+				waiting_for='group',
+				validator=validators.group
+			)
+			async with connectDB() as db:
+				facult_db = await getAll(database=db, table='FACULTS')
+				facult = await request_list(
+					user_id=user_id,
+					chat_id=chat_id,
+					header='Выберите ваш <b>факультет</b>\n',
+					items_list=facult_db,
+					input_field='name',
+					output_field=['name', 'rowid']
+				)
+
+				chair_db = await getAll(database=db, table='CHAIRS', filters={'facult_id': facult[1]})
+				chair = await request_list(
+					user_id=user_id,
+					chat_id=chat_id,
+					header='Выберите вашу <b>кафедру</b>\n',
+					items_list=chair_db,
+					input_field='name',
+					output_field=['name', 'rowid']
+				)
+
+				direction_db = await getAll(database=db, table='DIRECTIONS', filters={'chair_id': chair[1]})
+				direction = await request_list(
+					user_id=user_id,
+					chat_id=chat_id,
+					header='Выберите ваше <b>направление</b>\n',
+					items_list=direction_db,
+					input_field='name',
+					output_field=['name', 'rowid']
+				)
+		finally:
+			# Вызываем подтверждение регистрации
+			await accept_registration(
+				user_id=user_id,
+				chat_id=chat_id,
+				name=name,
+				surname=surname,
+				group=group,
+				facult=facult,
+				chair=chair,
+				direction=direction
 			)
 
-		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-			data['name'] = name
-			data['surname'] = surname
-			data['group'] = group
-			data['facult_id'] = facult[1]
-			data['chair_id'] = chair[1]
-			data['direction_id'] = direction[1]
-		# Вызываем подтверждение регистрации
-		await accept_registration(
-			user_id=user_id,
-			chat_id=chat_id,
-			name=name,
-			surname=surname,
-			group=group,
-			facult=facult,
-			chair=chair,
-			direction=direction
-		)
+async def stop_registration(chat_id):
+	await send_temporary_message(bot, chat_id, 'Завершаю регистрацию...', delay_seconds=10)
+	raise Exception('Interrupt registration')
 
 
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
@@ -136,7 +137,6 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 		text=text,
 		accept_text='Всё правильно',
 		decline_text='Повторить регистрацию',
-		waiting_for='accept_registration'
 	)
 	# Пользователь вызвал команду /cancel
 	if response is None:

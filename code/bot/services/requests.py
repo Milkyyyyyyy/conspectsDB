@@ -7,6 +7,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.utils import send_temporary_message, delete_message_after_delay
+from code.bot.states import MainStates
 
 awaiters: dict[tuple[int, int], asyncio.Future] = {}
 
@@ -14,7 +15,10 @@ awaiters: dict[tuple[int, int], asyncio.Future] = {}
 async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
 	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 		data['waiting_for'] = waiting_for
-
+async def _set_request_state(user_id, chat_id):
+	await bot.set_state(user_id=user_id,chat_id=chat_id, state=MainStates.request_state)
+async def _set_default_state(user_id, chat_id):
+	await bot.set_state(user_id=user_id, chat_id=chat_id, state=MainStates.default_state)
 
 # Запрашивает и ждёт у пользователя информацию
 async def request(user_id, chat_id,
@@ -42,10 +46,11 @@ async def request(user_id, chat_id,
 	:return: str сообщения или None, если отменено или исчерпаны попытки
 	"""
 	# Проверяем, ожидаем ли мы от этого пользователя уже что-то
+	waiting_for = 'message'
 	key = (user_id, chat_id)
 	if key in awaiters and not awaiters[key].done():
 		raise RuntimeError('Already waiting for a response from the user')
-
+	await _set_request_state(user_id, chat_id)
 	loop = asyncio.get_running_loop()
 	attempts = 0
 	request_message_id = None
@@ -67,6 +72,8 @@ async def request(user_id, chat_id,
 
 			# Добавляем флаг, куда будет сохраняться информация
 			await _save_waiting_for_flag(user_id, chat_id, waiting_for)
+			async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+				print(data)
 
 			# Получаем от пользователя ответ из фьючера
 			try:
@@ -123,6 +130,7 @@ async def request(user_id, chat_id,
 			return response.text.strip()
 	finally:
 		# Удаляем ожидание
+		await _set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
 
@@ -175,7 +183,6 @@ async def request_list(
 		header: str = '',
 		previous_message_id: int | None = None,
 		items_list: list | tuple | dict = None,
-		waiting_for: str = '',
 		input_field: str = '',
 		output_field: str | List[str] = '',
 ):
@@ -194,6 +201,7 @@ async def request_list(
 
 	:return: Что угодно, в зависимости от items_list и output_field или None.
 	"""
+	waiting_for = 'callback'
 	# Проверяем валидность списка
 	if items_list is None:
 		raise ValueError('items_list cannot be None')
@@ -203,6 +211,7 @@ async def request_list(
 	if key in awaiters and not awaiters[key].done():
 		raise RuntimeError('Already waiting for a response from the user')
 
+	await _set_request_state(user_id, chat_id)
 	loop = asyncio.get_running_loop()
 
 	list_index = 0  # Текущий индекс первого элемента в списке
@@ -327,6 +336,7 @@ async def request_list(
 				continue
 	finally:
 		# Удаляем ожидание
+		await _set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
 
@@ -337,7 +347,6 @@ async def request_confirmation(
 		timeout: float = 60.0,
 		accept_text: str = 'Подтвердить',
 		decline_text: str = 'Отменить',
-		waiting_for: str = 'temp',
 		previous_message_id: int = None,
 		delete_message_after: bool = True
 ):
@@ -356,11 +365,13 @@ async def request_confirmation(
 
 	:return: True или False, если сделан выбор; None - если отмена
 	"""
+	waiting_for = 'callback'
 	key = (user_id, chat_id)
 	# Проверяем, ожидаем ли мы от пользователя ответ
 	if key in awaiters and not awaiters[key].done():
 		raise RuntimeError('Already waiting for a response from the user')
 
+	await _set_request_state(user_id, chat_id)
 	# Создаём фьючер и добавляем его в ожидание
 	loop = asyncio.get_running_loop()
 	fut = loop.create_future()
@@ -395,6 +406,7 @@ async def request_confirmation(
 		return False
 	finally:
 		# Удаляем из ожидания
+		await _set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
 	# Если пользователь отменил
@@ -409,12 +421,17 @@ async def request_confirmation(
 	# Во всех остальных случаях возвращаем False
 	return False
 
-
+# TODO request_files
+# TODO _handle_files
 # Принимает все кнопки от пользователя, который находится в ожидании
 @bot.callback_query_handler(func=lambda call: (call.from_user.id, call.message.chat.id) in awaiters)
 async def _handle_awaited_callback(call):
 	await bot.answer_callback_query(call.id)
 	key = (call.from_user.id, call.message.chat.id)
+	async with bot.retrieve_data(key[0], key[1]) as data:
+
+		if data['waiting_for'] != 'callback':
+			return
 	fut = awaiters.get(key)
 	if fut is None or fut.done():
 		return
@@ -427,9 +444,12 @@ async def _handle_awaited_callback(call):
 
 
 # Принимает все сообщения от пользователя, который находится в ожидании
-@bot.message_handler(func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
+@bot.message_handler(content_types=['text'], func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
 async def _handle_awaited_answer(message):
 	key = (message.from_user.id, message.chat.id)
+	async with bot.retrieve_data(key[0], key[1]) as data:
+		if data['waiting_for'] != 'message':
+			return
 	fut = awaiters.get(key)
 	if fut is None or fut.done():
 		return

@@ -22,13 +22,12 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 	markup = InlineKeyboardMarkup()
 	show_info = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
 	markup.row(show_info)
-	async with bot.retrieve_data(user_id, chat_id) as data:
-		if previous_message_id is None:
-			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
-		else:
-			await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id,
+	if previous_message_id is None:
+		message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
+	else:
+		await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id,
 										parse_mode='HTML')
-			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
+		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
 async def call_show_info(call):
