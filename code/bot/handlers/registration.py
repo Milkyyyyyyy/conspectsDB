@@ -1,17 +1,13 @@
-import asyncio
-import re
-
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.handlers.main_menu import main_menu
-from code.bot.services.user_service import is_user_exists, save_user_in_database
-from code.bot.states import RegStates, MenuStates
-from code.bot.utils import delete_message_after_delay, send_temporary_message
-from code.database.queries import getAll, get
-from code.database.service import connectDB
 from code.bot.services.requests import request, request_list, request_confirmation
+from code.bot.services.user_service import is_user_exists, save_user_in_database
 from code.bot.services.validation import validators
+from code.bot.utils import delete_message_after_delay, send_temporary_message
+from code.database.queries import getAll
+from code.database.service import connectDB
 from code.logging import logger
 
 
@@ -76,8 +72,8 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 				chat_id=chat_id,
 				header='Выберите ваш <b>факультет</b>\n',
 				items_list=facult_db,
-				input_field = 'name',
-				output_field = ['name', 'rowid']
+				input_field='name',
+				output_field=['name', 'rowid']
 			)
 
 			chair_db = await getAll(database=db, table='CHAIRS', filters={'facult_id': facult[1]})
@@ -104,7 +100,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 			data['name'] = name
 			data['surname'] = surname
 			data['group'] = group
-			data['facult_id']=facult[1]
+			data['facult_id'] = facult[1]
 			data['chair_id'] = chair[1]
 			data['direction_id'] = direction[1]
 		# Вызываем подтверждение регистрации
@@ -119,19 +115,21 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 			direction=direction
 		)
 
+
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
-async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None, direction=None):
+async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None,
+							  direction=None):
 	# Собираем кнопки
 	buttons = InlineKeyboardMarkup()
 	buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
 	buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
 	text = (f"Проверьте правильность данных\n\n"
-						   f"<blockquote><b>Имя</b>: {name}\n"
-						   f"<b>Фамилия</b>: {surname}\n"
-						   f"<b>Учебная группа</b>: {group}\n\n"
-						   f"<b>Факультет</b>: {facult[0]}\n"
-						   f"<b>Кафедра</b>: {chair[0]}\n"
-						   f"<b>Направление</b>: {direction[0]}</blockquote>\n")
+			f"<blockquote><b>Имя</b>: {name}\n"
+			f"<b>Фамилия</b>: {surname}\n"
+			f"<b>Учебная группа</b>: {group}\n\n"
+			f"<b>Факультет</b>: {facult[0]}\n"
+			f"<b>Кафедра</b>: {chair[0]}\n"
+			f"<b>Направление</b>: {direction[0]}</blockquote>\n")
 	response = await request_confirmation(
 		user_id=user_id,
 		chat_id=chat_id,
@@ -161,7 +159,8 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 
 
 # Завершает регистрацию
-async def end_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None, role=None):
+async def end_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None,
+						   role=None):
 	previous_message_id = (await bot.send_message(chat_id, 'Завершаю регистрацию...')).id
 	saved = False
 	try:
@@ -174,7 +173,8 @@ async def end_registration(user_id=None, chat_id=None, name=None, surname=None, 
 			role=role
 		)
 	except:
-		await bot.edit_message_text(text='Произошла ошибка. Повторите попытку позже', chat_id=chat_id, message_id=previous_message_id)
+		await bot.edit_message_text(text='Произошла ошибка. Повторите попытку позже', chat_id=chat_id,
+									message_id=previous_message_id)
 		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
 	finally:
 		text = 'Регистрация прошла успешно' if saved else 'Не удалось зарегистрироваться.'
@@ -182,4 +182,3 @@ async def end_registration(user_id=None, chat_id=None, name=None, surname=None, 
 		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
 		if saved:
 			await main_menu(user_id=user_id, chat_id=chat_id)
-
