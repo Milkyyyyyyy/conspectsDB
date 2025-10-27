@@ -1,4 +1,4 @@
-# TODO Сделать request_accept, который просто будет выводить информацию и две кнопки, возвращать True или False
+# TODO ДОБАВИТЬ ЛОГИ!!!
 
 import asyncio
 from ast import parse
@@ -13,7 +13,7 @@ from code.bot.states import MainStates
 from code.logging import logger
 
 awaiters: dict[tuple[int, int], asyncio.Future | asyncio.Queue] = {}
-# NOTE f
+
 async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
 	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 		data['waiting_for'] = waiting_for
