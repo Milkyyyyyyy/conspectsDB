@@ -36,7 +36,6 @@ async def test(message):
 		chat_id=chat_id,
 
 	)
-	print('Get response')
 	print(response)
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):

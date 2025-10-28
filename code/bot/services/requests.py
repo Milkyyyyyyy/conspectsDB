@@ -267,7 +267,9 @@ async def request_list(
 					reply_markup=markup)
 			# В ином случае выводим новое сообщение и сохраняем его ID
 			else:
-				previous_message_id = (await bot.send_message(chat_id, text, parse_mode='HTML', reply_markup=markup)).id
+				sent = await bot.send_message(chat_id, text, parse_mode='HTML', reply_markup=markup)
+				previous_message_id = sent.id
+				logger.debug('Sent request message id=%s to chat=%s', previous_message_id, chat_id)
 
 			# Сохраняем флаг waiting_for
 			await _save_waiting_for_flag(user_id, chat_id, waiting_for)
@@ -442,7 +444,7 @@ async def request_files(
 ):
 	key = (user_id, chat_id)
 	if key in awaiters:
-		# если очередь уже существует и не пустая — можно или ошибку, или очищать; тут сделаем проверку только на существование
+		logger.warning('Attempt to start request but already waiting for %s', key)
 		raise RuntimeError('Already waiting for a response from the user')
 
 	await _set_request_state(user_id, chat_id)
@@ -465,6 +467,7 @@ async def request_files(
 				# ждём следующего элемента очереди с таймаутом
 				response = await asyncio.wait_for(queue.get(), timeout)
 			except asyncio.TimeoutError:
+				logger.info("Timeout in request_files for %s", key)
 				await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
@@ -487,9 +490,11 @@ async def request_files(
 			else:
 				try:
 					if getattr(response, 'content_type', '') == 'document':
+						logger.info('Get document files from %s', key)
 						files.append(('document', response.document))
 					elif getattr(response, 'content_type', '') == 'photo':
-						# photo представлено в виде списка, где в конце самое большое разрешшение
+						# photo представлено в виде списка, где в конце самое большое разрешение
+						logger.info('Get photo files from %s', key)
 						files.append(('photo', response.photo[-1]))
 					else:
 						# Обрабатывает неподдерживаемые типы
@@ -500,7 +505,6 @@ async def request_files(
 			if len(files) >= 10:
 				return files
 	finally:
-		# очистка состояния
 		await _set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
@@ -511,7 +515,7 @@ async def _handle_awaited_files(message):
 	async with bot.retrieve_data(key[0], key[1]) as data:
 		if not data.get('waiting_for') or 'file' not in data.get('waiting_for', ''):
 			return
-
+	logger.info('Handle awaited file from %s', key)
 	queue = awaiters.get(key)
 	if queue is None:
 		return
@@ -529,6 +533,7 @@ async def _handle_awaited_callback(call):
 	async with bot.retrieve_data(key[0], key[1]) as data:
 		if not('callback' in data['waiting_for']):
 			return
+	logger.info('Handle awaited  callback from %s', key)
 	fut = awaiters.get(key)
 	if fut is None or (isinstance(fut, asyncio.Future) and fut.done):
 		return
@@ -550,6 +555,7 @@ async def _handle_awaited_answer(message):
 	async with bot.retrieve_data(key[0], key[1]) as data:
 		if not('message' in data['waiting_for']):
 			return
+	logger.info('Handle awaited message from %s', key)
 	fut = awaiters.get(key)
 	if fut is None or (isinstance(fut, asyncio.Future) and fut.done):
 		return
