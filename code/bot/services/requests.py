@@ -376,29 +376,27 @@ async def request_confirmation(
 	"""
 	waiting_for = 'callback'
 	key = (user_id, chat_id)
-	# Проверяем, ожидаем ли мы от пользователя ответ
 	if key in awaiters and not awaiters[key].done():
+		logger.warning('Attempt to start request but already waiting for %s', key)
 		raise RuntimeError('Already waiting for a response from the user')
 
 	await _set_request_state(user_id, chat_id)
-	# Создаём фьючер и добавляем его в ожидание
+
 	loop = asyncio.get_running_loop()
 	fut = loop.create_future()
 	awaiters[key] = fut
 
-	# Собираем маркап
 	accept_button = InlineKeyboardButton(text=accept_text, callback_data='accept')
 	decline_button = InlineKeyboardButton(text=decline_text, callback_data='decline')
 	markup = InlineKeyboardMarkup()
 	markup.row(accept_button, decline_button)
 
-	# Если есть previous_message_id, меняем его на новый
 	if previous_message_id:
 		await bot.edit_message_text(chat_id=chat_id, message_id=previous_message_id, text=text, parse_mode='HTML')
 		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
-	# В ином случае выводим сообщение и сохраняем его ID
 	else:
-		previous_message_id = (await bot.send_message(chat_id, text, reply_markup=markup, parse_mode='HTML')).id
+		sent = await bot.send_message(chat_id, text, reply_markup=markup, parse_mode='HTML')
+		previous_message_id = getattr(sent, 'id', None)
 
 	await _save_waiting_for_flag(user_id, chat_id, waiting_for)
 
@@ -406,6 +404,7 @@ async def request_confirmation(
 	try:
 		response = await asyncio.wait_for(fut, timeout)
 	except asyncio.TimeoutError:
+		logger.info("Timeout in request_confirmation for %s", key)
 		await bot.edit_message_text(text='Время ввода истекло.', chat_id=chat_id, message_id=previous_message_id)
 		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=None)
 		if delete_message_after:
@@ -420,14 +419,18 @@ async def request_confirmation(
 
 	# Если пользователь отменил
 	if response is None:
+		logger.info("User cancelled request_confirmation %s", key)
 		return None
 	# Если пользователь отклонил
-	if 'decline' in response:
-		return False
-	# Если пользователь подтвердил
-	elif 'accept' in response:
-		return True
-	# Во всех остальных случаях возвращаем False
+	if isinstance(response, str):
+		if 'decline' in response:
+			logger.debug("User declined confirmation %s", key)
+			return False
+		# Если пользователь подтвердил
+		elif 'accept' in response:
+			logger.debug("User accepted confirmation %s", key)
+			return True
+	logger.warning("Unknown response in request_confirmation for %s: %s", key, response)
 	return False
 
 
