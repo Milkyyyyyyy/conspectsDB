@@ -16,10 +16,12 @@ awaiters: dict[tuple[int, int], asyncio.Future | asyncio.Queue] = {}
 async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
 	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 		data['waiting_for'] = waiting_for
+		logger.debug('Set waiting_for for %s:%s -> %s', user_id, chat_id, waiting_for)
 async def _set_request_state(user_id, chat_id):
-	print('setting request state')
+	logger.debug('Setting request state for user=%s chat=%s', user_id, chat_id)
 	await bot.set_state(user_id=user_id,chat_id=chat_id, state=MainStates.request_state)
 async def _set_default_state(user_id, chat_id):
+	logger.debug('Restoring default state for user=%s chat=%s', user_id, chat_id)
 	await bot.set_state(user_id=user_id, chat_id=chat_id, state=MainStates.default_state)
 
 # Запрашивает и ждёт у пользователя информацию
@@ -50,87 +52,93 @@ async def request(user_id, chat_id,
 	waiting_for = 'message'
 	key = (user_id, chat_id)
 	if key in awaiters and not awaiters[key].done():
+		logger.warning('Attempt to start request but already waiting for %s', key)
 		raise RuntimeError('Already waiting for a response from the user')
 	await _set_request_state(user_id, chat_id)
 	loop = asyncio.get_running_loop()
 	attempts = 0
 	request_message_id = None
-	# Получаем от пользователя ответ
 	try:
 		while True:
 			attempts += 1
-			# Создаём новый фьючер
 			fut = loop.create_future()
 			awaiters[key] = fut
 
 			# Отправляем сообщение пользователю с запросом
-			# Если это не первая попытка, то выводим сообщение временно (то есть оно удалится через несколько секунд)
-			if request_message:
-				if attempts > 1:
-					await send_temporary_message(bot, chat_id, request_message, delay_seconds=5)
-				else:
-					request_message_id = (await bot.send_message(chat_id, request_message, parse_mode='HTML')).id
-
-			# Добавляем флаг, куда будет сохраняться информация
-			await _save_waiting_for_flag(user_id, chat_id, waiting_for)
-			async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-				print(data)
-
-			# Получаем от пользователя ответ из фьючера
 			try:
-				response = await asyncio.wait_for(fut, timeout)
-			# Выводим сообщение, что время ввода истекло
-			except asyncio.TimeoutError:
-				await bot.send_message(chat_id, "Время ввода истекло")
-				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-					data.pop('waiting_for', None)
-				return None
-			finally:
-				# Удаляем фьючер из ожидания
-				awaiters.pop(key, None)
+				if request_message:
+					if attempts > 1:
+						await send_temporary_message(bot, chat_id, request_message, delay_seconds=5)
+					else:
+						sent = await bot.send_message(chat_id, request_message, parse_mode='HTML')
+						request_message_id = sent.id
+						logger.debug('Sent request message id=%s to chat=%s', request_message_id, chat_id)
 
-			# Если response = None - значит пользователь использовать команду /cancel => отменяем
-			if response is None:
-				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-					data.pop('waiting_for', None)
-				return None
+				# Добавляем флаг, что мы ожидаем
+				await _save_waiting_for_flag(user_id, chat_id, waiting_for)
 
-			# Проверяем валидатором, если он есть, правильность в водимых данных
-			err = None
-			if validator is not None:
-				if hasattr(validator, "validate"):
-					ok, maybe_err = validator.validate(response.text.strip())
-					if not ok:
-						err = maybe_err or "Неверный ввод"
-				else:
-					maybe_err = validator(response)
-					if maybe_err:
-						err = maybe_err
-			# Если валидатор вернул какую-то ошибку => выводим её
-			if err:
-				await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
+				# Получаем от пользователя ответ из фьючера
+				try:
+					response = await asyncio.wait_for(fut, timeout)
+				# Выводим сообщение, что время ввода истекло
+				except asyncio.TimeoutError:
+					logger.info('Timeout waiting for user response %s', key)
+					await bot.send_message(chat_id, "Время ввода истекло")
+					async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+						data.pop('waiting_for', None)
+					return None
+				finally:
+					awaiters.pop(key, None)
 
-				# Если закончились попытки - возвращаем None
-				if max_retries is not None and attempts >= max_retries:
-					await send_temporary_message(bot, chat_id, text=f"{err}\n<b>(исчерпаны попытки)</b>")
+				if response is None:
+					logger.info('User cancelled input %s', key)
 					async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 						data.pop('waiting_for', None)
 					return None
 
-				# В ином случае продолжаем цикл с новым сообщением
-				request_message = f"{err}\nПопробуйте ещё раз или отмените командой /cancel."
-				continue
+				# Валидатор
+				err = None
+				if validator is not None:
+					try:
+						if hasattr(validator, "validate"):
+							ok, maybe_err = validator.validate(response.text.strip())
+							if not ok:
+								err = maybe_err or "Неверный ввод"
+						else:
+							maybe_err = validator(response)
+							if maybe_err:
+								err = maybe_err
+					except Exception as e:
+						logger.exception('Validator raised exception for user (%s) message (%s): %s', key, response.text, e)
+						err = 'Ошибка проверки'
 
-			# В ином случае, сохраняем ответ в waiting_for и заметаем все следы
-			async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-				data[waiting_for] = response.text.strip()
-				data.pop('waiting_for', None)
-			if delete_request_message:
-				await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
-				await delete_message_after_delay(bot, chat_id, request_message_id, delay_seconds=2)
-			return response.text.strip()
+				if err:
+					logger.debug('Validation failed for %s: %s', key, err)
+					await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
+
+					# Если закончились попытки - возвращаем None
+					if max_retries is not None and attempts >= max_retries:
+						await send_temporary_message(bot, chat_id, text=f"{err}\n<b>(исчерпаны попытки)</b>")
+						async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+							data.pop('waiting_for', None)
+						return None
+
+					# В ином случае продолжаем цикл с новым сообщением
+					request_message = f"{err}\nПопробуйте ещё раз или отмените командой /cancel."
+					continue
+
+				# Сохраняем ответ
+				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+					data[waiting_for] = response.text.strip()
+					data.pop('waiting_for', None)
+					logger.info('Saved response for %s: %s', key, response.text.strip())
+				if delete_request_message:
+					await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
+					await delete_message_after_delay(bot, chat_id, request_message_id, delay_seconds=2)
+				return response.text.strip()
+			except Exception as e:
+				logger.exception('Unexpected error in request loop for %s: %s', key, e)
 	finally:
-		# Удаляем ожидание
 		await _set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
