@@ -212,11 +212,13 @@ async def request_list(
 	waiting_for = 'callback'
 	# Проверяем валидность списка
 	if items_list is None:
+		logger.error("request_list called without items_list for %s:%s", user_id, chat_id)
 		raise ValueError('items_list cannot be None')
 
 	# Проверяем, не ожидаем ли мы уже от пользователя ответа
 	key = (user_id, chat_id)
 	if key in awaiters and not awaiters[key].done():
+		logger.warning('Attempt to start request but already waiting for %s', key)
 		raise RuntimeError('Already waiting for a response from the user')
 
 	await _set_request_state(user_id, chat_id)
@@ -228,14 +230,11 @@ async def request_list(
 	confirmation_mode = False
 	try:
 		while True:
-			# Создаём фьючер
 			fut = loop.create_future()
 			awaiters[key] = fut
 
-			# Максимальный инедкс на странице - не должен превышать длины списка
 			max_index = min(len(items_list), list_index + MAX_ITEMS_ON_PAGE)
 
-			# Выводим сообщение с подтверждением выбора
 			if confirmation_mode:
 				if await _is_key_in_obj(row=items_list[choice], key=input_field):
 					item = items_list[choice][input_field]
@@ -277,6 +276,7 @@ async def request_list(
 			try:
 				response = await asyncio.wait_for(fut, timeout)
 			except asyncio.TimeoutError:
+				logger.info("Timeout in request_list for %s", key)
 				await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
@@ -289,6 +289,7 @@ async def request_list(
 			if response is None:
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
+				logger.info("User cancelled request_list %s", key)
 				return None
 			# Меняем страницы, если в response есть page
 			if 'page' in response:
@@ -325,8 +326,10 @@ async def request_list(
 							output = output[0]
 						elif len(output) == 0:
 							output = None
+					logger.info("request_list returning output for %s: %s", key, output)
 					return output
-				except:
+				except Exception as e:
+					logger.exception("Error while preparing output in request_list for %s: %s", key, e)
 					return None
 				finally:
 					await delete_message_after_delay(
@@ -343,7 +346,6 @@ async def request_list(
 				)
 				continue
 	finally:
-		# Удаляем ожидание
 		await _set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
