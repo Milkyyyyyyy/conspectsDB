@@ -1,7 +1,6 @@
 # TODO ДОБАВИТЬ ЛОГИ!!!
 
 import asyncio
-from ast import parse
 from typing import List
 
 from aiohttp.web_fileresponse import content_type
@@ -27,7 +26,6 @@ async def _set_default_state(user_id, chat_id):
 async def request(user_id, chat_id,
 				  timeout: float = 60.0,
 				  request_message: str = 'Введите:',
-				  waiting_for: str = 'temp',
 				  validator=None,
 				  max_retries: int | None = 3,
 				  previous_message_id: int | None = None,
@@ -40,7 +38,6 @@ async def request(user_id, chat_id,
 	:param chat_id: Айди чата
 	:param timeout: Время ожидания запроса
 	:param request_message: Сообщение, которое бот выведет при запросе у пользователя
-	:param waiting_for: Поле из data, куда будет записана информация (необязательно, но удобно)
 	:param validator: Проверяет вводимые данные
 	:param max_retries: Максимальное количество попыток
 	:param previous_message_id: id прошлого сообщения
@@ -199,7 +196,6 @@ async def request_list(
 	:param header:  Сообщение в верхней строке.
 	:param previous_message_id: ID прошлого сообщения (если есть, то сообщение будет меняться, а не выводиться новое).
 	:param items_list: Список объектов.
-	:param waiting_for: Поле из data, куда будет записана информация (необязательно, но удобно).
 	:param input_field: Поле из объектов items_list, которое будет (!)показываться(!) пользователю.
 	:param output_field: Поле из объектов items_list, которое будет возвращаться как результат работы функции.
 
@@ -363,7 +359,6 @@ async def request_confirmation(
 	:param timeout: Время ожидания ответа.
 	:param accept_text: Текст на кнопке подтверждения.
 	:param decline_text: Текст на кнопке отклонения.
-	:param waiting_for: Поле в data, куда сохраняется результат.
 	:param previous_message_id: ID прошлого сообщения.
 	:param delete_message_after: Время, после которого удаляется сообщение.
 
@@ -425,101 +420,97 @@ async def request_confirmation(
 	# Во всех остальных случаях возвращаем False
 	return False
 
-# Каюсь, списал у нейросети.
-# Заменил Future на Queue здесь.
-# FIXME Посмотреть что тут написано и при необходимости почистить.
-# FIXME Нужно будет адаптировать все handlers под Queue (чтобы он нормально работал)
+
 async def request_files(
-    user_id: int,
-    chat_id: int,
-    request_message: str = 'Отправьте файлы:',
-    timeout: float = 60.0,
+	user_id: int,
+	chat_id: int,
+	request_message: str = 'Отправьте файлы:',
+	timeout: float = 60.0,
 ):
-    key = (user_id, chat_id)
-    if key in awaiters:
-        # если очередь уже существует и не пустая — можно или ошибку, или очищать; тут сделаем проверку только на существование
-        raise RuntimeError('Already waiting for a response from the user')
+	key = (user_id, chat_id)
+	if key in awaiters:
+		# если очередь уже существует и не пустая — можно или ошибку, или очищать; тут сделаем проверку только на существование
+		raise RuntimeError('Already waiting for a response from the user')
 
-    await _set_request_state(user_id, chat_id)
-    await _save_waiting_for_flag(user_id, chat_id, 'file callback')
+	await _set_request_state(user_id, chat_id)
+	await _save_waiting_for_flag(user_id, chat_id, 'file callback')
 
-    # создаём очередь для этого запроса
-    queue = asyncio.Queue()
-    awaiters[key] = queue
+	# создаём очередь для этого запроса
+	queue = asyncio.Queue()
+	awaiters[key] = queue
 
-    accept_button = InlineKeyboardButton('Подтвердить', callback_data='accept')
-    decline_button = InlineKeyboardButton('Отменить', callback_data='cancel')
-    markup = InlineKeyboardMarkup()
-    markup.row(accept_button, decline_button)
-    await bot.send_message(chat_id, text=request_message, parse_mode='HTML', reply_markup=markup)
+	accept_button = InlineKeyboardButton('Подтвердить', callback_data='accept')
+	decline_button = InlineKeyboardButton('Отменить', callback_data='cancel')
+	markup = InlineKeyboardMarkup()
+	markup.row(accept_button, decline_button)
+	await bot.send_message(chat_id, text=request_message, parse_mode='HTML', reply_markup=markup)
 
-    files = []
-    try:
-        while len(files) < 10:
-            try:
-                # ждём следующего элемента очереди с таймаутом
-                response = await asyncio.wait_for(queue.get(), timeout)
-            except asyncio.TimeoutError:
-                await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
-                async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-                    data.pop('waiting_for', None)
-                return None
+	files = []
+	try:
+		while len(files) < 10:
+			try:
+				# ждём следующего элемента очереди с таймаутом
+				response = await asyncio.wait_for(queue.get(), timeout)
+			except asyncio.TimeoutError:
+				await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
+				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+					data.pop('waiting_for', None)
+				return None
 
-            # обработка элементов очереди
-            # 1) если пришёл callback 'accept' или 'cancel' (строка)
-            if isinstance(response, str):
-                if response == 'accept':
-                    return files
-                elif response == 'cancel':
-                    return None
-                else:
-                    # игнор/логирование неизвестной строки
-                    continue
+			# обработка элементов очереди
+			# 1) если пришёл callback 'accept' или 'cancel' (строка)
+			if isinstance(response, str):
+				if response == 'accept':
+					return files
+				elif response == 'cancel':
+					return None
+				else:
+					# игнор/логирование неизвестной строки
+					continue
 
-            # 2) если пришло сообщение с файлом
-            if response is None:
-                return None
-            else:
-                try:
-                    if getattr(response, 'content_type', '') == 'document':
-                        files.append(('document', response.document))
-                    elif getattr(response, 'content_type', '') == 'photo':
-                        # photo — список, берём последний (самый большой)
-                        files.append(('photo', response.photo[-1]))
-                    else:
-                        # можно логировать неподдерживаемые типы
-                        logger.debug(f"Unsupported content_type: {getattr(response, 'content_type', None)}")
-                except Exception as e:
-                    logger.error(f"Can't save file from user ({user_id}): {e}")
+			# 2) если пришло сообщение с файлом
+			if response is None:
+				return None
+			else:
+				try:
+					if getattr(response, 'content_type', '') == 'document':
+						files.append(('document', response.document))
+					elif getattr(response, 'content_type', '') == 'photo':
+						# photo представлено в виде списка, где в конце самое большое разрешшение
+						files.append(('photo', response.photo[-1]))
+					else:
+						# Обрабатывает неподдерживаемые типы
+						logger.debug(f"Unsupported content_type: {getattr(response, 'content_type', None)}")
+				except Exception as e:
+					logger.error(f"Can't save file from user ({user_id}): {e}")
 
-            if len(files) >= 10:
-                return files
-    finally:
-        # очистка состояния
-        await _set_default_state(user_id, chat_id)
-        awaiters.pop(key, None)
+			if len(files) >= 10:
+				return files
+	finally:
+		# очистка состояния
+		await _set_default_state(user_id, chat_id)
+		awaiters.pop(key, None)
+
 @bot.message_handler(content_types=['photo', 'document'])
 async def _handle_awaited_files(message):
-    key = (message.from_user.id, message.chat.id)
-    # убедимся, что мы действительно ожидаем файлы от этого чата
-    async with bot.retrieve_data(key[0], key[1]) as data:
-        if not data.get('waiting_for') or 'file' not in data.get('waiting_for', ''):
-            return
+	key = (message.from_user.id, message.chat.id)
+	# убедимся, что мы действительно ожидаем файлы от этого чата
+	async with bot.retrieve_data(key[0], key[1]) as data:
+		if not data.get('waiting_for') or 'file' not in data.get('waiting_for', ''):
+			return
 
-    queue = awaiters.get(key)
-    if queue is None:
-        return
+	queue = awaiters.get(key)
+	if queue is None:
+		return
 
-    try:
-        # не блокируем — просто кладём в очередь
-        await queue.put(message)
-    except asyncio.QueueFull:
-        # если захотите — сообщите пользователю, что очередь переполнена
-        pass
+	try:
+		# Кладём все сообщение как файл в очередь
+		await queue.put(message)
+	except asyncio.QueueFull:
+		pass
 # Принимает все кнопки от пользователя, который находится в ожидании
 @bot.callback_query_handler(func=lambda call: (call.from_user.id, call.message.chat.id) in awaiters)
 async def _handle_awaited_callback(call):
-	print('get callback')
 	await bot.answer_callback_query(call.id)
 	key = (call.from_user.id, call.message.chat.id)
 	async with bot.retrieve_data(key[0], key[1]) as data:
@@ -547,11 +538,14 @@ async def _handle_awaited_answer(message):
 		if not('message' in data['waiting_for']):
 			return
 	fut = awaiters.get(key)
-	if fut is None or fut.done():
+	if fut is None or (isinstance(fut, asyncio.Future) and fut.done):
 		return
 	text = message.text.strip()
 	if 'cancel' in text:
 		fut.set_result(None)
 		await bot.send_message(message.chat.id, 'Ввод отменён')
 	else:
-		fut.set_result(message)
+		if isinstance(fut, asyncio.Future):
+			fut.set_result(message)
+		elif isinstance(fut, asyncio.Queue):
+			await fut.put(message)
