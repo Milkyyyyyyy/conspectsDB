@@ -553,14 +553,15 @@ async def _handle_awaited_answer(message):
 			return
 	logger.info('Handle awaited message from %s', key)
 	fut = awaiters.get(key)
-	if fut is None or (isinstance(fut, asyncio.Future) and fut.done):
+	if fut is None or (isinstance(fut, asyncio.Future) and fut.done()):
 		return
 	text = message.text.strip()
 	if 'cancel' in text:
 		fut.set_result(None)
 		await bot.send_message(message.chat.id, 'Ввод отменён')
 	else:
-		if isinstance(fut, asyncio.Future):
+		if hasattr(fut, 'set_result'):
+			logger.debug(f'Put result {message} in future')
 			fut.set_result(message)
-		elif isinstance(fut, asyncio.Queue):
+		elif hasattr(fut, 'put'):
 			await fut.put(message)
