@@ -24,6 +24,8 @@ _start = code.bot.handlers.start
 import code.bot.handlers.registration
 _registration = code.bot.handlers.registration
 
+from code.bot.services.files import save_files
+
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from code.bot.services.requests import request_list, request_confirmation, request_files
@@ -33,10 +35,10 @@ async def test(message):
 	user_id, chat_id = message.from_user.id, message.chat.id
 	response = await request_files(
 		user_id=user_id,
-		chat_id=chat_id,
-
+		chat_id=chat_id
 	)
-	print(response)
+	print(await save_files(bot, response, 'test/download'))
+
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):
 	await bot.answer_callback_query(call.id)
