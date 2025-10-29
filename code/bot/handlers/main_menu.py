@@ -14,7 +14,6 @@ from code.bot.services.validation import validators
 from code.database.queries import update
 from code.database.service import connectDB
 
-# TODO Поправить логи
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'User({user_id}) is requesting main menu.')
 
@@ -147,6 +146,6 @@ async def change_name(call):
 		await send_temporary_message(bot, chat_id, text='Произошла ошибка!', delay_seconds=5)
 		return
 	finally:
-		text = 'Обновлено' if update else 'Не удалось обновить'
+		text = 'Обновлено' if updated else 'Не удалось обновить'
 		await send_temporary_message(bot, chat_id, text=text, delay_seconds=3)
 		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)

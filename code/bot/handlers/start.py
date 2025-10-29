@@ -14,14 +14,14 @@ from code.bot.states import MenuStates, MainStates
 from code.bot.utils import delete_message_after_delay
 from code.logging import logger
 
-# TODO Поправить логи
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start', 'menu'])
 async def start(message):
-	asyncio.create_task(delete_message_after_delay(bot, message.chat.id, message.message_id, delay_seconds=2))
-	logger.info('The /start command has been invoked.')
+	await delete_message_after_delay(bot, message.chat.id, message.message_id, delay_seconds=5)
+	user_id = message.from_user.id
+	logger.info('The /start command has been invoked by user %s.', user_id)
 	# Проверяем, существует ли пользователь
-	logger.debug('Check if user exists')
+	logger.debug('Check if user %s exists', user_id)
 
 	# Если не существует, предлагаем пройти регистрацию
 	user_id = message.from_user.id
