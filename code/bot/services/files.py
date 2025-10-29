@@ -4,6 +4,8 @@ from typing import List, Tuple
 import telebot
 from code.logging import logger
 
+# TODO Поправить логи
+
 async def save_files(bot,
                items: List[Tuple[str, ]],
                save_dir: str = 'downloads') -> list:

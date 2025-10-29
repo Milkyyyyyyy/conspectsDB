@@ -14,7 +14,7 @@ from code.bot.services.validation import validators
 from code.database.queries import update
 from code.database.service import connectDB
 
-
+# TODO Поправить логи
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'Printing main menu for user({user_id})')
 	greeting = await get_greeting()

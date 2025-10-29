@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 from code.logging import logger
 
-
+# TODO Поправить логи
 # Удаляет сообщение через некоторое количество времени
 async def delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_seconds=10):
 	logger.debug(f'Delayed message deletion after {delay_seconds} seconds.')

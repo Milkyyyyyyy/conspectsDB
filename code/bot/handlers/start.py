@@ -14,7 +14,7 @@ from code.bot.states import MenuStates, MainStates
 from code.bot.utils import delete_message_after_delay
 from code.logging import logger
 
-
+# TODO Поправить логи
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start', 'menu'])
 async def start(message):

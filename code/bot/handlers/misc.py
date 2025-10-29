@@ -3,7 +3,7 @@
 """
 from code.bot.bot_instance import bot
 
-
+# TODO Поправить логи
 # Обрабатывает нажатия на кнопки, которые ничего не должны делать
 # При необходимости высвечивает сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
