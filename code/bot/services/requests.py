@@ -531,16 +531,16 @@ async def _handle_awaited_callback(call):
 			return
 	logger.info('Handle awaited  callback from %s', key)
 	fut = awaiters.get(key)
-	if fut is None or (isinstance(fut, asyncio.Future) and fut.done):
+	if fut is None or (isinstance(fut, asyncio.Future) and fut.done()):
 		return
 	response = call.data
 	if 'cancel' in response:
 		fut.set_result(None)
 		await bot.send_message(call.message.chat.id, 'Ввод отменён')
 	else:
-		if isinstance(fut, asyncio.Future):
+		if hasattr(fut, 'set_result'):
 			fut.set_result(response)
-		elif isinstance(fut, asyncio.Queue):
+		elif hasattr(fut, 'put'):
 			await fut.put(response)
 
 
