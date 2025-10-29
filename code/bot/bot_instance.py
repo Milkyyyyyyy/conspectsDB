@@ -9,6 +9,7 @@ from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot import asyncio_filters
 from code.bot.config import TOKEN
+from code.logging import logger
 
 bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
