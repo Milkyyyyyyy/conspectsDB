@@ -10,9 +10,9 @@ from telebot.states.asyncio.middleware import StateMiddleware
 from telebot import asyncio_filters
 from code.bot.config import TOKEN
 
-# TODO Добавить логи
-
 bot = AsyncTeleBot(TOKEN, state_storage=StateMemoryStorage())
 bot.add_custom_filter(asyncio_filters.StateFilter(bot))
 bot.setup_middleware(StateMiddleware(bot))
+
+logger.info("AsyncTeleBot successfully initialized.")
 
