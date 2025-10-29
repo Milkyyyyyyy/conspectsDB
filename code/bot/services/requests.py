@@ -531,7 +531,7 @@ async def _handle_awaited_callback(call):
 			return
 	logger.info('Handle awaited  callback from %s', key)
 	fut = awaiters.get(key)
-	if fut is None or (isinstance(fut, asyncio.Future) and fut.done):
+	if fut is None or (isinstance(fut, asyncio.Future) and fut.done()):
 		return
 	response = call.data
 	if 'cancel' in response:
