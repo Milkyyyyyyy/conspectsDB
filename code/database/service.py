@@ -2,7 +2,7 @@ import aiosqlite
 
 from code.database.config import CONSPECTS_DB
 from code.logging import logger
-
+# TODO Поправить логи
 # Контекстный менеджер для асинхронного подключения к датабазе
 class AsyncDBConnection:
 	def __init__(self, db_path):
@@ -22,7 +22,7 @@ class AsyncDBConnection:
 		await self.conn.close()
 
 
-def connectDB():
+def connect_db():
 	logger.debug('Async connecting to database...')
 	output = AsyncDBConnection(CONSPECTS_DB)
 	logger.debug(output)

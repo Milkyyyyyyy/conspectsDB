@@ -2,27 +2,27 @@
 Здесь обрабатываются все запросы к датабазе для юзеров
 Получение информации, проверка, существует ли пользователь и т.д
 
-TODO вынести добавление юзера в дб как отдельную функцию сюда
+# TODO Поправить логи
 """
 
-from code.database.queries import isExists, get, insert
-from code.database.service import connectDB
+from code.database.queries import is_exists, get, insert
+from code.database.service import connect_db
 from code.logging import logger
 
 
 # Возвращает True, если пользователь зарегистрирован
 async def is_user_exists(user_id):
-	async with connectDB() as database:
+	async with connect_db() as database:
 		logger.debug(database)
 		user_id = str(user_id)
-		isUserExists = await isExists(database=database, table="USERS", filters={"telegram_id": user_id})
+		isUserExists = await is_exists(database=database, table="USERS", filters={"telegram_id": user_id})
 	return isUserExists
 
 
 async def get_user_info(chat_id=None, user_id=None):
 	if chat_id is None or user_id is None:
 		return None
-	async with connectDB() as db:
+	async with connect_db() as db:
 		user = await get(database=db, table='USERS', filters={'telegram_id': user_id})
 		direction = await get(database=db, table='DIRECTIONS', filters={'rowid': user['direction_id']})
 		chair = await get(database=db, table='CHAIRS', filters={'rowid': direction['chair_id']})
@@ -56,7 +56,7 @@ async def save_user_in_database(user_id=None, name=None, surname=None, group=Non
 				 f'group={group}\n'
 				 f'direction_id={direction_id}\n'
 				 f'role={role}')
-	async with connectDB() as db:
+	async with connect_db() as db:
 		values = [str(user_id), name, surname, group, direction_id, 'user']
 		columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
 		await insert(database=db, table='USERS', values=values, columns=columns)

@@ -11,12 +11,10 @@ from code.bot.callbacks import vote_cb
 from code.bot.handlers.main_menu import main_menu
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
-from code.database.queries import isExists, getAll, get, insert
-from code.database.service import connectDB
+from code.database.queries import is_exists, get_all, get, insert
+from code.database.service import connect_db
 from code.logging import logger
 
-import code.bot.handlers.info
-_info = code.bot.handlers.info
 import code.bot.handlers.main_menu
 _main_menu = code.bot.handlers.main_menu
 import code.bot.handlers.misc
@@ -26,21 +24,21 @@ _start = code.bot.handlers.start
 import code.bot.handlers.registration
 _registration = code.bot.handlers.registration
 
+from code.bot.services.files import save_files
+
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from code.bot.services.requests import request_list, request_confirmation
+from code.bot.services.requests import request_list, request_confirmation, request_files
 from code.bot.services.validation import validators
 @bot.message_handler(commands=['test'])
 async def test(message):
-	response = await request_confirmation(
-		user_id=message.from_user.id,
-		chat_id=message.chat.id,
-		text='Подтвердите вот это вот\n\n',
-		accept_text='Да',
-		decline_text='Нет',
-		waiting_for='confirmation'
+	user_id, chat_id = message.from_user.id, message.chat.id
+	response = await request_files(
+		user_id=user_id,
+		chat_id=chat_id
 	)
-	print(response)
+	print(await save_files(bot, response, 'test/download'))
+
 @bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
 async def open_menu(call):
 	await bot.answer_callback_query(call.id)

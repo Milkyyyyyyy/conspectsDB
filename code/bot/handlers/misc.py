@@ -2,12 +2,13 @@
 Прочие утилиты
 """
 from code.bot.bot_instance import bot
-
+from code.logging import logger
 
 # Обрабатывает нажатия на кнопки, которые ничего не должны делать
 # При необходимости высвечивает сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
 async def empty_button(call):
+	logger.debug('Empty button pressed', extra={'call': call})
 	data = call.data.split()
 	if len(data) == 1:
 		await bot.answer_callback_query(call.id)

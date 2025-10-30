@@ -1,7 +1,6 @@
 """
 Обработчик callback'ов
 
-TODO Здесь ещё много надо будет сделать. И не только здесь
 """
 
 from telebot.callback_data import CallbackData
