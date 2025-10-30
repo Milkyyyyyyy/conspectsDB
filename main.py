@@ -11,8 +11,8 @@ from code.bot.callbacks import vote_cb
 from code.bot.handlers.main_menu import main_menu
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
-from code.database.queries import isExists, getAll, get, insert
-from code.database.service import connectDB
+from code.database.queries import is_exists, get_all, get, insert
+from code.database.service import connect_db
 from code.logging import logger
 
 import code.bot.handlers.main_menu

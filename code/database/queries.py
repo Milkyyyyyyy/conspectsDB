@@ -120,7 +120,7 @@ def _build_where_clause(filters, operator="AND"):
 	return where_sql, tuple(params)
 
 
-async def getAll(
+async def get_all(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
 		filters: Dict[str, Any] = None,
@@ -222,7 +222,7 @@ async def get(
 		return None
 
 
-async def isExists(
+async def is_exists(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
 		filters: Dict[str, Any] = None,
@@ -347,7 +347,7 @@ async def remove(
 		return False
 
 
-async def removeList(
+async def remove_list(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
 		rowids: Iterable = None) -> Union[int, Tuple[int, sqlite3.Cursor], None]:

@@ -489,11 +489,11 @@ async def request_files(
 				return None
 			else:
 				try:
-					typ = getattr(response, 'content_type', None)
-					if typ is None or not typ in ('document', 'photo'):
+					file_type = getattr(response, 'content_type', None)
+					if file_type is None or not file_type in ('document', 'photo'):
 						logger.debug(f"Unsupported content_type: {getattr(response, 'content_type', None)}")
 						return
-					files.append((typ, response))
+					files.append((file_type, response))
 
 				except Exception as e:
 					logger.error(f"Can't save file from user ({user_id}): {e}")

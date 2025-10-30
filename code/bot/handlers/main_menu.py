@@ -12,7 +12,7 @@ from code.logging import logger
 from code.bot.services.requests import request
 from code.bot.services.validation import validators
 from code.database.queries import update
-from code.database.service import connectDB
+from code.database.service import connect_db
 
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'User({user_id}) is requesting main menu.')
@@ -132,7 +132,7 @@ async def change_name(call):
 
 	updated = None
 	try:
-		async with connectDB() as db:
+		async with connect_db() as db:
 			updated = await update(
 				database=db,
 				values=[name,],

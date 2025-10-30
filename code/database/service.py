@@ -22,7 +22,7 @@ class AsyncDBConnection:
 		await self.conn.close()
 
 
-def connectDB():
+def connect_db():
 	logger.debug('Async connecting to database...')
 	output = AsyncDBConnection(CONSPECTS_DB)
 	logger.debug(output)

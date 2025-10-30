@@ -6,8 +6,8 @@ from code.bot.services.requests import request, request_list, request_confirmati
 from code.bot.services.user_service import is_user_exists, save_user_in_database
 from code.bot.services.validation import validators
 from code.bot.utils import delete_message_after_delay, send_temporary_message
-from code.database.queries import getAll
-from code.database.service import connectDB
+from code.database.queries import get_all
+from code.database.service import connect_db
 from code.logging import logger
 
 
@@ -98,9 +98,9 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 			return
 
 		# Получаем справочники из БД и просим выбрать
-		async with connectDB() as db:
+		async with connect_db() as db:
 			logger.debug("Fetching faculties from DB", extra={"user_id": user_id})
-			facult_db = await getAll(database=db, table='FACULTS')
+			facult_db = await get_all(database=db, table='FACULTS')
 
 			facult = await request_list(
 				user_id=user_id,
@@ -116,7 +116,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 				return
 
 			logger.debug("Fetching chairs for faculty from DB", extra={"facult_id": facult[1]})
-			chair_db = await getAll(database=db, table='CHAIRS', filters={'facult_id': facult[1]})
+			chair_db = await get_all(database=db, table='CHAIRS', filters={'facult_id': facult[1]})
 			chair = await request_list(
 				user_id=user_id,
 				chat_id=chat_id,
@@ -131,7 +131,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 				return
 
 			logger.debug("Fetching directions for chair from DB", extra={"chair_id": chair[1]})
-			direction_db = await getAll(database=db, table='DIRECTIONS', filters={'chair_id': chair[1]})
+			direction_db = await get_all(database=db, table='DIRECTIONS', filters={'chair_id': chair[1]})
 			direction = await request_list(
 				user_id=user_id,
 				chat_id=chat_id,

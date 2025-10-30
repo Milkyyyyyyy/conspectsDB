@@ -11,9 +11,9 @@ async def save_files(bot,
                save_dir: str = 'downloads') -> list:
 	os.makedirs(save_dir, exist_ok=True)
 	paths = []
-	for i, (typ, msg) in enumerate(items, start=1):
+	for i, (file_type, msg) in enumerate(items, start=1):
 		try:
-			if typ == 'photo':
+			if file_type == 'photo':
 				if not getattr(msg, 'photo', None):
 					logger.error('Message has no photo')
 					continue
@@ -34,7 +34,7 @@ async def save_files(bot,
 				paths.append(path)
 				logger.info(f'Saved photo {filename} -> {path}')
 
-			elif typ == 'document':
+			elif file_type == 'document':
 				if not getattr(msg, 'document', None):
 					logger.error('Message has no document')
 					continue
@@ -67,8 +67,8 @@ async def save_files(bot,
 				paths.append(safe_path)
 				logger.info(f'Saved document {filename} -> {safe_path}')
 			else:
-				logger.error(f'Unknown type {typ}')
+				logger.error(f'Unknown type {file_type}')
 				continue
 		except Exception as e:
-			logger.error(f'Error saving file {typ}: {e}')
+			logger.error(f'Error saving file {file_type}: {e}')
 	return paths
