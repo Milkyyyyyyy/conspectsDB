@@ -171,10 +171,7 @@ async def stop_registration(chat_id):
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
 async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None,
 							  direction=None):
-	logger.debug("Presenting registration confirmation to user",
-	             extra={"user_id": user_id, "chat_id": chat_id,
-	                    "name": name, "surname": surname, "group": group,
-	                    "facult": facult, "chair": chair, "direction": direction})
+	logger.debug("Presenting registration confirmation to user",)
 
 	# Собираем кнопки
 	buttons = InlineKeyboardMarkup()
