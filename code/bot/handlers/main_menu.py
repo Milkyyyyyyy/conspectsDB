@@ -79,7 +79,8 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 	back_button = InlineKeyboardButton('Назад',
 									   callback_data=vote_cb.new(action='open menu', amount=str(previous_message_id)))
 	change_name_button = InlineKeyboardButton('Изменить имя', callback_data='change_name')
-	markup.row(change_name_button)
+	change_surname_button = InlineKeyboardButton('Изменить фамилию', callback_data='change_surname')
+	markup.row(change_name_button, change_surname_button)
 	markup.row(back_button)
 	try:
 		if previous_message_id is None or not isinstance(previous_message_id, int):
@@ -138,6 +139,54 @@ async def change_name(call):
 				values=[name,],
 				table='USERS',
 				columns=['name'],
+				filters={'telegram_id': user_id}
+			)
+			logger.info("Database update result for user=%s: %r", user_id, updated)
+	except Exception as e:
+		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
+		await send_temporary_message(bot, chat_id, text='Произошла ошибка!', delay_seconds=5)
+		return
+	finally:
+		text = 'Обновлено' if updated else 'Не удалось обновить'
+		await send_temporary_message(bot, chat_id, text=text, delay_seconds=3)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)
+
+@bot.callback_query_handler(func=lambda call: call.data == 'change_surname')
+async def change_surname(call):
+	try:
+		await bot.answer_callback_query(call.id)
+	except Exception:
+		logger.exception("Failed to answer callback_query for user=%s",
+		                 getattr(call.from_user, "id", None))
+
+	user_id, chat_id, username = call.from_user.id, call.message.chat.id, call.from_user.username
+	logger.info("Initiating change_name for user=%s chat=%s", user_id, chat_id)
+
+	surname = None
+	try:
+		surname = await request(
+			user_id=user_id,
+			chat_id=chat_id,
+			timeout=30,
+			validator=validators.surname,
+			request_message='Введите новую фамилию:'
+		)
+	except Exception as e:
+		logger.exception("Request for new name failed for user=%s chat=%s", user_id, chat_id)
+		return
+	if not isinstance(surname, str):
+		logger.info('User %s provided invalid name input: %r', user_id, surname)
+		await send_temporary_message(bot, chat_id, text='Фамилия не была изменена.', delay_seconds=10)
+		return
+
+	updated = None
+	try:
+		async with connect_db() as db:
+			updated = await update(
+				database=db,
+				values=[surname,],
+				table='USERS',
+				columns=['surname'],
 				filters={'telegram_id': user_id}
 			)
 			logger.info("Database update result for user=%s: %r", user_id, updated)
