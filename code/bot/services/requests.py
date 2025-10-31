@@ -8,7 +8,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.utils import send_temporary_message, delete_message_after_delay
-from code.bot.states import MainStates
+from code.bot.states import MainStates, set_default_state
 from code.logging import logger
 
 awaiters: dict[tuple[int, int], asyncio.Future | asyncio.Queue] = {}
@@ -20,9 +20,6 @@ async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
 async def _set_request_state(user_id, chat_id):
 	logger.debug('Setting request state for user=%s chat=%s', user_id, chat_id)
 	await bot.set_state(user_id=user_id,chat_id=chat_id, state=MainStates.request_state)
-async def _set_default_state(user_id, chat_id):
-	logger.debug('Restoring default state for user=%s chat=%s', user_id, chat_id)
-	await bot.set_state(user_id=user_id, chat_id=chat_id, state=MainStates.default_state)
 
 # Запрашивает и ждёт у пользователя информацию
 async def request(user_id, chat_id,
@@ -139,7 +136,7 @@ async def request(user_id, chat_id,
 			except Exception as e:
 				logger.exception('Unexpected error in request loop for %s: %s', key, e)
 	finally:
-		await _set_default_state(user_id, chat_id)
+		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
 
@@ -348,7 +345,7 @@ async def request_list(
 				)
 				continue
 	finally:
-		await _set_default_state(user_id, chat_id)
+		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
 
@@ -416,7 +413,7 @@ async def request_confirmation(
 		return False
 	finally:
 		# Удаляем из ожидания
-		await _set_default_state(user_id, chat_id)
+		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
 	# Если пользователь отменил
@@ -501,7 +498,7 @@ async def request_files(
 			if len(files) >= 10:
 				return files
 	finally:
-		await _set_default_state(user_id, chat_id)
+		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
 @bot.message_handler(content_types=['photo', 'document'])
