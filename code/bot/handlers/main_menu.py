@@ -11,12 +11,21 @@ from code.bot.utils import get_greeting, send_temporary_message
 from code.logging import logger
 from code.bot.services.requests import request
 from code.bot.services.validation import validators
-from code.database.queries import update
+from code.database.queries import update, get
 from code.database.service import connect_db
+from code.utils import getkey
 
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'User({user_id}) is requesting main menu.')
 
+	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+		is_user_moderator = await getkey(data, 'is_user_moderator', None)
+		if is_user_moderator is None:
+			async with connect_db() as db:
+				user_row = await get(database=db, table='USERS', filters={'telegram_id': user_id})
+				is_user_moderator = (user_row['role'] in ('moderator', 'admin'))
+				data['is_user_moderator'] = is_user_moderator
+		is_user_moderator = bool(is_user_moderator)
 	greeting = await get_greeting()
 	# Собираем markup
 	markup = InlineKeyboardMarkup()
@@ -24,6 +33,12 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 	upload_conspect_button = InlineKeyboardButton('Загрузить конспект', callback_data='upload_conspect')
 	markup.row(upload_conspect_button)
 	markup.row(show_info_button)
+
+	# Если юзер модератор, добавляем кнопку с доступом к панели админа
+	if is_user_moderator:
+		moderator_menu = InlineKeyboardButton('Админ панель', callback_data='admin_menu')
+		markup.row(moderator_menu)
+
 	try:
 		if previous_message_id is None:
 			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')

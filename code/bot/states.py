@@ -11,6 +11,7 @@ class MainStates(StatesGroup):
 	default_state = State()
 	request_state = State()
 	conspect_upload_state = State()
+	admin_menu_state = State()
 # State регистрации
 class RegStates(StatesGroup):
 	wait_for_name = State()
