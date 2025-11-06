@@ -23,6 +23,8 @@ import code.bot.handlers.start
 _start = code.bot.handlers.start
 import code.bot.handlers.registration
 _registration = code.bot.handlers.registration
+import code.bot.handlers.conspects_menu
+_conspect_menu = code.bot.handlers.conspects_menu
 
 from code.bot.services.files import save_files
 

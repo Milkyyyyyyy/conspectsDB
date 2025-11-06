@@ -20,8 +20,10 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 	greeting = await get_greeting()
 	# Собираем markup
 	markup = InlineKeyboardMarkup()
-	show_info = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
-	markup.row(show_info)
+	show_info_button = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
+	upload_conspect_button = InlineKeyboardButton('Загрузить конспект', callback_data='upload_conspect')
+	markup.row(upload_conspect_button)
+	markup.row(show_info_button)
 	try:
 		if previous_message_id is None:
 			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
