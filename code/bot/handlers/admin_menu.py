@@ -1,17 +1,34 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from code.bot.bot_instance import bot
-from code.bot.services.requests import request
+from code.bot.services.requests import request, request_list, request_confirmation
 from code.database.service import connect_db
 from code.logging import logger
 from code.bot.states import MainStates
 from code.bot.services.user_service import get_user_info
 from code.database.service import connect_db
-from code.database.queries import get, is_exists, insert
+from code.database.queries import get, is_exists, insert, get_all
 from code.utils import getkey
 from code.bot.handlers.main_menu import main_menu
 from code.bot.utils import send_temporary_message
 
+# ===================================
+
+async def select_facult(user_id, chat_id):
+	async with connect_db() as db:
+		facults = await get_all(database=db, table='FACULTS')
+
+	facult_choice = await request_list(
+		user_id=user_id,
+		chat_id=chat_id,
+		header='Выберите факультет',
+		items_list=facults,
+		input_field='name',
+		output_field='rowid'
+	)
+	return facult_choice
+
+# ================================
 
 @bot.callback_query_handler(func=lambda call: call.data == 'admin_menu')
 async def call_admin_menu(call):
@@ -62,11 +79,12 @@ async def change_database_menu(user_id, chat_id):
 	# - Добавление кафедр и направлений
 	markup = InlineKeyboardMarkup()
 	add_facult_button = InlineKeyboardButton('Добавить факультет', callback_data='add_facult')
-	markup.row(add_facult_button)
+	add_chair_button = InlineKeyboardButton('Добавить кафедру', callback_data='add_chair')
+	markup.row(add_facult_button, add_chair_button)
 	await bot.send_message(chat_id, 'Выберите действие', reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'add_facult')
-async def call_add_facult_menu(call):
+async def call_add_facult(call):
 	try:
 		await bot.answer_callback_query(call.id)
 	except Exception as e:
@@ -77,14 +95,39 @@ async def add_facult(user_id, chat_id):
 	async with connect_db() as db:
 		is_already_exists = await is_exists(database=db, table='FACULTS', filters={'name': new_facult_name})
 		if is_already_exists:
-			await send_temporary_message(bot, chat_id, 'Факультет уже существует.', delay_seconds=10)
-		else:
+			await send_temporary_message(bot, chat_id, 'Факультет с данным именем уже существует.', delay_seconds=10)
+			return
+		insert_new_row = request_confirmation(user_id, chat_id, f'Добавить факультет "{new_facult_name}"?')
+		if insert_new_row:
 			await insert(database=db, table='FACULTS', values=[new_facult_name], columns=['name'])
 			logger.info('Pinging database row with name=%s', new_facult_name)
 			if await is_exists(database=db, table='facults', filters={'name': new_facult_name}):
 				await send_temporary_message(bot, chat_id, f'Успешно добавлен факультет <b>"{new_facult_name}"</b>')
 			else:
 				await send_temporary_message(bot, chat_id, 'Не удалось добавить факультет...')
+		else:
+			await send_temporary_message(bot, chat_id, 'Отменяю')
 	return
 
-
+@bot.callback_query_handler(func=lambda call: call.data == 'add_chair')
+async def call_add_chair(call):
+	try:
+		await bot.answer_callback_query(call.id)
+	except Exception as e:
+		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
+	await add_chair(call.from_user.id, call.message.chat.id)
+async def add_chair(user_id, chat_id):
+	facult_id = await select_facult(user_id, chat_id)
+	if facult_id is None:
+		return
+	new_chair_name = request(user_id, chat_id, request_message='Введите название кафедры')
+	async with connect_db() as db:
+		is_already_exists = await is_exists(database=db, table='CHAIRS', filters={'name': new_chair_name})
+		if is_already_exists:
+			await send_temporary_message(bot, chat_id, 'Кафедра с таким именем уже существует.')
+			return
+		insert_new_row = request_confirmation(user_id, chat_id, f'Добавить кафедру "{new_chair_name}"?')
+		if insert_new_row:
+			await insert(database=db, table='CHAIRS', values=[new_chair_name, facult_id], columns=['name', 'facult_id'])
+			logger.info('Pinging database row with name=%s', new_chair_name)
+			# TODO Доделать
