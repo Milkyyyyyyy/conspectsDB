@@ -96,7 +96,7 @@ def _build_where_clause(filters, operator="AND"):
 		if not isinstance(specs, (list, tuple)):
 			val = specs
 		else:
-			if specs[0] in ("LIKE", "ILIKE", "IN", "BETWEEN", "STARTS_WITH", "ENDS_WITH", "CONTAINS"):
+			if specs[0] in ("LIKE", "IN", "BETWEEN", "STARTS_WITH", "ENDS_WITH", "CONTAINS"):
 				val = specs[1]
 				op = specs[0]
 			else:

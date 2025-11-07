@@ -55,6 +55,7 @@ async def request(user_id, chat_id,
 	loop = asyncio.get_running_loop()
 	attempts = 0
 	request_message_id = None
+	logger.debug('Send request to user (%s)', user_id)
 	try:
 		while True:
 			attempts += 1
