@@ -42,11 +42,60 @@ async def select_chair(user_id, chat_id, facult_id):
 		output_field='rowid'
 	)
 	return chair_choice
-async def print_subdivisions(user_id, chat_id):
-	facults, chairs, directions, chairs_by_facults, directions_by_chairs = group_subdivision()
-	message = ''
-	# TODO доделать
 
+@bot.callback_query_handler(func=lambda call: call.data == 'show_database')
+async def call_print_subdivisions(call):
+	try:
+		await bot.answer_callback_query(call.id)
+	except:
+		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
+	await print_subdivisions(call.message.chat.id)
+	return
+async def print_subdivisions(chat_id):
+	facults, chairs, directions, chairs_by_facults, directions_by_chairs = await group_subdivision()
+	message = ''
+	for facult in facults.values():
+		message += '\n' + facult['name'] + '\n'
+		facult_rowid = int(facult['rowid'])
+		for chair_id in chairs_by_facults[facult_rowid]:
+			chair = chairs[chair_id]
+			message += '| ' + chair['name'] + '\n'
+			chair_rowid = int(chair['rowid'])
+			for direction_id in directions_by_chairs[chair_rowid]:
+				direction = directions[direction_id]
+				message += '| | ' + direction['name'] + '\n'
+
+	back_button = InlineKeyboardButton('<-- Назад', callback_data='delete')
+	markup = InlineKeyboardMarkup()
+	markup.add(back_button)
+	await bot.send_message(chat_id, message, reply_markup=markup)
+	return
+
+async def group_subdivision_by_rowid():
+	async with connect_db() as db:
+		facults, chairs, directions = await asyncio.gather(
+			get_all(database=db, table='FACULTS'),
+			get_all(database=db, table='CHAIRS'),
+			get_all(database=db, table='DIRECTIONS')
+		)
+	facults_by_rowid = {}
+	for facult in facults:
+		rowid = int(facult['rowid'])
+		facults_by_rowid[rowid] = facult
+	facults_by_rowid = dict(sorted(facults_by_rowid.items()))
+
+	chairs_by_rowid = {}
+	for chair in chairs:
+		rowid = int(chair['rowid'])
+		chairs_by_rowid[rowid] = chair
+	chairs_by_rowid = dict(sorted(chairs_by_rowid.items()))
+
+	directions_by_rowid = {}
+	for direction in directions:
+		rowid = int(direction['rowid'])
+		directions_by_rowid[rowid] = direction
+	directions_by_rowid = dict(sorted(directions_by_rowid.items()))
+	return facults_by_rowid, chairs_by_rowid, directions_by_rowid
 async def group_subdivision():
 	async with connect_db() as db:
 		facults, chairs, directions = await asyncio.gather(
@@ -58,13 +107,15 @@ async def group_subdivision():
 	chairs_by_facults = defaultdict(list)
 	for chair in chairs:
 		facult_id = chair['facult_id']
-		chairs_by_facults[facult_id].append(chair['rowid'])
+		chairs_by_facults[facult_id].append(int(chair['rowid']))
 
 	directions_by_chairs = defaultdict(list)
 	for direction in directions:
 		chair_id = direction['chair_id']
-		directions_by_chairs[chair_id].append(direction['rowid'])
-	return facults, chairs, directions, chairs_by_facults, directions_by_chairs
+		directions_by_chairs[chair_id].append(int(direction['rowid']))
+
+	facults_by_rowid, chairs_by_rowid, directions_by_rowid = await group_subdivision_by_rowid()
+	return facults_by_rowid, chairs_by_rowid, directions_by_rowid, chairs_by_facults, directions_by_chairs
 # ================================
 
 @bot.callback_query_handler(func=lambda call: call.data == 'admin_menu')
@@ -99,7 +150,8 @@ async def admin_menu(user_id, chat_id):
 	markup = InlineKeyboardMarkup()
 
 	change_database_button = InlineKeyboardButton('Изменить датабазу', callback_data='change_database')
-	markup.row(change_database_button)
+	show_database_button = InlineKeyboardButton('Показать факультеты/кафедры/направления', callback_data='show_database')
+	markup.row(change_database_button, show_database_button)
 	await bot.send_message(chat_id, 'Админ панель', reply_markup=markup)
 
 
