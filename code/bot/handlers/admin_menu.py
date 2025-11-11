@@ -11,6 +11,8 @@ from code.database.queries import get, is_exists, insert, get_all
 from code.utils import getkey
 from code.bot.handlers.main_menu import main_menu
 from code.bot.utils import send_temporary_message
+from collections import defaultdict
+import asyncio
 
 # ===================================
 
@@ -27,7 +29,42 @@ async def select_facult(user_id, chat_id):
 		output_field='rowid'
 	)
 	return facult_choice
+async def select_chair(user_id, chat_id, facult_id):
+	async with connect_db() as db:
+		chairs = await get_all(database=db, table='CHAIRS', filters={'facult_id': facult_id})
 
+	chair_choice = await request_list(
+		user_id=user_id,
+		chat_id=chat_id,
+		header='Выберите кафедру',
+		items_list=chairs,
+		input_field='name',
+		output_field='rowid'
+	)
+	return chair_choice
+async def print_subdivisions(user_id, chat_id):
+	facults, chairs, directions, chairs_by_facults, directions_by_chairs = group_subdivision()
+	message = ''
+	# TODO доделать
+
+async def group_subdivision():
+	async with connect_db() as db:
+		facults, chairs, directions = await asyncio.gather(
+			get_all(database=db, table='FACULTS'),
+			get_all(database=db, table='CHAIRS'),
+			get_all(database=db, table='DIRECTIONS')
+		)
+
+	chairs_by_facults = defaultdict(list)
+	for chair in chairs:
+		facult_id = chair['facult_id']
+		chairs_by_facults[facult_id].append(chair['rowid'])
+
+	directions_by_chairs = defaultdict(list)
+	for direction in directions:
+		chair_id = direction['chair_id']
+		directions_by_chairs[chair_id].append(direction['rowid'])
+	return facults, chairs, directions, chairs_by_facults, directions_by_chairs
 # ================================
 
 @bot.callback_query_handler(func=lambda call: call.data == 'admin_menu')
@@ -97,14 +134,9 @@ async def add_facult(user_id, chat_id):
 		if is_already_exists:
 			await send_temporary_message(bot, chat_id, 'Факультет с данным именем уже существует.', delay_seconds=10)
 			return
-		insert_new_row = request_confirmation(user_id, chat_id, f'Добавить факультет "{new_facult_name}"?')
+		insert_new_row = await request_confirmation(user_id, chat_id, f'Добавить факультет "{new_facult_name}"?')
 		if insert_new_row:
 			await insert(database=db, table='FACULTS', values=[new_facult_name], columns=['name'])
-			logger.info('Pinging database row with name=%s', new_facult_name)
-			if await is_exists(database=db, table='facults', filters={'name': new_facult_name}):
-				await send_temporary_message(bot, chat_id, f'Успешно добавлен факультет <b>"{new_facult_name}"</b>')
-			else:
-				await send_temporary_message(bot, chat_id, 'Не удалось добавить факультет...')
 		else:
 			await send_temporary_message(bot, chat_id, 'Отменяю')
 	return
@@ -118,16 +150,21 @@ async def call_add_chair(call):
 	await add_chair(call.from_user.id, call.message.chat.id)
 async def add_chair(user_id, chat_id):
 	facult_id = await select_facult(user_id, chat_id)
+	# Админ отменил добавления
 	if facult_id is None:
 		return
-	new_chair_name = request(user_id, chat_id, request_message='Введите название кафедры')
+
+	new_chair_name = await request(user_id, chat_id, request_message='Введите название кафедры')
+
 	async with connect_db() as db:
+		# Проверяем, есть ли эта кафедра в
 		is_already_exists = await is_exists(database=db, table='CHAIRS', filters={'name': new_chair_name})
 		if is_already_exists:
 			await send_temporary_message(bot, chat_id, 'Кафедра с таким именем уже существует.')
 			return
-		insert_new_row = request_confirmation(user_id, chat_id, f'Добавить кафедру "{new_chair_name}"?')
+		# Запрашиваем ещё одно подтверждение у админа
+		insert_new_row = await request_confirmation(user_id, chat_id, f'Добавить кафедру "{new_chair_name}"?')
 		if insert_new_row:
 			await insert(database=db, table='CHAIRS', values=[new_chair_name, facult_id], columns=['name', 'facult_id'])
-			logger.info('Pinging database row with name=%s', new_chair_name)
-			# TODO Доделать
+		else:
+			await send_temporary_message(bot, chat_id, 'Отменяю')

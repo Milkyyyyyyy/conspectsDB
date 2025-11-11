@@ -124,7 +124,8 @@ async def get_all(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
 		filters: Dict[str, Any] = None,
-		operator: str = "AND") -> Union[List[dict], None]:
+		operator: str = "AND",
+		columns = 'rowid, *') -> Union[List[dict], None]:
 	"""
 	Возвращает все записи из таблицы, которые соответствуют заданным фильтрам
 
@@ -158,7 +159,7 @@ async def get_all(
 	# Собираем запрос SQL и возвращаем ответ
 	try:
 		where_sql, params = _build_where_clause(filters or {}, operator)
-		sql_query = f"SELECT rowid, * FROM {table_sql}{where_sql}"
+		sql_query = f"SELECT {columns} FROM {table_sql}{where_sql}"
 		logger.debug("SQL: %s -- params=%s", sql_query, params)
 
 		# Выполняем запрос SQL
