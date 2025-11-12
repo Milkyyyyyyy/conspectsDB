@@ -407,3 +407,4 @@ async def add_direction(user_id, chat_id, previous_message_id):
 # async def delete_direction
 # async def add_subject
 # async def connect_subject_to_direction (мб другое название)
+# После этого в принципе можно делать мердж в develop, а затем и в мэйн
