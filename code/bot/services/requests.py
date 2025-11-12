@@ -249,7 +249,7 @@ async def request_list(
 					else:
 						item = items_list[i]
 					text += f'<b>{i + 1}. </b> {item}\n'
-			# Генерируем markup в зависимости от режима
+			# Генерируем reply_markup в зависимости от режима
 			markup = await _generate_markup(list_index, max_index, confirmation_mode)
 
 			# Выводим сообщение. Если есть previous_message_id - меняем старое

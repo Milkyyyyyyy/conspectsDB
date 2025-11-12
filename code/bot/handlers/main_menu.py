@@ -7,7 +7,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from code.bot.bot_instance import bot
 from code.bot.callbacks import vote_cb
 from code.bot.services.user_service import get_user_info
-from code.bot.utils import get_greeting, send_temporary_message
+from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message
 from code.logging import logger
 from code.bot.services.requests import request
 from code.bot.services.validation import validators
@@ -26,8 +26,8 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 				is_user_moderator = (user_row['role'] in ('moderator', 'admin'))
 				data['is_user_moderator'] = is_user_moderator
 		is_user_moderator = bool(is_user_moderator)
-	greeting = await get_greeting()
-	# Собираем markup
+
+	# Собираем reply_markup
 	markup = InlineKeyboardMarkup()
 	show_info_button = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
 	upload_conspect_button = InlineKeyboardButton('Загрузить конспект', callback_data='upload_conspect')
@@ -39,22 +39,14 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		moderator_menu = InlineKeyboardButton('Админ панель', callback_data='admin_menu')
 		markup.row(moderator_menu)
 
-	try:
-		if previous_message_id is None:
-			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
-			logger.info("Sent new main menu message to user=%s chat=%s message_id=%s",
-			            user_id, chat_id, getattr(message, "message_id", getattr(message, "id", None)))
-		else:
-			try:
-				await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id,
-												parse_mode='HTML')
-				await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
-				logger.info("Edited existing message %s with main menu for user=%s chat=%s",
-				            previous_message_id, user_id, chat_id)
-			except Exception as e:
-				logger.error("Can't edit message with id {%s}", previous_message_id)
-	except Exception as e:
-		logger.error(f'Unexpected error: {e}')
+	greeting = await get_greeting()
+	await safe_edit_message(
+		previous_message_id,
+		chat_id,
+		user_id,
+		text=greeting,
+		reply_markup=markup
+	)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
 async def call_show_info(call):
