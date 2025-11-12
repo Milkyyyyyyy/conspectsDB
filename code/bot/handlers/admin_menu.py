@@ -144,8 +144,16 @@ async def callback_handler(call):
 				chat_id=chat_id,
 				previous_message_id=message_id
 			)
+		case 'add_direction':
+			await add_direction(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
 		case 'show_database':
 			await print_subdivisions(chat_id)
+
+
 
 
 @bot.message_handler(commands=['admin_menu'])
@@ -227,7 +235,15 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 			action='add_chair'
 		)
 	)
+	add_direction_button = InlineKeyboardButton(
+		'Добавить направление',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='add_direction'
+		)
+	)
 	markup.row(add_facult_button, add_chair_button)
+	markup.row(add_direction_button)
 	markup.row(back_button)
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Выберите действие', reply_markup=markup)
 
@@ -315,7 +331,7 @@ async def add_chair(user_id, chat_id, previous_message_id):
 	result = await add_row(
 		user_id,
 		chat_id,
-		f'Подтвердите добавление факультета "{new_chair_name}"',
+		f'Подтвердите добавление кафедры "{new_chair_name}"',
 		table='CHAIRS',
 		values=[new_chair_name, facult_id],
 		columns=['name', 'facult_id'],
@@ -333,4 +349,59 @@ async def add_chair(user_id, chat_id, previous_message_id):
 			await send_temporary_message(chat_id, f'Успешно добавлена кафедра {new_chair_name}')
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
+async def add_direction(user_id, chat_id, previous_message_id):
+	facult_id = await select_from_database(
+		user_id,
+		chat_id,
+		'FACULTS',
+		header='Выберите факультет',
+		previous_message_id=previous_message_id
+	)
+	# Админ отменил добавление
+	if facult_id is None:
+		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+		return
 
+	chair_id = await select_from_database(
+		user_id,
+		chat_id,
+		'CHAIRS',
+		header='Выберите факультет',
+		previous_message_id=previous_message_id,
+		filters={'facult_id': facult_id}
+	)
+	# Админ отменил добавление
+	if chair_id is None:
+		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+		return
+
+	new_direction_name = await request(
+		user_id,
+		chat_id,
+		request_message='Введите название направления',
+		delete_request_message=True
+	)
+	result = await add_row(
+		user_id,
+		chat_id,
+		f'Подтвердите добавление направления "{new_direction_name}"',
+		table='DIRECTIONS',
+		values=[new_direction_name, chair_id],
+		columns=['name', 'chair_id'],
+		previous_message_id=previous_message_id
+	)
+	match result:
+		case AddingRowResult.INCORRECT_INPUT_DATA:
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)')
+		case AddingRowResult.ROW_ALREADY_EXISTS:
+			await send_temporary_message(chat_id, 'Такое направление уже существует')
+		case AddingRowResult.ABORTED_BY_USER:
+			await send_temporary_message(chat_id, 'Отменяю...')
+		case AddingRowResult.SUCCESS:
+			await send_temporary_message(chat_id, f'Успешно добавлено направление {new_direction_name}')
+	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+
+# TODO
+# async def delete_facult
+# async def delete_chair
+# async def delete_direction
