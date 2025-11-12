@@ -8,10 +8,11 @@ from random import choice
 from zoneinfo import ZoneInfo
 
 from code.logging import logger
+from code.bot.bot_instance import bot
 
 
 # TODO Поправить логи
-async def delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_seconds=10):
+async def delete_message_after_delay_interrupt(chat_id, message_id, delay_seconds=10):
 	"""
 	Удаляет сообщение через указанное время (с возможностью прерывания)
 	"""
@@ -46,13 +47,13 @@ async def delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_s
 		               extra={"chat_id": chat_id, "message_id": message_id})
 
 
-async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10):
-	asyncio.create_task(delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_seconds))
+async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
+	asyncio.create_task(delete_message_after_delay_interrupt(chat_id, message_id, delay_seconds))
 
 
-async def send_temporary_message(bot, chat_id, text, delay_seconds=10):
+async def send_temporary_message(chat_id, text, delay_seconds=10):
 	message = await bot.send_message(chat_id, text, parse_mode='HTML')
-	asyncio.create_task(delete_message_after_delay_interrupt(bot=bot, chat_id=chat_id, message_id=message.message_id,
+	asyncio.create_task(delete_message_after_delay_interrupt(chat_id=chat_id, message_id=message.message_id,
 	                                                         delay_seconds=delay_seconds))
 
 

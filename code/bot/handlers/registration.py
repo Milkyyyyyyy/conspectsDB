@@ -147,8 +147,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 	except Exception as e:
 		# Логируем исключение и завершаем регистрацию аккуратно
 		logger.exception("Unexpected error during registration flow", exc_info=e)
-		await send_temporary_message(bot, chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.',
-		                             delay_seconds=5)
+		await send_temporary_message(chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.', delay_seconds=5)
 		return
 	# Вызываем подтверждение регистрации
 	await accept_registration(
@@ -164,7 +163,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 
 async def stop_registration(chat_id):
 	logger.info("stop_registration called — user cancelled the flow", extra={"chat_id": chat_id})
-	await send_temporary_message(bot, chat_id, 'Завершаю регистрацию...', delay_seconds=10)
+	await send_temporary_message(chat_id, 'Завершаю регистрацию...', delay_seconds=10)
 	raise Exception('Interrupt registration')
 
 
@@ -197,13 +196,13 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 		)
 	except Exception as e:
 		logger.exception("Error while asking for registration confirmation", exc_info=e)
-		await send_temporary_message(bot, chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
 		return
 
 	# Пользователь вызвал команду /cancel
 	if response is None:
 		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
-		await send_temporary_message(bot, chat_id, text='Отменяю регситрацию...', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Отменяю регситрацию...', delay_seconds=5)
 		return
 
 	# Сохраняем пользователя в датабазу и выводим сообщение
@@ -252,12 +251,12 @@ async def end_registration(user_id=None, chat_id=None, name=None, surname=None, 
 			             extra={"chat_id": chat_id, "message_id": previous_message_id})
 		except Exception as e2:
 			logger.warning("Failed to edit previous message after DB error", exc_info=e2)
-		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+		await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
 		return
 	finally:
 		text = 'Регистрация прошла успешно' if saved else 'Не удалось зарегистрироваться.'
 		await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id)
-		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+		await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
 		if saved:
 			try:
 				await main_menu(user_id=user_id, chat_id=chat_id)

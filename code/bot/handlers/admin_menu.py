@@ -13,6 +13,7 @@ from code.bot.handlers.main_menu import main_menu
 from code.bot.utils import send_temporary_message
 from collections import defaultdict
 import asyncio
+from enum import Enum
 
 # ===================================
 
@@ -172,6 +173,41 @@ async def change_database_menu(user_id, chat_id):
 	markup.row(add_facult_button, add_chair_button)
 	await bot.send_message(chat_id, 'Выберите действие', reply_markup=markup)
 
+
+class AddingRowResult(Enum):
+	INCORRECT_INPUT_DATA = 0
+	ROW_ALREADY_EXISTS = 1
+	ABORTED_BY_USER = 2
+	SUCCESS = 3
+async def add_row(user_id, chat_id, accept_message='Подтвердите добавление',
+                  table=None,
+                  values: list =None,
+                  columns: list=None
+                  ):
+	if None in (table, values, columns):
+		logger.error('Incorrect input data: table=%s, values=%s, columns=%s', type(table), type(values), type(columns))
+		return AddingRowResult.INCORRECT_INPUT_DATA
+	if len(values) != len(columns):
+		logger.error('Incorrect input data: the lengths of values and columns are not equal (%s and %s)', len(values), len(columns))
+		return AddingRowResult.INCORRECT_INPUT_DATA
+
+	filters = {}
+	for i in range(0, len(columns)):
+		filters[columns[i]] = i
+
+	async with connect_db() as db:
+		is_already_exists = await is_exists(database=db, table=table, filters=filters)
+		if is_already_exists:
+			return AddingRowResult.ROW_ALREADY_EXISTS
+
+		insert_new_row_accept = await request_confirmation(user_id, chat_id, accept_message)
+		if insert_new_row_accept:
+			await insert(database=db, table=table, values = values, columns = columns)
+		else:
+			return AddingRowResult.ABORTED_BY_USER
+	return AddingRowResult.SUCCESS
+
+
 @bot.callback_query_handler(func=lambda call: call.data == 'add_facult')
 async def call_add_facult(call):
 	try:
@@ -181,16 +217,23 @@ async def call_add_facult(call):
 	await add_facult(call.from_user.id, call.message.chat.id)
 async def add_facult(user_id, chat_id):
 	new_facult_name = await request(user_id, chat_id, request_message='Введите название факультета')
-	async with connect_db() as db:
-		is_already_exists = await is_exists(database=db, table='FACULTS', filters={'name': new_facult_name})
-		if is_already_exists:
-			await send_temporary_message(bot, chat_id, 'Факультет с данным именем уже существует.', delay_seconds=10)
-			return
-		insert_new_row = await request_confirmation(user_id, chat_id, f'Добавить факультет "{new_facult_name}"?')
-		if insert_new_row:
-			await insert(database=db, table='FACULTS', values=[new_facult_name], columns=['name'])
-		else:
-			await send_temporary_message(bot, chat_id, 'Отменяю')
+	result = await add_row(
+		user_id,
+		chat_id,
+		f'Подтвердите добавление факультета "{new_facult_name}"',
+		table='FACULTS',
+		values=[new_facult_name],
+		columns=['name',]
+	)
+	match result:
+		case AddingRowResult.INCORRECT_INPUT_DATA:
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)')
+		case AddingRowResult.ROW_ALREADY_EXISTS:
+			await send_temporary_message(chat_id, 'Такой факультет уже существует')
+		case AddingRowResult.ABORTED_BY_USER:
+			await send_temporary_message(chat_id, 'Отменяю...')
+		case AddingRowResult.SUCCESS:
+			await send_temporary_message(chat_id, f'Успешно добавлен факультет {new_facult_name}')
 	return
 
 @bot.callback_query_handler(func=lambda call: call.data == 'add_chair')
@@ -202,21 +245,29 @@ async def call_add_chair(call):
 	await add_chair(call.from_user.id, call.message.chat.id)
 async def add_chair(user_id, chat_id):
 	facult_id = await select_facult(user_id, chat_id)
-	# Админ отменил добавления
+	# Админ отменил добавление
 	if facult_id is None:
 		return
-
 	new_chair_name = await request(user_id, chat_id, request_message='Введите название кафедры')
 
-	async with connect_db() as db:
-		# Проверяем, есть ли эта кафедра в
-		is_already_exists = await is_exists(database=db, table='CHAIRS', filters={'name': new_chair_name})
-		if is_already_exists:
-			await send_temporary_message(bot, chat_id, 'Кафедра с таким именем уже существует.')
-			return
-		# Запрашиваем ещё одно подтверждение у админа
-		insert_new_row = await request_confirmation(user_id, chat_id, f'Добавить кафедру "{new_chair_name}"?')
-		if insert_new_row:
-			await insert(database=db, table='CHAIRS', values=[new_chair_name, facult_id], columns=['name', 'facult_id'])
-		else:
-			await send_temporary_message(bot, chat_id, 'Отменяю')
+	result = add_row(
+		user_id,
+		chat_id,
+		f'Подтвердите добавление факультета "{new_chair_name}"',
+		table='CHAIRS',
+		values=[new_chair_name, facult_id],
+		columns=['name', 'facult_id']
+	)
+
+	match result:
+		case AddingRowResult.INCORRECT_INPUT_DATA:
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)')
+		case AddingRowResult.ROW_ALREADY_EXISTS:
+			await send_temporary_message(chat_id, 'Такая кафедра уже существует')
+		case AddingRowResult.ABORTED_BY_USER:
+			await send_temporary_message(chat_id, 'Отменяю...')
+		case AddingRowResult.SUCCESS:
+			await send_temporary_message(chat_id, f'Успешно добавлена кафедра {new_chair_name}')
+	return
+
+

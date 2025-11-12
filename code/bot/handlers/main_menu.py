@@ -80,7 +80,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 		user_info = await get_user_info(chat_id=chat_id, user_id=user_id)
 	except Exception as e:
 		logger.exception(f"Failed to get user_info for user=%s chat=%s", user_id, chat_id)
-		await send_temporary_message(bot, chat_id, 'Произошла ошибка')
+		await send_temporary_message(chat_id, 'Произошла ошибка')
 		return
 
 	text_message = ("<blockquote><b>Информация о пользователе</b>\n\n"
@@ -115,7 +115,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 	except Exception:
 		logger.exception("Failed to display user info for user=%s chat=%s", user_id, chat_id)
 		try:
-			await send_temporary_message(bot, chat_id, text='Не удалось отобразить информацию. Попробуйте ещё раз.',
+			await send_temporary_message(chat_id, text='Не удалось отобразить информацию. Попробуйте ещё раз.',
 			                             delay_seconds=3)
 		except Exception:
 			logger.exception("Also failed to send fallback error message to chat=%s", chat_id)
@@ -145,7 +145,7 @@ async def change_name(call):
 		return
 	if not isinstance(name, str):
 		logger.info('User %s provided invalid name input: %r', user_id, name)
-		await send_temporary_message(bot, chat_id, text='Имя не было изменено.', delay_seconds=10)
+		await send_temporary_message(chat_id, text='Имя не было изменено.', delay_seconds=10)
 		return
 
 	updated = None
@@ -161,11 +161,11 @@ async def change_name(call):
 			logger.info("Database update result for user=%s: %r", user_id, updated)
 	except Exception as e:
 		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
-		await send_temporary_message(bot, chat_id, text='Произошла ошибка!', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
 		return
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
-		await send_temporary_message(bot, chat_id, text=text, delay_seconds=3)
+		await send_temporary_message(chat_id, text=text, delay_seconds=3)
 		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'change_surname')
@@ -193,7 +193,7 @@ async def change_surname(call):
 		return
 	if not isinstance(surname, str):
 		logger.info('User %s provided invalid name input: %r', user_id, surname)
-		await send_temporary_message(bot, chat_id, text='Фамилия не была изменена.', delay_seconds=10)
+		await send_temporary_message(chat_id, text='Фамилия не была изменена.', delay_seconds=10)
 		return
 
 	updated = None
@@ -209,9 +209,9 @@ async def change_surname(call):
 			logger.info("Database update result for user=%s: %r", user_id, updated)
 	except Exception as e:
 		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
-		await send_temporary_message(bot, chat_id, text='Произошла ошибка!', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
 		return
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
-		await send_temporary_message(bot, chat_id, text=text, delay_seconds=3)
+		await send_temporary_message(chat_id, text=text, delay_seconds=3)
 		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)

@@ -66,7 +66,7 @@ async def request(user_id, chat_id,
 			try:
 				if request_message:
 					if attempts > 1:
-						await send_temporary_message(bot, chat_id, request_message, delay_seconds=5)
+						await send_temporary_message(chat_id, request_message, delay_seconds=5)
 					else:
 						sent = await bot.send_message(chat_id, request_message, parse_mode='HTML')
 						request_message_id = sent.id
@@ -112,11 +112,11 @@ async def request(user_id, chat_id,
 
 				if err:
 					logger.debug('Validation failed for %s: %s', key, err)
-					await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
+					await delete_message_after_delay(chat_id, response.id, delay_seconds=2)
 
 					# Если закончились попытки - возвращаем None
 					if max_retries is not None and attempts >= max_retries:
-						await send_temporary_message(bot, chat_id, text=f"{err}\n<b>(исчерпаны попытки)</b>")
+						await send_temporary_message(chat_id, text=f"{err}\n<b>(исчерпаны попытки)</b>")
 						async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 							data.pop('waiting_for', None)
 						return None
@@ -131,8 +131,8 @@ async def request(user_id, chat_id,
 					data.pop('waiting_for', None)
 					logger.info('Saved response for %s: %s', key, response.text.strip())
 				if delete_request_message:
-					await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
-					await delete_message_after_delay(bot, chat_id, request_message_id, delay_seconds=2)
+					await delete_message_after_delay(chat_id, response.id, delay_seconds=2)
+					await delete_message_after_delay(chat_id, request_message_id, delay_seconds=2)
 				return response.text.strip()
 			except Exception as e:
 				logger.exception('Unexpected error in request loop for %s: %s', key, e)
@@ -277,7 +277,7 @@ async def request_list(
 				response = await asyncio.wait_for(fut, timeout)
 			except asyncio.TimeoutError:
 				logger.info("Timeout in request_list for %s", key)
-				await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
+				await send_temporary_message(chat_id, 'Время ввода истекло', delay_seconds=10)
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
 				return None
@@ -333,13 +333,11 @@ async def request_list(
 					return None
 				finally:
 					await delete_message_after_delay(
-						bot,
 						chat_id=chat_id,
 						message_id=previous_message_id,
 						delay_seconds=1)
 			else:
 				await send_temporary_message(
-					bot,
 					chat_id=chat_id,
 					text='Не нажимайте никакие лишние кнопки',
 					delay_seconds=1
@@ -408,7 +406,7 @@ async def request_confirmation(
 		await bot.edit_message_text(text='Время ввода истекло.', chat_id=chat_id, message_id=previous_message_id)
 		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=None)
 		if delete_message_after:
-			await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=1)
+			await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=1)
 		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 			data.pop('waiting_for', None)
 		return False
@@ -466,7 +464,7 @@ async def request_files(
 				response = await asyncio.wait_for(queue.get(), timeout)
 			except asyncio.TimeoutError:
 				logger.info("Timeout in request_files for %s", key)
-				await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
+				await send_temporary_message(chat_id, 'Время ввода истекло', delay_seconds=10)
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
 				return None
