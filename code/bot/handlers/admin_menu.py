@@ -405,3 +405,5 @@ async def add_direction(user_id, chat_id, previous_message_id):
 # async def delete_facult
 # async def delete_chair
 # async def delete_direction
+# async def add_subject
+# async def connect_subject_to_direction (мб другое название)
