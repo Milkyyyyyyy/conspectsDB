@@ -7,7 +7,7 @@ from aiohttp.web_fileresponse import content_type
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from code.bot.utils import send_temporary_message, delete_message_after_delay
+from code.bot.utils import send_temporary_message, delete_message_after_delay, safe_edit_message
 from code.bot.states import MainStates, set_default_state
 from code.logging import logger
 
@@ -27,7 +27,6 @@ async def request(user_id, chat_id,
 				  request_message: str = 'Введите:',
 				  validator=None,
 				  max_retries: int | None = 3,
-				  previous_message_id: int | None = None,
 				  delete_request_message: bool = True
 				  ):
 	"""
@@ -94,6 +93,7 @@ async def request(user_id, chat_id,
 						data.pop('waiting_for', None)
 					return None
 
+				user_response = response
 				# Валидатор
 				err = None
 				if validator is not None:
@@ -130,13 +130,14 @@ async def request(user_id, chat_id,
 					data[waiting_for] = response.text.strip()
 					data.pop('waiting_for', None)
 					logger.info('Saved response for %s: %s', key, response.text.strip())
-				if delete_request_message:
-					await delete_message_after_delay(chat_id, response.id, delay_seconds=2)
-					await delete_message_after_delay(chat_id, request_message_id, delay_seconds=2)
+
 				return response.text.strip()
 			except Exception as e:
 				logger.exception('Unexpected error in request loop for %s: %s', key, e)
 	finally:
+		if delete_request_message:
+			await delete_message_after_delay(chat_id, user_response.id, delay_seconds=2)
+			await delete_message_after_delay(chat_id, request_message_id, delay_seconds=2)
 		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
@@ -253,21 +254,13 @@ async def request_list(
 			markup = await _generate_markup(list_index, max_index, confirmation_mode)
 
 			# Выводим сообщение. Если есть previous_message_id - меняем старое
-			if previous_message_id:
-				await bot.edit_message_text(
-					chat_id=chat_id,
-					message_id=previous_message_id,
-					text=text,
-					parse_mode='HTML')
-				await bot.edit_message_reply_markup(
-					chat_id=chat_id,
-					message_id=previous_message_id,
-					reply_markup=markup)
-			# В ином случае выводим новое сообщение и сохраняем его ID
-			else:
-				sent = await bot.send_message(chat_id, text, parse_mode='HTML', reply_markup=markup)
-				previous_message_id = sent.id
-				logger.debug('Sent request message id=%s to chat=%s', previous_message_id, chat_id)
+			previous_message_id = await safe_edit_message(
+				previous_message_id=previous_message_id,
+				chat_id=chat_id,
+				user_id=user_id,
+				text=text,
+				reply_markup=markup
+			)
 
 			# Сохраняем флаг waiting_for
 			await _save_waiting_for_flag(user_id, chat_id, waiting_for)
@@ -331,11 +324,6 @@ async def request_list(
 				except Exception as e:
 					logger.exception("Error while preparing output in request_list for %s: %s", key, e)
 					return None
-				finally:
-					await delete_message_after_delay(
-						chat_id=chat_id,
-						message_id=previous_message_id,
-						delay_seconds=1)
 			else:
 				await send_temporary_message(
 					chat_id=chat_id,
@@ -344,6 +332,10 @@ async def request_list(
 				)
 				continue
 	finally:
+		await delete_message_after_delay(
+			chat_id=chat_id,
+			message_id=previous_message_id,
+			delay_seconds=1)
 		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
@@ -532,7 +524,7 @@ async def _handle_awaited_callback(call):
 	response = call.data
 	if 'cancel' in response:
 		fut.set_result(None)
-		await bot.send_message(call.message.chat.id, 'Ввод отменён')
+		await send_temporary_message(call.message.chat.id, text='Ввод отменён', delay_seconds=2)
 	else:
 		if hasattr(fut, 'set_result'):
 			fut.set_result(response)
@@ -554,7 +546,7 @@ async def _handle_awaited_answer(message):
 	text = message.text.strip()
 	if 'cancel' in text:
 		fut.set_result(None)
-		await bot.send_message(message.chat.id, 'Ввод отменён')
+		await send_temporary_message(message.chat_id, text='Ввод отменён', delay_seconds=2)
 	else:
 		if hasattr(fut, 'set_result'):
 			logger.debug(f'Put result {message} in future')

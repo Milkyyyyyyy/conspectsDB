@@ -3,7 +3,7 @@
 """
 from code.bot.bot_instance import bot
 from code.logging import logger
-
+from code.bot.callbacks import call_factory
 # Обрабатывает нажатия на кнопки, которые ничего не должны делать
 # При необходимости высвечивает сообщение на экран
 @bot.callback_query_handler(func=lambda call: 'empty' in call.data)
@@ -15,7 +15,7 @@ async def empty_button(call):
 	else:
 		message = ' '.join(data[1:])
 		await bot.answer_callback_query(call.id, text=message, show_alert=False)
-@bot.callback_query_handler(func=lambda call: call.data == 'delete')
+@bot.callback_query_handler(func=call_factory.filter(action='delete').check)
 async def delete_button(call):
 	try:
 		await bot.answer_callback_query(call.id)

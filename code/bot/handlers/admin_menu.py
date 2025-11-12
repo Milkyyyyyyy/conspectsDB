@@ -14,9 +14,10 @@ from code.bot.utils import send_temporary_message, safe_edit_message
 from collections import defaultdict
 import asyncio
 from enum import Enum
+from code.bot.callbacks import call_factory
 
 # ===================================
-async def select_from_database(user_id=None, chat_id=None, table=None, filters: dict = {}, header='Выберите'):
+async def select_from_database(user_id=None, chat_id=None, table=None, filters: dict = {}, header='Выберите', previous_message_id=None):
 	if None in (user_id, chat_id, table):
 		logger.error("Incorrect data")
 		return None
@@ -28,17 +29,9 @@ async def select_from_database(user_id=None, chat_id=None, table=None, filters: 
 		header=header,
 		items_list=rows,
 		input_field='name',
-		output_field='rowid'
+		output_field='rowid',
 	)
 
-@bot.callback_query_handler(func=lambda call: call.data == 'show_database')
-async def call_print_subdivisions(call):
-	try:
-		await bot.answer_callback_query(call.id)
-	except:
-		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
-	await print_subdivisions(call.message.chat.id)
-	return
 async def print_subdivisions(chat_id):
 	facults, chairs, directions, chairs_by_facults, directions_by_chairs = await group_subdivision()
 	message = ''
@@ -53,7 +46,13 @@ async def print_subdivisions(chat_id):
 				direction = directions[direction_id]
 				message += '| | ' + direction['name'] + '\n'
 
-	back_button = InlineKeyboardButton('<-- Назад', callback_data='delete')
+	back_button = InlineKeyboardButton(
+		'<-- Назад',
+		callback_data=call_factory.new(
+			area='',
+			action='delete'
+		)
+	)
 	markup = InlineKeyboardMarkup()
 	markup.add(back_button)
 	await bot.send_message(chat_id, message, reply_markup=markup)
@@ -106,25 +105,48 @@ async def group_subdivision():
 	return facults_by_rowid, chairs_by_rowid, directions_by_rowid, chairs_by_facults, directions_by_chairs
 # ================================
 
-@bot.callback_query_handler(func=lambda call: call.data == 'back_to_menu')
-async def call_back_to_menu(call):
+@bot.callback_query_handler(func=call_factory.filter(area='admin_menu').check)
+async def callback_handler(call):
+	logger.debug('Handle callback in admin menu...')
+	user_id = call.from_user.id
+	chat_id = call.message.chat.id
+	message_id = call.message.id
 	try:
 		await bot.answer_callback_query(call.id)
 	except Exception as e:
 		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
-	await main_menu(
-		call.from_user.id,
-		call.message.chat.id,
-		call.message.id
-	)
-@bot.callback_query_handler(func=lambda call: call.data == 'admin_menu')
-async def call_admin_menu(call):
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception as e:
-		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
+	action = call_factory.parse(callback_data=call.data)['action']
+	match action:
+		case 'back_to_menu':
+			await main_menu(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+			return
+		case 'admin_menu':
+			await admin_menu(message_id, user_id, chat_id)
+		case 'change_database':
+			await change_database_menu(
+				previous_message_id=message_id,
+				user_id=user_id,
+				chat_id=chat_id
+			)
+		case 'add_facult':
+			await add_facult(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id,
+			)
+		case 'add_chair':
+			await add_chair(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'show_database':
+			await print_subdivisions(chat_id)
 
-	await admin_menu(call.message.id, call.from_user.id, call.message.chat.id)
 
 @bot.message_handler(commands=['admin_menu'])
 async def command_admin_menu(message):
@@ -152,34 +174,59 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 
 	markup = InlineKeyboardMarkup()
 
-	change_database_button = InlineKeyboardButton('Изменить датабазу', callback_data='change_database')
-	show_database_button = InlineKeyboardButton('Показать факультеты/кафедры/направления', callback_data='show_database')
-	back_to_menu_button = InlineKeyboardButton('Назад в меню', callback_data='back_to_menu')
+	change_database_button = InlineKeyboardButton(
+		'Изменить датабазу',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='change_database'
+		)
+	)
+	show_database_button = InlineKeyboardButton(
+		'Показать факультеты/кафедры/направления',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='show_database'
+		)
+	)
+	back_to_menu_button = InlineKeyboardButton(
+		'Назад в меню',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='back_to_menu'
+		)
+	)
+
 	markup.row(change_database_button, show_database_button)
 	markup.row(back_to_menu_button)
 
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Админ панель', reply_markup=markup)
 
-
-@bot.callback_query_handler(func=lambda call: call.data == 'change_database')
-async def call_change_database_menu(call):
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception as e:
-		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
-	await change_database_menu(
-		previous_message_id = call.message.id,
-		user_id=call.from_user.id,
-		chat_id=call.message.chat.id
-	)
 async def change_database_menu(previous_message_id, user_id, chat_id):
 	# TODO добавить:
 	# - Добавление предмета с последующей привязкой к направлениям
 	# - Добавление кафедр и направлений
 	markup = InlineKeyboardMarkup()
-	back_button = InlineKeyboardButton('Назад', callback_data='admin_menu')
-	add_facult_button = InlineKeyboardButton('Добавить факультет', callback_data='add_facult')
-	add_chair_button = InlineKeyboardButton('Добавить кафедру', callback_data='add_chair')
+	back_button = InlineKeyboardButton(
+		'Назад',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='admin_menu'
+		)
+	)
+	add_facult_button = InlineKeyboardButton(
+		'Добавить факультет',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action = 'add_facult'
+		)
+	)
+	add_chair_button = InlineKeyboardButton(
+		'Добавить кафедру',
+		callback_data = call_factory.new(
+			area='admin_menu',
+			action='add_chair'
+		)
+	)
 	markup.row(add_facult_button, add_chair_button)
 	markup.row(back_button)
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Выберите действие', reply_markup=markup)
@@ -193,7 +240,8 @@ class AddingRowResult(Enum):
 async def add_row(user_id, chat_id, accept_message='Подтвердите добавление',
                   table=None,
                   values: list =None,
-                  columns: list=None
+                  columns: list=None,
+                  previous_message_id=None,
                   ):
 	if None in (table, values, columns):
 		logger.error('Incorrect input data: table=%s, values=%s, columns=%s', type(table), type(values), type(columns))
@@ -211,7 +259,7 @@ async def add_row(user_id, chat_id, accept_message='Подтвердите до�
 		if is_already_exists:
 			return AddingRowResult.ROW_ALREADY_EXISTS
 
-		insert_new_row_accept = await request_confirmation(user_id, chat_id, accept_message)
+		insert_new_row_accept = await request_confirmation(user_id, chat_id, accept_message, previous_message_id=previous_message_id)
 		if insert_new_row_accept:
 			await insert(database=db, table=table, values = values, columns = columns)
 		else:
@@ -219,22 +267,20 @@ async def add_row(user_id, chat_id, accept_message='Подтвердите до�
 	return AddingRowResult.SUCCESS
 
 
-@bot.callback_query_handler(func=lambda call: call.data == 'add_facult')
-async def call_add_facult(call):
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception as e:
-		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
-	await add_facult(call.from_user.id, call.message.chat.id)
-async def add_facult(user_id, chat_id):
-	new_facult_name = await request(user_id, chat_id, request_message='Введите название факультета')
+async def add_facult(user_id, chat_id, previous_message_id):
+	new_facult_name = await request(
+		user_id,
+		chat_id,
+		request_message='Введите название факультета',
+	)
 	result = await add_row(
 		user_id,
 		chat_id,
 		f'Подтвердите добавление факультета "{new_facult_name}"',
 		table='FACULTS',
 		values=[new_facult_name],
-		columns=['name',]
+		columns=['name',],
+		previous_message_id=previous_message_id
 	)
 	match result:
 		case AddingRowResult.INCORRECT_INPUT_DATA:
@@ -245,26 +291,26 @@ async def add_facult(user_id, chat_id):
 			await send_temporary_message(chat_id, 'Отменяю...')
 		case AddingRowResult.SUCCESS:
 			await send_temporary_message(chat_id, f'Успешно добавлен факультет {new_facult_name}')
-	return
+	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
-@bot.callback_query_handler(func=lambda call: call.data == 'add_chair')
-async def call_add_chair(call):
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception as e:
-		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
-	await add_chair(call.from_user.id, call.message.chat.id)
-async def add_chair(user_id, chat_id):
+async def add_chair(user_id, chat_id, previous_message_id):
 	facult_id = await select_from_database(
 		user_id,
 		chat_id,
 		'FACULTS',
-		header='Выберите факультет'
+		header='Выберите факультет',
+		previous_message_id=previous_message_id
 	)
 	# Админ отменил добавление
 	if facult_id is None:
+		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 		return
-	new_chair_name = await request(user_id, chat_id, request_message='Введите название кафедры')
+	new_chair_name = await request(
+		user_id,
+		chat_id,
+		request_message='Введите название кафедры',
+		delete_request_message=True
+	)
 
 	result = await add_row(
 		user_id,
@@ -272,7 +318,8 @@ async def add_chair(user_id, chat_id):
 		f'Подтвердите добавление факультета "{new_chair_name}"',
 		table='CHAIRS',
 		values=[new_chair_name, facult_id],
-		columns=['name', 'facult_id']
+		columns=['name', 'facult_id'],
+		previous_message_id=previous_message_id
 	)
 
 	match result:
@@ -284,6 +331,6 @@ async def add_chair(user_id, chat_id):
 			await send_temporary_message(chat_id, 'Отменяю...')
 		case AddingRowResult.SUCCESS:
 			await send_temporary_message(chat_id, f'Успешно добавлена кафедра {new_chair_name}')
-	return
+	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
 

@@ -71,14 +71,17 @@ async def safe_edit_message(
 				logger.debug("Trying to edit message (%s) text and markup...", previous_message_id)
 				await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
 				await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=reply_markup)
+				return previous_message_id
 			except:
 				logger.error("Can't edit message => just sending it")
-				await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+				message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+				return message.id
 			finally:
 				logger.debug("Successfully edited message (%s) text and markup", previous_message_id)
 		else:
 			logger.debug('There is no previous_message_id => just sending it')
-			await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+			message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+			return message.id
 	except:
 		logger.error("Unexpected error")
 		return

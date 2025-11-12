@@ -5,7 +5,7 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from code.bot.callbacks import vote_cb
+from code.bot.callbacks import vote_cb, call_factory
 from code.bot.services.user_service import get_user_info
 from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message
 from code.logging import logger
@@ -36,7 +36,13 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 
 	# Если юзер модератор, добавляем кнопку с доступом к панели админа
 	if is_user_moderator:
-		moderator_menu = InlineKeyboardButton('Админ панель', callback_data='admin_menu')
+		moderator_menu = InlineKeyboardButton(
+			'Админ панель',
+			callback_data=call_factory.new(
+				area='admin_menu',
+				action='admin_menu'
+			)
+		)
 		markup.row(moderator_menu)
 
 	greeting = await get_greeting()
