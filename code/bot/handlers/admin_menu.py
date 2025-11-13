@@ -158,6 +158,24 @@ async def callback_handler(call):
 				chat_id=chat_id,
 				previous_message_id=message_id
 			)
+		case 'delete_facult':
+			await delete_facult(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'delete_chair':
+			await delete_chair(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'delete_directions':
+			await delete_direction(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
 		case 'show_database':
 			await print_subdivisions(chat_id)
 
@@ -218,9 +236,6 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Админ панель', reply_markup=markup)
 
 async def change_database_menu(previous_message_id, user_id, chat_id):
-	# TODO добавить:
-	# - Добавление предмета с последующей привязкой к направлениям
-	# - Добавление кафедр и направлений
 	markup = InlineKeyboardMarkup()
 	back_button = InlineKeyboardButton(
 		'Назад',
@@ -250,8 +265,32 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 			action='add_direction'
 		)
 	)
+
+	delete_facult_button = InlineKeyboardButton(
+		'Удалить факультет',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='delete_facult'
+		)
+	)
+	delete_chair_button = InlineKeyboardButton(
+		'Удалить кафедру',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='delete_chair'
+		)
+	)
+	delete_direction_button = InlineKeyboardButton(
+		'Удалить направление',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='delete_direction'
+		)
+	)
 	markup.row(add_facult_button, add_chair_button)
 	markup.row(add_direction_button)
+	markup.row(delete_facult_button, delete_chair_button)
+	markup.row(delete_direction_button)
 	markup.row(back_button)
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Выберите действие', reply_markup=markup)
 
@@ -565,7 +604,7 @@ async def delete_chair(user_id, chat_id, previous_message_id):
 	)
 	return
 
-async def delete_chair(user_id, chat_id, previous_message_id):
+async def delete_direction(user_id, chat_id, previous_message_id):
 	selected_facult = await select_from_database(
 		user_id,
 		chat_id,
