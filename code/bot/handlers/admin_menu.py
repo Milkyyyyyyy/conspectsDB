@@ -483,14 +483,15 @@ async def delete_facult(user_id, chat_id, previous_message_id):
 			logger.exception(f"Can't delete facult: {e}")
 			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 			return
-		confirm_sub_deletion = await request_confirmation(
-			user_id,
-			chat_id,
-			text=f'Удалить все кафедры/направления, связанные с этим факультетом?\n'
-				 f'Крайне рекомендуется\n'
-				 f'Найдено <b>{len(chairs)}</b> кафедр',
-			previous_message_id=previous_message_id
-		)
+		confirm_sub_deletion = False if len(chairs) == 0 \
+			else await request_confirmation(
+				user_id,
+				chat_id,
+				text=f'Удалить все кафедры/направления, связанные с этим факультетом?\n'
+					 f'Крайне рекомендуется\n'
+					 f'Найдено <b>{len(chairs)}</b> кафедр',
+				previous_message_id=previous_message_id
+			)
 		if confirm_sub_deletion:
 			last_message = await bot.send_message(
 				chat_id=chat_id,
@@ -512,6 +513,7 @@ async def delete_facult(user_id, chat_id, previous_message_id):
 					table='DIRECTIONS',
 					filters={'facult_id': selected_facult[0]}
 				)
+				await asyncio.sleep(0.5)
 				last_message_id = await safe_edit_message(
 					chat_id=chat_id,
 					user_id=user_id,
@@ -570,14 +572,15 @@ async def delete_chair(user_id, chat_id, previous_message_id):
 			logger.exception(f"Can't delete chair: {e}")
 			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 			return
-		confirm_sub_deletion = await request_confirmation(
-			user_id,
-			chat_id,
-			text=f'Удалить все направления, связанные с этой кафедрой?\n'
-				 f'Крайне рекомендуется\n'
-				 f'Найдено <b>{len(directions)}</b> направлений',
-			previous_message_id=previous_message_id
-		)
+		confirm_sub_deletion = False if len(directions) == 0 \
+			else await request_confirmation(
+				user_id,
+				chat_id,
+				text=f'Удалить все направления, связанные с этой кафедрой?\n'
+					 f'Крайне рекомендуется\n'
+					 f'Найдено <b>{len(directions)}</b> направлений',
+				previous_message_id=previous_message_id
+			)
 		if confirm_sub_deletion:
 			last_message = await bot.send_message(
 				chat_id=chat_id,
@@ -592,6 +595,7 @@ async def delete_chair(user_id, chat_id, previous_message_id):
 					table='DIRECTIONS',
 					filters={'chair_id': selected_chair[0]}
 				)
+			await asyncio.sleep(0.5)
 			last_message_id = await safe_edit_message(
 				chat_id=chat_id,
 				user_id=user_id,
