@@ -7,7 +7,7 @@ from code.logging import logger
 from code.bot.states import MainStates
 from code.bot.services.user_service import get_user_info
 from code.database.service import connect_db
-from code.database.queries import get, is_exists, insert, get_all
+from code.database.queries import get, is_exists, insert, get_all, remove, remove_all
 from code.utils import getkey
 from code.bot.handlers.main_menu import main_menu
 from code.bot.utils import send_temporary_message, safe_edit_message
@@ -17,7 +17,15 @@ from enum import Enum
 from code.bot.callbacks import call_factory
 
 # ===================================
-async def select_from_database(user_id=None, chat_id=None, table=None, filters: dict = {}, header='Выберите', previous_message_id=None):
+async def select_from_database(
+		user_id=None,
+		chat_id=None,
+		table=None,
+		filters: dict = {},
+		header='Выберите',
+		input_field: str | [str] = 'name',
+		output_field: str | [str] ='rowid',
+):
 	if None in (user_id, chat_id, table):
 		logger.error("Incorrect data")
 		return None
@@ -28,8 +36,8 @@ async def select_from_database(user_id=None, chat_id=None, table=None, filters: 
 		chat_id=chat_id,
 		header=header,
 		items_list=rows,
-		input_field='name',
-		output_field='rowid',
+		input_field=input_field,
+		output_field=output_field,
 	)
 
 async def print_subdivisions(chat_id):
@@ -402,9 +410,206 @@ async def add_direction(user_id, chat_id, previous_message_id):
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
 # TODO
-# async def delete_facult
-# async def delete_chair
-# async def delete_direction
 # async def add_subject
 # async def connect_subject_to_direction (мб другое название)
 # После этого в принципе можно делать мердж в develop, а затем и в мэйн
+
+async def delete_facult(user_id, chat_id, previous_message_id):
+	selected_facult = await select_from_database(
+		user_id,
+		chat_id,
+		'FACULTS',
+		header='Выберите факультет',
+		output_field=['rowid', 'name']
+	)
+	confirm = await request_confirmation(
+		user_id,
+		chat_id,
+		text=f'Подтвердите удаление факультета "{selected_facult[1]}"',
+		previous_message_id=previous_message_id
+	)
+	if confirm:
+		try:
+			async with connect_db() as db:
+				await remove(
+					database=db,
+					table='FACULTS',
+					filters={'rowid': selected_facult[0]}
+				)
+				# Получаем все кафедры этого факультета
+				chairs = await get_all(
+					database=db,
+					table='CHAIRS',
+					filters={'facult_id': selected_facult[0]}
+				)
+		except Exception as e:
+			logger.exception(f"Can't delete facult: {e}")
+			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+			return
+		confirm_sub_deletion = request_confirmation(
+			user_id,
+			chat_id,
+			text=f'Удалить все кафедры/направления, связанные с этим факультетом?\n'
+				 f'Крайне рекомендуется\n'
+				 f'Найдено <b>{len(chairs)}</b> кафедр',
+			previous_message_id=previous_message_id
+		)
+		if confirm_sub_deletion:
+			await safe_edit_message(
+				chat_id=chat_id,
+				user_id=user_id,
+				previous_message_id=previous_message_id,
+				text='Удаляю...'
+			)
+			# Для каждой кафедры удаляем все направления
+			async with connect_db() as db:
+				for chair in chairs:
+					chair_id = chair.row_id
+					await remove_all(
+						database=db,
+						table='DIRECTIONS',
+						filters={'char_id': chair_id}
+					)
+				# Удаляем все кафедры
+				await remove_all(
+					database=db,
+					table='DIRECTIONS',
+					filters={'facult_id': selected_facult[0]}
+				)
+				await safe_edit_message(
+					chat_id=chat_id,
+					user_id=user_id,
+					previous_message_id=previous_message_id,
+					text='Готово!'
+				)
+	await admin_menu(
+		user_id=user_id,
+		chat_id=chat_id,
+		previous_message_id=previous_message_id
+	)
+	return
+
+async def delete_chair(user_id, chat_id, previous_message_id):
+	selected_facult = await select_from_database(
+		user_id,
+		chat_id,
+		'FACULTS',
+		header='Выберите факультет',
+		output_field='rowid'
+	)
+	selected_chair = await select_from_database(
+		user_id,
+		chat_id,
+		'CHAIRS',
+		{'facult_id': selected_facult},
+		header='Выберите кафедру',
+		output_field=['rowid', 'name']
+	)
+	confirm = await request_confirmation(
+		user_id,
+		chat_id,
+		text=f'Подтвердите удаление кафедры "{selected_chair[1]}"',
+		previous_message_id=previous_message_id
+	)
+	if confirm:
+		try:
+			async with connect_db() as db:
+				await remove(
+					database=db,
+					table='CHAIRS',
+					filters={'rowid': selected_chair[0]}
+				)
+				# Получаем все кафедры этого факультета
+				directions = await get_all(
+					database=db,
+					table='DIRECTIONS',
+					filters={'chair_id': selected_chair[0]}
+				)
+		except Exception as e:
+			logger.exception(f"Can't delete chair: {e}")
+			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+			return
+		confirm_sub_deletion = request_confirmation(
+			user_id,
+			chat_id,
+			text=f'Удалить все направления, связанные с этой кафедрой?\n'
+				 f'Крайне рекомендуется\n'
+				 f'Найдено <b>{len(directions)}</b> направлений',
+			previous_message_id=previous_message_id
+		)
+		if confirm_sub_deletion:
+			await safe_edit_message(
+				chat_id=chat_id,
+				user_id=user_id,
+				previous_message_id=previous_message_id,
+				text='Удаляю...'
+			)
+			# Для каждой кафедры удаляем все направления
+			async with connect_db() as db:
+				# Удаляем все направления
+				await remove_all(
+					database=db,
+					table='DIRECTIONS',
+					filters={'facult_id': selected_facult[0]}
+				)
+			await safe_edit_message(
+				chat_id=chat_id,
+				user_id=user_id,
+				previous_message_id=previous_message_id,
+				text='Готово!'
+			)
+	await admin_menu(
+		user_id=user_id,
+		chat_id=chat_id,
+		previous_message_id=previous_message_id
+	)
+	return
+
+async def delete_chair(user_id, chat_id, previous_message_id):
+	selected_facult = await select_from_database(
+		user_id,
+		chat_id,
+		'FACULTS',
+		header='Выберите факультет',
+		output_field='rowid'
+	)
+	selected_chair = await select_from_database(
+		user_id,
+		chat_id,
+		'CHAIRS',
+		{'facult_id': selected_facult},
+		header='Выберите кафедру',
+		output_field='rowid'
+	)
+	selected_directions = await select_from_database(
+		user_id,
+		chat_id,
+		'DIRECTIONS',
+		{'chair_id': selected_chair},
+		header='Выберите направление',
+		output_field=['rowid', 'name']
+	)
+	confirm = await request_confirmation(
+		user_id,
+		chat_id,
+		text=f'Подтвердите удаление направления "{selected_directions[1]}"',
+		previous_message_id=previous_message_id
+	)
+	if confirm:
+		try:
+			async with connect_db() as db:
+				await remove(
+					database=db,
+					table='DIRECTIONS',
+					filters={'rowid': selected_chair[0]}
+				)
+		except Exception as e:
+			logger.exception(f"Can't delete direction: {e}")
+			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+			return
+	await admin_menu(
+		user_id=user_id,
+		chat_id=chat_id,
+		previous_message_id=previous_message_id
+	)
+	return

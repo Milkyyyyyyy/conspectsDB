@@ -348,32 +348,36 @@ async def remove(
 		return False
 
 
-async def remove_list(
+async def remove_all(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
-		rowids: Iterable = None) -> Union[int, Tuple[int, sqlite3.Cursor], None]:
+		filters: Dict[str, Any] = None,
+		operator: str = "AND") -> Union[int, None]:
 	"""
-	Удаляет множество записей из датабазы
+    Удаляет все записи из датабазы, соответствующие заданным фильтрам.
 
-	:param database: sqlite3.Connection  --> Датабаза
-	:param table:  enum, str             --> Название таблицы из Tables
-	:param rowids: Iterable              --> Список всех rowid
+    :param database: aiosqlite.Connection --> Датабаза
+    :param table:    enum, str            --> Название таблицы
+    :param filters:  dict                 --> Фильтры поиска (обязательно)
+    :param operator: str                  --> Оператор фильтра, "AND" или "OR"
 
-	:return: Кол-во удалённых записей; None; курсор (нужен для получения названий полей)
-	"""
+    :return: Кол-во удалённых записей (int) или None при ошибке.
+    """
+	logger.info(f'Removing all rows from "{table}" with filters={filters}...')
 
+	# Проверка датабазы и инициализация курсора
 	try:
 		cursor = await database.cursor()
 	except Exception:
 		logger.error("Invalid database connection")
 		return None
 
-	logger.info(f'Removing rows from "{table}": rowids={rowids}...')
-
-	if rowids is None:
-		logger.error("rowids list must be provided")
+	# Проверка наличия фильтра
+	if not filters or not isinstance(filters, dict):
+		logger.error("Invalid filter argument (must be non-empty dict)")
 		return None
 
+	# Решаем str или enum в таблицу SQL
 	try:
 		table_sql = _resolve_table(table)
 	except Exception:
@@ -381,30 +385,20 @@ async def remove_list(
 		return None
 
 	try:
-		rowid_list = []
-		for r in rowids:
-			if isinstance(r, int):
-				rowid_list.append(r)
-			else:
-				rowid_list.append(int(r))
-	except Exception:
-		logger.exception("Invalid rowid in rowids; all rowids must be INTEGER")
-		return None
+		# Собираем WHERE часть через существующую функцию
+		where_sql, params = _build_where_clause(filters, operator)
 
-	if len(rowid_list) == 0:
-		logger.info("Empty rowid list; nothing to delete")
-		return 0
+		# Формируем SQL запрос на удаление
+		delete_sql = f"DELETE FROM {table_sql}{where_sql}"
+		logger.debug("SQL (delete_all): %s -- params=%s", delete_sql, params)
 
-	try:
-		placeholders = ", ".join("?" for _ in rowid_list)
-		delete_sql = f"DELETE FROM {table_sql} WHERE rowid IN ({placeholders})"
-		logger.debug("SQL (bulk delete): %s -- params=%s", delete_sql, rowid_list)
-		await cursor.execute(delete_sql, tuple(rowid_list))
-		deleted = cursor.rowcount if isinstance(cursor.rowcount, int) and cursor.rowcount >= 0 else None
-		if deleted is None:
-			deleted = len(rowid_list)
-		logger.info("Deleted %d rows (requested %d)", deleted, len(rowid_list))
-		return deleted, cursor
+		# Выполняем SQL запрос
+		await cursor.execute(delete_sql, params)
+		deleted = cursor.rowcount if isinstance(cursor.rowcount, int) and cursor.rowcount >= 0 else 0
+
+		logger.info("Successfully deleted %d rows", deleted)
+		return deleted
+
 	except Exception as e:
 		logger.exception(e)
 		return None
