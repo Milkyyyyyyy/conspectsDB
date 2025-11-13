@@ -120,10 +120,12 @@ async def callback_handler(call):
 	user_id = call.from_user.id
 	chat_id = call.message.chat.id
 	message_id = call.message.id
+
 	try:
 		await bot.answer_callback_query(call.id)
 	except Exception as e:
 		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
+
 	action = call_factory.parse(callback_data=call.data)['action']
 	match action:
 		case 'back_to_menu':
@@ -183,9 +185,20 @@ async def callback_handler(call):
 				chat_id=chat_id,
 				previous_message_id=message_id
 			)
+		case 'delete_subject':
+			await delete_subject(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'edit_subject_connection':
+			await edit_subject_connections(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
 		case 'show_database':
 			await print_subdivisions(chat_id)
-
 
 
 
@@ -302,11 +315,27 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 			action='add_subject'
 		)
 	)
+	delete_subject_button = InlineKeyboardButton(
+		'Удалить предмет',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='delete_subject'
+		)
+	)
+	edit_subject_connection_button = InlineKeyboardButton(
+		'Добавить направление к предмету',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='edit_subject_connection'
+		)
+	)
+
 	markup.row(add_facult_button, add_chair_button)
 	markup.row(add_direction_button)
 	markup.row(delete_facult_button, delete_chair_button)
 	markup.row(delete_direction_button)
-	markup.row(add_subject_button)
+	markup.row(add_subject_button, delete_subject_button)
+	markup.row(edit_subject_connection_button)
 	markup.row(back_button)
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Выберите действие', reply_markup=markup)
 
@@ -461,11 +490,6 @@ async def add_direction(user_id, chat_id, previous_message_id):
 			await send_temporary_message(chat_id, f'Успешно добавлено направление {new_direction_name}', delay_seconds=1)
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
-# TODO
-# async def add_subject
-# async def connect_subject_to_direction (мб другое название)
-# После этого в принципе можно делать мердж в develop, а затем и в мэйн
-
 async def delete_facult(user_id, chat_id, previous_message_id):
 	selected_facult = await select_from_database(
 		user_id,
@@ -474,142 +498,60 @@ async def delete_facult(user_id, chat_id, previous_message_id):
 		header='Выберите факультет',
 		output_field=['rowid', 'name']
 	)
-	confirm = await request_confirmation(
-		user_id,
-		chat_id,
-		text=f'Подтвердите удаление факультета "{selected_facult[1]}"',
-		previous_message_id=previous_message_id
-	)
-	if confirm:
-		try:
-			async with connect_db() as db:
-				await remove(
-					database=db,
-					table='FACULTS',
-					filters={'rowid': selected_facult[0]}
-				)
-				# Получаем все кафедры этого факультета
-				chairs = await get_all(
-					database=db,
-					table='CHAIRS',
-					filters={'facult_id': selected_facult[0]}
-				)
-		except Exception as e:
-			logger.exception(f"Can't delete facult: {e}")
-			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
-			return
-		confirm_sub_deletion = False if len(chairs) == 0 \
-			else await request_confirmation(
-				user_id,
-				chat_id,
-				text=f'Удалить все кафедры/направления, связанные с этим факультетом?\n'
-					 f'Крайне рекомендуется\n'
-					 f'Найдено <b>{len(chairs)}</b> кафедр',
-				previous_message_id=previous_message_id
+	if selected_facult is None:
+		await admin_menu(
+			user_id=user_id,
+			chat_id=chat_id,
+			previous_message_id=previous_message_id
+		)
+		return
+	try:
+		async with connect_db() as db:
+			await remove(
+				database=db,
+				table='FACULTS',
+				filters={'rowid': selected_facult[0]}
 			)
-		if confirm_sub_deletion:
-			last_message = await bot.send_message(
-				chat_id=chat_id,
-				text='Удаляю...'
+			# Получаем все кафедры этого факультета
+			chairs = await get_all(
+				database=db,
+				table='CHAIRS',
+				filters={'facult_id': selected_facult[0]}
 			)
-			last_message_id=last_message.id
-			# Для каждой кафедры удаляем все направления
-			async with connect_db() as db:
-				for chair in chairs:
-					chair_id = chair.row_id
-					await remove_all(
-						database=db,
-						table='DIRECTIONS',
-						filters={'char_id': chair_id}
-					)
-				# Удаляем все кафедры
+	except Exception as e:
+		logger.exception(f"Can't delete facult: {e}")
+		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+		return
+	confirm_sub_deletion = False if len(chairs) == 0 \
+		else await request_confirmation(
+			user_id,
+			chat_id,
+			text=f'Удалить все кафедры/направления, связанные с этим факультетом?\n'
+				 f'Крайне рекомендуется\n'
+				 f'Найдено <b>{len(chairs)}</b> кафедр',
+			previous_message_id=previous_message_id
+		)
+	if confirm_sub_deletion:
+		last_message = await bot.send_message(
+			chat_id=chat_id,
+			text='Удаляю...'
+		)
+		last_message_id=last_message.id
+		# Для каждой кафедры удаляем все направления
+		async with connect_db() as db:
+			for chair in chairs:
+				chair_id = chair.row_id
 				await remove_all(
 					database=db,
 					table='DIRECTIONS',
-					filters={'facult_id': selected_facult[0]}
+					filters={'char_id': chair_id}
 				)
-				await asyncio.sleep(0.5)
-				last_message_id = await safe_edit_message(
-					chat_id=chat_id,
-					user_id=user_id,
-					previous_message_id=last_message_id,
-					text='Готово!'
-				)
-				await delete_message_after_delay(
-					chat_id,
-					last_message_id,
-					delay_seconds=1
-				)
-	await admin_menu(
-		user_id=user_id,
-		chat_id=chat_id,
-		previous_message_id=previous_message_id
-	)
-	return
-
-async def delete_chair(user_id, chat_id, previous_message_id):
-	selected_facult = await select_from_database(
-		user_id,
-		chat_id,
-		'FACULTS',
-		header='Выберите факультет',
-		output_field='rowid'
-	)
-	selected_chair = await select_from_database(
-		user_id,
-		chat_id,
-		'CHAIRS',
-		{'facult_id': selected_facult},
-		header='Выберите кафедру',
-		output_field=['rowid', 'name']
-	)
-	confirm = await request_confirmation(
-		user_id,
-		chat_id,
-		text=f'Подтвердите удаление кафедры "{selected_chair[1]}"',
-		previous_message_id=previous_message_id
-	)
-	if confirm:
-		try:
-			async with connect_db() as db:
-				await remove(
-					database=db,
-					table='CHAIRS',
-					filters={'rowid': selected_chair[0]}
-				)
-				# Получаем все кафедры этого факультета
-				directions = await get_all(
-					database=db,
-					table='DIRECTIONS',
-					filters={'chair_id': selected_chair[0]}
-				)
-		except Exception as e:
-			logger.exception(f"Can't delete chair: {e}")
-			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
-			return
-		confirm_sub_deletion = False if len(directions) == 0 \
-			else await request_confirmation(
-				user_id,
-				chat_id,
-				text=f'Удалить все направления, связанные с этой кафедрой?\n'
-					 f'Крайне рекомендуется\n'
-					 f'Найдено <b>{len(directions)}</b> направлений',
-				previous_message_id=previous_message_id
+			# Удаляем все кафедры
+			await remove_all(
+				database=db,
+				table='DIRECTIONS',
+				filters={'facult_id': selected_facult[0]}
 			)
-		if confirm_sub_deletion:
-			last_message = await bot.send_message(
-				chat_id=chat_id,
-				text='Удаляю...'
-			)
-			last_message_id = last_message.id
-			# Для каждой кафедры удаляем все направления
-			async with connect_db() as db:
-				# Удаляем все направления
-				await remove_all(
-					database=db,
-					table='DIRECTIONS',
-					filters={'chair_id': selected_chair[0]}
-				)
 			await asyncio.sleep(0.5)
 			last_message_id = await safe_edit_message(
 				chat_id=chat_id,
@@ -629,6 +571,94 @@ async def delete_chair(user_id, chat_id, previous_message_id):
 	)
 	return
 
+async def delete_chair(user_id, chat_id, previous_message_id):
+	selected_facult = await select_from_database(
+		user_id,
+		chat_id,
+		'FACULTS',
+		header='Выберите факультет',
+		output_field='rowid'
+	)
+	if selected_facult is None:
+		await admin_menu(
+			user_id=user_id,
+			chat_id=chat_id,
+			previous_message_id=previous_message_id
+		)
+		return
+	selected_chair = await select_from_database(
+		user_id,
+		chat_id,
+		'CHAIRS',
+		{'facult_id': selected_facult},
+		header='Выберите кафедру',
+		output_field=['rowid', 'name']
+	)
+	if selected_chair is None:
+		await admin_menu(
+			user_id=user_id,
+			chat_id=chat_id,
+			previous_message_id=previous_message_id
+		)
+		return
+	try:
+		async with connect_db() as db:
+			await remove(
+				database=db,
+				table='CHAIRS',
+				filters={'rowid': selected_chair[0]}
+			)
+			# Получаем все кафедры этого факультета
+			directions = await get_all(
+				database=db,
+				table='DIRECTIONS',
+				filters={'chair_id': selected_chair[0]}
+			)
+	except Exception as e:
+		logger.exception(f"Can't delete chair: {e}")
+		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+		return
+	confirm_sub_deletion = False if len(directions) == 0 \
+		else await request_confirmation(
+			user_id,
+			chat_id,
+			text=f'Удалить все направления, связанные с этой кафедрой?\n'
+				 f'Крайне рекомендуется\n'
+				 f'Найдено <b>{len(directions)}</b> направлений',
+			previous_message_id=previous_message_id
+		)
+	if confirm_sub_deletion:
+		last_message = await bot.send_message(
+			chat_id=chat_id,
+			text='Удаляю...'
+		)
+		last_message_id = last_message.id
+		# Для каждой кафедры удаляем все направления
+		async with connect_db() as db:
+			# Удаляем все направления
+			await remove_all(
+				database=db,
+				table='DIRECTIONS',
+				filters={'chair_id': selected_chair[0]}
+			)
+		await asyncio.sleep(0.5)
+		last_message_id = await safe_edit_message(
+			chat_id=chat_id,
+			user_id=user_id,
+			previous_message_id=last_message_id,
+			text='Готово!'
+		)
+		await delete_message_after_delay(
+			chat_id,
+			last_message_id,
+			delay_seconds=1
+		)
+	await admin_menu(
+		user_id=user_id,
+		chat_id=chat_id,
+		previous_message_id=previous_message_id
+	)
+
 async def delete_direction(user_id, chat_id, previous_message_id):
 	selected_facult = await select_from_database(
 		user_id,
@@ -637,6 +667,13 @@ async def delete_direction(user_id, chat_id, previous_message_id):
 		header='Выберите факультет',
 		output_field='rowid'
 	)
+	if selected_facult is None:
+		await admin_menu(
+			user_id=user_id,
+			chat_id=chat_id,
+			previous_message_id=previous_message_id
+		)
+		return
 	selected_chair = await select_from_database(
 		user_id,
 		chat_id,
@@ -645,6 +682,13 @@ async def delete_direction(user_id, chat_id, previous_message_id):
 		header='Выберите кафедру',
 		output_field='rowid'
 	)
+	if selected_chair is None:
+		await admin_menu(
+			user_id=user_id,
+			chat_id=chat_id,
+			previous_message_id=previous_message_id
+		)
+		return
 	selected_direction = await select_from_database(
 		user_id,
 		chat_id,
@@ -653,30 +697,29 @@ async def delete_direction(user_id, chat_id, previous_message_id):
 		header='Выберите направление',
 		output_field=['rowid', 'name']
 	)
-	confirm = await request_confirmation(
-		user_id,
-		chat_id,
-		text=f'Подтвердите удаление направления "{selected_direction[1]}"',
-		previous_message_id=previous_message_id
-	)
-	if confirm:
-		try:
-			async with connect_db() as db:
-				await remove(
-					database=db,
-					table='DIRECTIONS',
-					filters={'rowid': selected_direction[0]}
-				)
-		except Exception as e:
-			logger.exception(f"Can't delete direction: {e}")
-			await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
-			return
+	if selected_direction is None:
+		await admin_menu(
+			user_id=user_id,
+			chat_id=chat_id,
+			previous_message_id=previous_message_id
+		)
+		return
+	try:
+		async with connect_db() as db:
+			await remove(
+				database=db,
+				table='DIRECTIONS',
+				filters={'rowid': selected_direction[0]}
+			)
+	except Exception as e:
+		logger.exception(f"Can't delete direction: {e}")
+		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+		return
 	await admin_menu(
 		user_id=user_id,
 		chat_id=chat_id,
 		previous_message_id=previous_message_id
 	)
-	return
 
 async def add_subject(user_id, chat_id, previous_message_id):
 	subject_name = await request(
@@ -703,6 +746,80 @@ async def add_subject(user_id, chat_id, previous_message_id):
 		case AddingRowResult.SUCCESS:
 			await send_temporary_message(chat_id, f'Успешно добавлен предмет {subject_name}', delay_seconds=1)
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
-async def add_connection_for_subject(user_id,chat_id,previous_message_id):
-	pass
-	# TODO доделать!!!
+async def delete_subject(user_id, chat_id, previous_message_id):
+	selected_subject = await select_from_database(
+		user_id,
+		chat_id,
+		'SUBJECTS',
+		header='Выберите направление',
+		output_field=['rowid','name']
+	)
+	if not selected_subject is None:
+		async with connect_db() as db:
+			await remove(
+				database=db,
+				table='SUBJECTS',
+				filters={'rowid': selected_subject[0]}
+			)
+			await remove_all(
+				database=db,
+				table='SUBJECT_DIRECTIONS',
+				filters={'subject_id': selected_subject[0]}
+			)
+async def edit_subject_connections(user_id, chat_id, previous_message_id):
+	selected_subject = await select_from_database(
+		user_id,
+		chat_id,
+		'SUBJECTS',
+		header='Выберите предмет'
+	)
+	while True:
+		async with connect_db() as db:
+			directions = await get_all(
+				database=db,
+				table='DIRECTIONS'
+			)
+			directions = list(dict(row) for row in directions)
+			already_existing_connections = await get_all(
+				database=db,
+				table='SUBJECT_DIRECTIONS'
+			)
+			existing_ids = []
+			for con in already_existing_connections:
+				existing_ids.append(con['direction_id'])
+			for direction in directions:
+				if direction['rowid'] in existing_ids:
+					direction['name'] += ' ➖'
+					direction['exist'] = True
+				else:
+					direction['name'] += ' ➕'
+					direction['exist'] = False
+
+		selected_connection = await request_list(
+			user_id,
+			chat_id,
+			header='Выберите связь',
+			items_list = directions,
+			input_field='name',
+			output_field=['rowid', 'name', 'exist']
+		)
+
+		if selected_connection is None:
+			break
+
+		if bool(selected_connection[2]):
+			async with connect_db() as db:
+				await remove(
+					database=db,
+					table='SUBJECT_DIRECTIONS',
+					filters={'rowid':selected_connection[0]}
+				)
+		else:
+			async with connect_db() as db:
+				await insert(
+					database=db,
+					table='SUBJECT_DIRECTIONS',
+					values=[selected_subject, selected_connection[0]],
+					columns=['subject_id', 'direction_id']
+				)
+	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=None)
