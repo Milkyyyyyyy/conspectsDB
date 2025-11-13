@@ -348,13 +348,13 @@ async def add_facult(user_id, chat_id, previous_message_id):
 	)
 	match result:
 		case AddingRowResult.INCORRECT_INPUT_DATA:
-			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)')
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)', delay_seconds=2)
 		case AddingRowResult.ROW_ALREADY_EXISTS:
-			await send_temporary_message(chat_id, 'Такой факультет уже существует')
+			await send_temporary_message(chat_id, 'Такой факультет уже существует', delay_seconds=2)
 		case AddingRowResult.ABORTED_BY_USER:
-			await send_temporary_message(chat_id, 'Отменяю...')
+			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлен факультет {new_facult_name}')
+			await send_temporary_message(chat_id, f'Успешно добавлен факультет {new_facult_name}', delay_seconds=1)
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
 async def add_chair(user_id, chat_id, previous_message_id):
@@ -387,13 +387,13 @@ async def add_chair(user_id, chat_id, previous_message_id):
 
 	match result:
 		case AddingRowResult.INCORRECT_INPUT_DATA:
-			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)')
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)', delay_seconds=2)
 		case AddingRowResult.ROW_ALREADY_EXISTS:
-			await send_temporary_message(chat_id, 'Такая кафедра уже существует')
+			await send_temporary_message(chat_id, 'Такая кафедра уже существует', delay_seconds=2)
 		case AddingRowResult.ABORTED_BY_USER:
-			await send_temporary_message(chat_id, 'Отменяю...')
+			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлена кафедра {new_chair_name}')
+			await send_temporary_message(chat_id, f'Успешно добавлена кафедра {new_chair_name}', delay_seconds=1)
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
 async def add_direction(user_id, chat_id, previous_message_id):
@@ -437,13 +437,13 @@ async def add_direction(user_id, chat_id, previous_message_id):
 	)
 	match result:
 		case AddingRowResult.INCORRECT_INPUT_DATA:
-			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)')
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)', delay_seconds=2)
 		case AddingRowResult.ROW_ALREADY_EXISTS:
-			await send_temporary_message(chat_id, 'Такое направление уже существует')
+			await send_temporary_message(chat_id, 'Такое направление уже существует', delay_seconds=2)
 		case AddingRowResult.ABORTED_BY_USER:
-			await send_temporary_message(chat_id, 'Отменяю...')
+			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлено направление {new_direction_name}')
+			await send_temporary_message(chat_id, f'Успешно добавлено направление {new_direction_name}', delay_seconds=1)
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
 
 # TODO
