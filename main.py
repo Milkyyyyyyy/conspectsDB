@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from code.bot.callbacks import vote_cb
 from code.bot.handlers.main_menu import main_menu
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
@@ -42,11 +41,6 @@ async def test(message):
 		chat_id=chat_id
 	)
 	print(await save_files(bot, response, 'test/download'))
-
-@bot.callback_query_handler(func=vote_cb.filter(action='open menu').check)
-async def open_menu(call):
-	await bot.answer_callback_query(call.id)
-	await main_menu(call.from_user.id, call.message.chat.id, call.message.message_id)
 
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):

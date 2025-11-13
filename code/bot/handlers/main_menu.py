@@ -5,14 +5,14 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from code.bot.callbacks import vote_cb, call_factory
-from code.bot.services.user_service import get_user_info
-from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message
-from code.logging import logger
+from code.bot.callbacks import call_factory
 from code.bot.services.requests import request
+from code.bot.services.user_service import get_user_info
 from code.bot.services.validation import validators
+from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message
 from code.database.queries import update, get
 from code.database.service import connect_db
+from code.logging import logger
 from code.utils import getkey
 
 
@@ -101,6 +101,7 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		reply_markup=markup
 	)
 
+
 async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, username=None):
 	logger.info("Showing user info: user_id=%s chat_id=%s message_id=%s", user_id, chat_id, previous_message_id)
 	try:
@@ -111,14 +112,14 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 		return
 
 	text_message = ("<blockquote><b>Информация о пользователе</b>\n\n"
-					f"<b>Имя</b>: {user_info['name']}\n"
-					f"<b>Фамилия</b>: {user_info['surname']}\n"
-					f"<b>Юзернейм</b>: @{username}\n\n"
-					f"<b>Учебная группа</b>: {user_info['study_group']}\n"
-					f"<b>Факультет</b>: {user_info['facult_name']}\n"
-					f"<b>Кафедра</b>: {user_info['chair_name']}\n"
-					f"<b>Направление</b>: {user_info['direction_name']}\n\n"
-					f"<b>Кол-во загруженных конспектов</b>: В РАЗРАБОТКЕ</blockquote>")
+	                f"<b>Имя</b>: {user_info['name']}\n"
+	                f"<b>Фамилия</b>: {user_info['surname']}\n"
+	                f"<b>Юзернейм</b>: @{username}\n\n"
+	                f"<b>Учебная группа</b>: {user_info['study_group']}\n"
+	                f"<b>Факультет</b>: {user_info['facult_name']}\n"
+	                f"<b>Кафедра</b>: {user_info['chair_name']}\n"
+	                f"<b>Направление</b>: {user_info['direction_name']}\n\n"
+	                f"<b>Кол-во загруженных конспектов</b>: В РАЗРАБОТКЕ</blockquote>")
 	markup = InlineKeyboardMarkup()
 	back_button = InlineKeyboardButton(
 		'Назад',
@@ -166,6 +167,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 		except Exception:
 			logger.exception("Also failed to send fallback error message to chat=%s", chat_id)
 
+
 async def change_name(user_id, chat_id, username, previous_message_id):
 	logger.info("Initiating change_name for user=%s chat=%s", user_id, chat_id)
 
@@ -191,7 +193,7 @@ async def change_name(user_id, chat_id, username, previous_message_id):
 		async with connect_db() as db:
 			updated = await update(
 				database=db,
-				values=[name,],
+				values=[name, ],
 				table='USERS',
 				columns=['name'],
 				filters={'telegram_id': user_id}
@@ -204,7 +206,8 @@ async def change_name(user_id, chat_id, username, previous_message_id):
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
 		await send_temporary_message(chat_id, text=text, delay_seconds=3)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id, username=username)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
 
 
 async def change_surname(user_id, chat_id, username, previous_message_id):
@@ -232,7 +235,7 @@ async def change_surname(user_id, chat_id, username, previous_message_id):
 		async with connect_db() as db:
 			updated = await update(
 				database=db,
-				values=[surname,],
+				values=[surname, ],
 				table='USERS',
 				columns=['surname'],
 				filters={'telegram_id': user_id}
@@ -245,4 +248,5 @@ async def change_surname(user_id, chat_id, username, previous_message_id):
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
 		await send_temporary_message(chat_id, text=text, delay_seconds=3)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id, username=username)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)

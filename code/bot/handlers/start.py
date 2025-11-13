@@ -3,17 +3,16 @@
 Проверка регистрации пользователя
 """
 
-import asyncio
-
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
+from code.bot.callbacks import call_factory
 from code.bot.handlers.main_menu import main_menu
 from code.bot.services.user_service import is_user_exists
-from code.bot.states import MenuStates, MainStates
+from code.bot.states import MainStates
 from code.bot.utils import delete_message_after_delay
 from code.logging import logger
-from code.bot.callbacks import call_factory
+
 
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start', 'menu'])
@@ -31,12 +30,12 @@ async def start(message):
 		text = 'Похоже, что вы не зарегистрированы. Если хотите пройти регистрацию вызовите команду /register или нажмите на кнопку ниже'
 		markup = InlineKeyboardMarkup()
 		markup.add(InlineKeyboardButton(
-				"Зарегистрироваться",
-				callback_data=call_factory.new(
-					area='registration',
-					action="register"
-				)
+			"Зарегистрироваться",
+			callback_data=call_factory.new(
+				area='registration',
+				action="register"
 			)
+		)
 		)
 
 		await bot.reply_to(message, text, reply_markup=markup)
