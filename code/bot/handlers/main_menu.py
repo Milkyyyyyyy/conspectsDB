@@ -5,39 +5,54 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from code.bot.callbacks import vote_cb
+from code.bot.callbacks import vote_cb, call_factory
 from code.bot.services.user_service import get_user_info
-from code.bot.utils import get_greeting, send_temporary_message
+from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message
 from code.logging import logger
 from code.bot.services.requests import request
 from code.bot.services.validation import validators
-from code.database.queries import update
+from code.database.queries import update, get
 from code.database.service import connect_db
+from code.utils import getkey
 
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'User({user_id}) is requesting main menu.')
 
-	greeting = await get_greeting()
-	# Собираем markup
+	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+		is_user_moderator = await getkey(data, 'is_user_moderator', None)
+		if is_user_moderator is None:
+			async with connect_db() as db:
+				user_row = await get(database=db, table='USERS', filters={'telegram_id': user_id})
+				is_user_moderator = (user_row['role'] in ('moderator', 'admin'))
+				data['is_user_moderator'] = is_user_moderator
+		is_user_moderator = bool(is_user_moderator)
+
+	# Собираем reply_markup
 	markup = InlineKeyboardMarkup()
-	show_info = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
-	markup.row(show_info)
-	try:
-		if previous_message_id is None:
-			message = await bot.send_message(chat_id=chat_id, text=greeting, reply_markup=markup, parse_mode='HTML')
-			logger.info("Sent new main menu message to user=%s chat=%s message_id=%s",
-			            user_id, chat_id, getattr(message, "message_id", getattr(message, "id", None)))
-		else:
-			try:
-				await bot.edit_message_text(text=greeting, chat_id=chat_id, message_id=previous_message_id,
-												parse_mode='HTML')
-				await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
-				logger.info("Edited existing message %s with main menu for user=%s chat=%s",
-				            previous_message_id, user_id, chat_id)
-			except Exception as e:
-				logger.error("Can't edit message with id {%s}", previous_message_id)
-	except Exception as e:
-		logger.error(f'Unexpected error: {e}')
+	show_info_button = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
+	upload_conspect_button = InlineKeyboardButton('Загрузить конспект', callback_data='upload_conspect')
+	markup.row(upload_conspect_button)
+	markup.row(show_info_button)
+
+	# Если юзер модератор, добавляем кнопку с доступом к панели админа
+	if is_user_moderator:
+		moderator_menu = InlineKeyboardButton(
+			'Админ панель',
+			callback_data=call_factory.new(
+				area='admin_menu',
+				action='admin_menu'
+			)
+		)
+		markup.row(moderator_menu)
+
+	greeting = await get_greeting()
+	await safe_edit_message(
+		previous_message_id,
+		chat_id,
+		user_id,
+		text=greeting,
+		reply_markup=markup
+	)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'show_info')
 async def call_show_info(call):
@@ -63,7 +78,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 		user_info = await get_user_info(chat_id=chat_id, user_id=user_id)
 	except Exception as e:
 		logger.exception(f"Failed to get user_info for user=%s chat=%s", user_id, chat_id)
-		await send_temporary_message(bot, chat_id, 'Произошла ошибка')
+		await send_temporary_message(chat_id, 'Произошла ошибка')
 		return
 
 	text_message = ("<blockquote><b>Информация о пользователе</b>\n\n"
@@ -98,7 +113,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 	except Exception:
 		logger.exception("Failed to display user info for user=%s chat=%s", user_id, chat_id)
 		try:
-			await send_temporary_message(bot, chat_id, text='Не удалось отобразить информацию. Попробуйте ещё раз.',
+			await send_temporary_message(chat_id, text='Не удалось отобразить информацию. Попробуйте ещё раз.',
 			                             delay_seconds=3)
 		except Exception:
 			logger.exception("Also failed to send fallback error message to chat=%s", chat_id)
@@ -128,7 +143,7 @@ async def change_name(call):
 		return
 	if not isinstance(name, str):
 		logger.info('User %s provided invalid name input: %r', user_id, name)
-		await send_temporary_message(bot, chat_id, text='Имя не было изменено.', delay_seconds=10)
+		await send_temporary_message(chat_id, text='Имя не было изменено.', delay_seconds=10)
 		return
 
 	updated = None
@@ -144,11 +159,11 @@ async def change_name(call):
 			logger.info("Database update result for user=%s: %r", user_id, updated)
 	except Exception as e:
 		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
-		await send_temporary_message(bot, chat_id, text='Произошла ошибка!', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
 		return
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
-		await send_temporary_message(bot, chat_id, text=text, delay_seconds=3)
+		await send_temporary_message(chat_id, text=text, delay_seconds=3)
 		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'change_surname')
@@ -176,7 +191,7 @@ async def change_surname(call):
 		return
 	if not isinstance(surname, str):
 		logger.info('User %s provided invalid name input: %r', user_id, surname)
-		await send_temporary_message(bot, chat_id, text='Фамилия не была изменена.', delay_seconds=10)
+		await send_temporary_message(chat_id, text='Фамилия не была изменена.', delay_seconds=10)
 		return
 
 	updated = None
@@ -192,9 +207,9 @@ async def change_surname(call):
 			logger.info("Database update result for user=%s: %r", user_id, updated)
 	except Exception as e:
 		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
-		await send_temporary_message(bot, chat_id, text='Произошла ошибка!', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
 		return
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
-		await send_temporary_message(bot, chat_id, text=text, delay_seconds=3)
+		await send_temporary_message(chat_id, text=text, delay_seconds=3)
 		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)

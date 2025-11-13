@@ -17,7 +17,7 @@ from code.logging import logger
 # Обрабатываем команду /start
 @bot.message_handler(commands=['start', 'menu'])
 async def start(message):
-	await delete_message_after_delay(bot, message.chat.id, message.message_id, delay_seconds=5)
+	await delete_message_after_delay(message.chat.id, message.message_id, delay_seconds=5)
 	user_id = message.from_user.id
 	logger.info('The /start command has been invoked by user %s.', user_id)
 	# Проверяем, существует ли пользователь

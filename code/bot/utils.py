@@ -8,10 +8,11 @@ from random import choice
 from zoneinfo import ZoneInfo
 
 from code.logging import logger
+from code.bot.bot_instance import bot
 
 
 # TODO Поправить логи
-async def delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_seconds=10):
+async def delete_message_after_delay_interrupt(chat_id, message_id, delay_seconds=10):
 	"""
 	Удаляет сообщение через указанное время (с возможностью прерывания)
 	"""
@@ -46,15 +47,44 @@ async def delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_s
 		               extra={"chat_id": chat_id, "message_id": message_id})
 
 
-async def delete_message_after_delay(bot, chat_id, message_id, delay_seconds=10):
-	asyncio.create_task(delete_message_after_delay_interrupt(bot, chat_id, message_id, delay_seconds))
+async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
+	asyncio.create_task(delete_message_after_delay_interrupt(chat_id, message_id, delay_seconds))
 
 
-async def send_temporary_message(bot, chat_id, text, delay_seconds=10):
+async def send_temporary_message(chat_id, text, delay_seconds=10):
 	message = await bot.send_message(chat_id, text, parse_mode='HTML')
-	asyncio.create_task(delete_message_after_delay_interrupt(bot=bot, chat_id=chat_id, message_id=message.message_id,
+	asyncio.create_task(delete_message_after_delay_interrupt(chat_id=chat_id, message_id=message.message_id,
 	                                                         delay_seconds=delay_seconds))
 
+async def safe_edit_message(
+		previous_message_id=None,
+		chat_id=None,
+		user_id=None,
+		text='Не был введён текст',
+		reply_markup=None
+):
+	if chat_id is None or user_id is None:
+		return
+	try:
+		if not previous_message_id is None:
+			try:
+				logger.debug("Trying to edit message (%s) text and markup...", previous_message_id)
+				await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
+				await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=reply_markup)
+				return previous_message_id
+			except:
+				logger.error("Can't edit message => just sending it")
+				message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+				return message.id
+			finally:
+				logger.debug("Successfully edited message (%s) text and markup", previous_message_id)
+		else:
+			logger.debug('There is no previous_message_id => just sending it')
+			message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+			return message.id
+	except:
+		logger.error("Unexpected error")
+		return
 
 async def get_greeting():
 	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
@@ -66,7 +96,7 @@ async def get_greeting():
 	elif 18 <= hour < 23:
 		greet = 'Добрый вечер'
 	else:
-		greet = 'Доброй ночи.'
+		greet = 'Доброй ночи'
 	phrases = ['С чего начнём?', 'Выберите нужную вам кнопку', 'Выберите действие ниже',
 	           'Рад вас видеть.\nВыберите действие']
 	return f'<b>{greet}!</b>\n\n{choice(phrases)}'
