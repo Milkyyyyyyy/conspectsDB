@@ -340,7 +340,7 @@ async def remove(
 		logger.debug("SQL (delete): %s -- params=%s", delete_sql, (rowid,))
 
 		# Выполняем SQL запрос
-		cursor.execute(delete_sql, (rowid,))
+		await cursor.execute(delete_sql, (rowid,))
 		logger.info("Successfully deleted row")
 		return True
 	except Exception as e:
