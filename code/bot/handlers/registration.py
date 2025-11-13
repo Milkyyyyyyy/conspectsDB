@@ -9,36 +9,30 @@ from code.bot.utils import delete_message_after_delay, send_temporary_message
 from code.database.queries import get_all
 from code.database.service import connect_db
 from code.logging import logger
+from code.bot.callbacks import call_factory
 
 
-# =================== Регистрация ===================
-# Обработка команды кнопки регистрации
-# TODO Переделать структуру callback'ов
-@bot.callback_query_handler(func=lambda call: call.data == 'register')
-async def callback_start_register(call):
-	logger.info("Callback 'register' received",
-	            extra={"user_id": getattr(call.from_user, "id", None),
-	                   "chat_id": getattr(call.message.chat, "id", None),
-	                   "message_id": getattr(call.message, "message_id", None)})
+@bot.callback_query_handler(func=call_factory.filter(area='registration').check)
+async def callback_handler(call):
+	logger.debug('Handle callback in registration...')
+	user_id = call.from_user.id
+	chat_id = call.message.chat.id
+	message_id = call.message.id
+
 	try:
 		await bot.answer_callback_query(call.id)
 	except Exception as e:
-		logger.exception("Failed to answer callback query", exc_info=e)
-	# Удаляем кнопку регистрации из сообщения (если не получилось, то ничего не делаем
-	try:
-		await bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-		logger.debug("Removed reply_markup from message",
-		             extra={"chat_id": call.message.chat.id, "message_id": call.message.message_id})
-	except Exception as e:
-		logger.warning("Couldn't remove reply_markup (non-critical)", exc_info=e)
+		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
 
-	# Запускаем регистрацию
-	await cmd_register(user_id=call.from_user.id, chat_id=call.message.chat.id)
-
+	action = call_factory.parse(callback_data=call.data)['action']
+	match action:
+		case 'start_register':
+			await start_registration(user_id=user_id, chat_id=chat_id)
+			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=message_id, reply_markup=None)
 
 # Обработка команды /register
 @bot.message_handler(commands=['register'])
-async def cmd_register(message=None, user_id=None, chat_id=None):
+async def start_registration(message=None, user_id=None, chat_id=None):
 	# Если на вход не подано user_id и chat_id, получаем эту информацию из объекта message
 	if user_id is None:
 		user_id = message.from_user.id
@@ -60,7 +54,11 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 	# Если пользователь найден, обрываем процесс регистрации
 	if isUserExists:
 		logger.info("User already exists — stopping registration", extra={"user_id": user_id})
-		await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
+		await send_temporary_message(
+			chat_id=chat_id,
+			text='Вы уже зарегистрированы.',
+			delay_seconds=2
+		)
 		return
 
 	# Запрашиваем у пользователя всю нужную информацию
@@ -220,7 +218,7 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 		)
 	else:
 		logger.info("User requested to repeat registration", extra={"user_id": user_id})
-		await cmd_register(user_id=user_id, chat_id=chat_id)
+		await start_registration(user_id=user_id, chat_id=chat_id)
 		return
 
 

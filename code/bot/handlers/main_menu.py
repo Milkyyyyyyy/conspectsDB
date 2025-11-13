@@ -1,7 +1,6 @@
 """
 В этом файле происходит обработка главного меню (пока что это только само главное меню и вывод информации о пользователе)
 """
-# TODO Переделать структуру callback'ов
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -16,6 +15,37 @@ from code.database.queries import update, get
 from code.database.service import connect_db
 from code.utils import getkey
 
+
+@bot.callback_query_handler(func=call_factory.filter(area='main_menu').check)
+async def callback_handler(call):
+	logger.debug('Handle callback in main_menu...')
+	user_id = call.from_user.id
+	chat_id = call.message.chat.id
+	message_id = call.message.id
+	username = call.from_user.username
+
+	try:
+		await bot.answer_callback_query(call.id)
+	except Exception as e:
+		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
+
+	action = call_factory.parse(callback_data=call.data)['action']
+	match action:
+		case 'main_menu':
+			await main_menu(user_id, chat_id, message_id)
+		case 'show_info':
+			await print_user_info(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id,
+				username=username
+			)
+		case 'change_name':
+			await change_name(user_id, chat_id, username, message_id)
+		case 'change_surname':
+			await change_surname(user_id, chat_id, username, message_id)
+
+
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'User({user_id}) is requesting main menu.')
 
@@ -23,15 +53,31 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		is_user_moderator = await getkey(data, 'is_user_moderator', None)
 		if is_user_moderator is None:
 			async with connect_db() as db:
-				user_row = await get(database=db, table='USERS', filters={'telegram_id': user_id})
+				user_row = await get(
+					database=db,
+					table='USERS',
+					filters={'telegram_id': user_id}
+				)
 				is_user_moderator = (user_row['role'] in ('moderator', 'admin'))
 				data['is_user_moderator'] = is_user_moderator
 		is_user_moderator = bool(is_user_moderator)
 
 	# Собираем reply_markup
 	markup = InlineKeyboardMarkup()
-	show_info_button = InlineKeyboardButton('О пользователе 👤', callback_data='show_info')
-	upload_conspect_button = InlineKeyboardButton('Загрузить конспект', callback_data='upload_conspect')
+	show_info_button = InlineKeyboardButton(
+		'О пользователе 👤',
+		callback_data=call_factory.new(
+			area='main_menu',
+			action='show_info'
+		)
+	)
+	upload_conspect_button = InlineKeyboardButton(
+		'Загрузить конспект',
+		callback_data=call_factory.new(
+			area='conspects_menu',
+			action='upload_conspect'
+		)
+	)
 	markup.row(upload_conspect_button)
 	markup.row(show_info_button)
 
@@ -55,24 +101,6 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		reply_markup=markup
 	)
 
-@bot.callback_query_handler(func=lambda call: call.data == 'show_info')
-async def call_show_info(call):
-	# Ответ на callback
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception as e:
-		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
-
-	# Получаем информацию из callback
-	user_id = call.from_user.id
-	chat_id = call.message.chat.id
-	previous_message_id = call.message.id
-	username = call.from_user.username
-
-	logger.debug("Callback show_info: user_id=%s chat_id=%s previous_message_id=%s",
-	             user_id, chat_id, previous_message_id)
-	await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id, username=username)
-
 async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, username=None):
 	logger.info("Showing user info: user_id=%s chat_id=%s message_id=%s", user_id, chat_id, previous_message_id)
 	try:
@@ -92,10 +120,27 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 					f"<b>Направление</b>: {user_info['direction_name']}\n\n"
 					f"<b>Кол-во загруженных конспектов</b>: В РАЗРАБОТКЕ</blockquote>")
 	markup = InlineKeyboardMarkup()
-	back_button = InlineKeyboardButton('Назад',
-									   callback_data=vote_cb.new(action='open menu', amount=str(previous_message_id)))
-	change_name_button = InlineKeyboardButton('Изменить имя', callback_data='change_name')
-	change_surname_button = InlineKeyboardButton('Изменить фамилию', callback_data='change_surname')
+	back_button = InlineKeyboardButton(
+		'Назад',
+		callback_data=call_factory.new(
+			area='main_menu',
+			action='main_menu'
+		)
+	)
+	change_name_button = InlineKeyboardButton(
+		'Изменить имя',
+		callback_data=call_factory.new(
+			area='main_menu',
+			action='change_name'
+		)
+	)
+	change_surname_button = InlineKeyboardButton(
+		'Изменить фамилию',
+		callback_data=call_factory.new(
+			area='main_menu',
+			action='change_surname'
+		)
+	)
 	markup.row(change_name_button, change_surname_button)
 	markup.row(back_button)
 	try:
@@ -105,10 +150,12 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 			logger.info("Sent user info as new message to chat=%s message_id=%s", chat_id,
 			            getattr(sent, "message_id", getattr(sent, "id", None)))
 		else:
-			await bot.edit_message_text(text=text_message,
-			                            chat_id=chat_id,
-			                            message_id=previous_message_id,
-			                            parse_mode='HTML')
+			await bot.edit_message_text(
+				text=text_message,
+				chat_id=chat_id,
+				message_id=previous_message_id,
+				parse_mode='HTML'
+			)
 			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
 			logger.info("Updated message %s with user info for user=%s", previous_message_id, user_id)
 	except Exception:
@@ -119,15 +166,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 		except Exception:
 			logger.exception("Also failed to send fallback error message to chat=%s", chat_id)
 
-@bot.callback_query_handler(func=lambda call: call.data == 'change_name')
-async def change_name(call):
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception:
-		logger.exception("Failed to answer callback_query (change_name) for user=%s",
-		                 getattr(call.from_user, "id", None))
-
-	user_id, chat_id, username = call.from_user.id, call.message.chat.id, call.from_user.username
+async def change_name(user_id, chat_id, username, previous_message_id):
 	logger.info("Initiating change_name for user=%s chat=%s", user_id, chat_id)
 
 	name = None
@@ -165,17 +204,10 @@ async def change_name(call):
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
 		await send_temporary_message(chat_id, text=text, delay_seconds=3)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id, username=username)
 
-@bot.callback_query_handler(func=lambda call: call.data == 'change_surname')
-async def change_surname(call):
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception:
-		logger.exception("Failed to answer callback_query for user=%s",
-		                 getattr(call.from_user, "id", None))
 
-	user_id, chat_id, username = call.from_user.id, call.message.chat.id, call.from_user.username
+async def change_surname(user_id, chat_id, username, previous_message_id):
 	logger.info("Initiating change_name for user=%s chat=%s", user_id, chat_id)
 
 	surname = None
@@ -213,4 +245,4 @@ async def change_surname(call):
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
 		await send_temporary_message(chat_id, text=text, delay_seconds=3)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=call.message.message_id, username=username)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id, username=username)

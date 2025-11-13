@@ -10,8 +10,6 @@ from zoneinfo import ZoneInfo
 from code.logging import logger
 from code.bot.bot_instance import bot
 
-
-# TODO Поправить логи
 async def delete_message_after_delay_interrupt(chat_id, message_id, delay_seconds=10):
 	"""
 	Удаляет сообщение через указанное время (с возможностью прерывания)
@@ -67,17 +65,22 @@ async def safe_edit_message(
 		return
 	try:
 		if not previous_message_id is None:
-			try:
-				logger.debug("Trying to edit message (%s) text and markup...", previous_message_id)
-				await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
-				await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=reply_markup)
-				return previous_message_id
-			except:
-				logger.error("Can't edit message => just sending it")
-				message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
-				return message.id
-			finally:
-				logger.debug("Successfully edited message (%s) text and markup", previous_message_id)
+			attempt = 0
+			while attempt < 3:
+				try:
+					logger.debug("Trying to edit message (%s) text and markup...", previous_message_id)
+					await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
+					await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=reply_markup)
+					return previous_message_id
+				except:
+					attempt += 1
+					await asyncio.sleep(0.1)
+				finally:
+					logger.debug("Successfully edited message (%s) text and markup", previous_message_id)
+					return
+			logger.error("Can't edit message => just sending it")
+			message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+			return message.id
 		else:
 			logger.debug('There is no previous_message_id => just sending it')
 			message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)

@@ -1,5 +1,3 @@
-# TODO ДОБАВИТЬ ЛОГИ!!!
-
 import asyncio
 from typing import List
 
