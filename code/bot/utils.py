@@ -7,8 +7,9 @@ from datetime import datetime
 from random import choice
 from zoneinfo import ZoneInfo
 
-from code.logging import logger
 from code.bot.bot_instance import bot
+from code.logging import logger
+
 
 async def delete_message_after_delay_interrupt(chat_id, message_id, delay_seconds=10):
 	"""
@@ -54,13 +55,9 @@ async def send_temporary_message(chat_id, text, delay_seconds=10):
 	asyncio.create_task(delete_message_after_delay_interrupt(chat_id=chat_id, message_id=message.message_id,
 	                                                         delay_seconds=delay_seconds))
 
+
 async def safe_edit_message(
-		previous_message_id=None,
-		chat_id=None,
-		user_id=None,
-		text='Не был введён текст',
-		reply_markup=None
-):
+		previous_message_id=None, chat_id=None, user_id=None, text='Не был введён текст', reply_markup=None):
 	if chat_id is None or user_id is None:
 		return
 	try:
@@ -69,8 +66,10 @@ async def safe_edit_message(
 			while attempt < 3:
 				try:
 					logger.debug("Trying to edit message (%s) text and markup...", previous_message_id)
-					await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id, parse_mode='HTML')
-					await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=reply_markup)
+					await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id,
+					                            parse_mode='HTML')
+					await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id,
+					                                    reply_markup=reply_markup)
 					return previous_message_id
 				except:
 					attempt += 1
@@ -88,6 +87,7 @@ async def safe_edit_message(
 	except:
 		logger.error("Unexpected error")
 		return
+
 
 async def get_greeting():
 	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))

@@ -1,6 +1,7 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
+from code.bot.callbacks import call_factory
 from code.bot.handlers.main_menu import main_menu
 from code.bot.services.requests import request, request_list, request_confirmation
 from code.bot.services.user_service import is_user_exists, save_user_in_database
@@ -9,7 +10,6 @@ from code.bot.utils import delete_message_after_delay, send_temporary_message
 from code.database.queries import get_all
 from code.database.service import connect_db
 from code.logging import logger
-from code.bot.callbacks import call_factory
 
 
 @bot.callback_query_handler(func=call_factory.filter(area='registration').check)
@@ -29,6 +29,7 @@ async def callback_handler(call):
 		case 'start_register':
 			await start_registration(user_id=user_id, chat_id=chat_id)
 			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=message_id, reply_markup=None)
+
 
 # Обработка команды /register
 @bot.message_handler(commands=['register'])
@@ -160,6 +161,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 		direction=direction
 	)
 
+
 async def stop_registration(chat_id):
 	logger.info("stop_registration called — user cancelled the flow", extra={"chat_id": chat_id})
 	await send_temporary_message(chat_id, 'Завершаю регистрацию...', delay_seconds=10)
@@ -167,8 +169,9 @@ async def stop_registration(chat_id):
 
 
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
-async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None,
-							  direction=None):
+async def accept_registration(
+		user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None,
+		direction=None):
 	logger.debug("Presenting registration confirmation to user",
 	             extra={"user_id": user_id, "chat_id": chat_id,
 	                    "name": name, "surname": surname, "group": group,
@@ -179,12 +182,12 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 	buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
 	buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
 	text = (f"Проверьте правильность данных\n\n"
-			f"<blockquote><b>Имя</b>: {name}\n"
-			f"<b>Фамилия</b>: {surname}\n"
-			f"<b>Учебная группа</b>: {group}\n\n"
-			f"<b>Факультет</b>: {facult[0]}\n"
-			f"<b>Кафедра</b>: {chair[0]}\n"
-			f"<b>Направление</b>: {direction[0]}</blockquote>\n")
+	        f"<blockquote><b>Имя</b>: {name}\n"
+	        f"<b>Фамилия</b>: {surname}\n"
+	        f"<b>Учебная группа</b>: {group}\n\n"
+	        f"<b>Факультет</b>: {facult[0]}\n"
+	        f"<b>Кафедра</b>: {chair[0]}\n"
+	        f"<b>Направление</b>: {direction[0]}</blockquote>\n")
 	try:
 		response = await request_confirmation(
 			user_id=user_id,
@@ -223,8 +226,9 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 
 
 # Завершает регистрацию
-async def end_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None,
-						   role=None):
+async def end_registration(
+		user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None,
+		role=None):
 	logger.debug("Starting end_registration", extra={"user_id": user_id, "direction_id": direction_id, "role": role})
 	previous_message = await bot.send_message(chat_id, 'Завершаю регистрацию...')
 	previous_message_id = previous_message.id
