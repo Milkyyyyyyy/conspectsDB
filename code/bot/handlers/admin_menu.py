@@ -177,6 +177,12 @@ async def callback_handler(call):
 				chat_id=chat_id,
 				previous_message_id=message_id
 			)
+		case 'add_subject':
+			await add_subject(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
 		case 'show_database':
 			await print_subdivisions(chat_id)
 
@@ -288,10 +294,19 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 			action='delete_direction'
 		)
 	)
+
+	add_subject_button = InlineKeyboardButton(
+		'Добавить предмет',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='add_subject'
+		)
+	)
 	markup.row(add_facult_button, add_chair_button)
 	markup.row(add_direction_button)
 	markup.row(delete_facult_button, delete_chair_button)
 	markup.row(delete_direction_button)
+	markup.row(add_subject_button)
 	markup.row(back_button)
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Выберите действие', reply_markup=markup)
 
@@ -662,3 +677,32 @@ async def delete_direction(user_id, chat_id, previous_message_id):
 		previous_message_id=previous_message_id
 	)
 	return
+
+async def add_subject(user_id, chat_id, previous_message_id):
+	subject_name = await request(
+		user_id,
+		chat_id,
+		request_message='Введите название предмета'
+	)
+	result = await add_row(
+		user_id,
+		chat_id,
+		f'Подтвердите добавление предмета "{subject_name}"',
+		table='SUBJECTS',
+		values=[subject_name],
+		columns=['name', ],
+		previous_message_id=previous_message_id
+	)
+	match result:
+		case AddingRowResult.INCORRECT_INPUT_DATA:
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)', delay_seconds=2)
+		case AddingRowResult.ROW_ALREADY_EXISTS:
+			await send_temporary_message(chat_id, 'Такой предмет уже существует', delay_seconds=2)
+		case AddingRowResult.ABORTED_BY_USER:
+			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
+		case AddingRowResult.SUCCESS:
+			await send_temporary_message(chat_id, f'Успешно добавлен предмет {subject_name}', delay_seconds=1)
+	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+async def add_connection_for_subject(user_id,chat_id,previous_message_id):
+	pass
+	# TODO доделать!!!
