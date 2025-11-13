@@ -133,6 +133,7 @@ async def get_all(
 	:param table:    str, Enum          --> Название таблицы из Tables
 	:param filters:  dict, str          --> Фильтры
 	:param operator: str                --> Оператор фильтра, "AND" или "OR"
+	:param columns: str                 --> Поля, которые будут выбраны
 
 	:return: list --> список всех найденных записей
 
@@ -261,7 +262,7 @@ async def is_exists(
 
 	# Проверяем, заданы ли фильтры
 	if not filters or not isinstance(filters, dict):
-		logger.error("Invalid filter argument")
+		logger.error("Invalid filters argument")
 		return None
 
 	try:
@@ -304,7 +305,7 @@ async def remove(
 
 	# Проверка наличия фильтра
 	if not filters or not isinstance(filters, dict):
-		logger.error("Invalid filter argument")
+		logger.error("Invalid filters argument")
 		return False
 
 	# Решаем str или enum в таблицу SQL
@@ -374,7 +375,7 @@ async def remove_all(
 
 	# Проверка наличия фильтра
 	if not filters or not isinstance(filters, dict):
-		logger.error("Invalid filter argument (must be non-empty dict)")
+		logger.error("Invalid filters argument (must be non-empty dict)")
 		return None
 
 	# Решаем str или enum в таблицу SQL
@@ -407,13 +408,13 @@ async def remove_all(
 async def insert(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
-		filter: Dict[str, Any] = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
+		filters: Dict[str, Any] = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
 	"""
 	Вставляет запись в таблицу.
 
 	:param database: aiosqlite.Connection  --> Датабаза
 	:param table:   enum, str              --> Название таблицы из Tables
-	:param filter:  dict                   --> {column: value, ...}
+	:param filters:  dict                   --> {column: value, ...}
 
 	:return: Истинность добавления; последний rowid, если доступен; курсор (нужен для получения названий полей)
 	"""
@@ -423,17 +424,17 @@ async def insert(
 		logger.error("Invalid database connection")
 		return False
 
-	logger.info(f'Inserting into "{table}": filter={filter}')
+	logger.info(f'Inserting into "{table}": filters={filters}')
 
-	# Проверка filter
-	if not filter or not isinstance(filter, dict):
+	# Проверка filters
+	if not filters or not isinstance(filters, dict):
 		logger.error("Filter must be a non-empty dict")
 		return False
 
 	# Преобразуем ключи/значения
 	try:
-		cols = list(filter.keys())
-		vals = list(filter.values())
+		cols = list(filters.keys())
+		vals = list(filters.values())
 	except Exception:
 		logger.exception("Filter must be a dict-like mapping of column->value")
 		return False
@@ -441,7 +442,6 @@ async def insert(
 	if len(cols) == 0:
 		logger.error("Filter must contain at least one column")
 		return False
-
 	# Разрешаем имя таблицы
 	try:
 		table_sql = _resolve_table(table)
@@ -454,7 +454,7 @@ async def insert(
 		safe_cols = ", ".join(_safe_identifier(c) for c in cols)
 		columns_sql = f"({safe_cols})"
 	except Exception:
-		logger.exception("Invalid column name in filter")
+		logger.exception("Invalid column name in filters")
 		return False
 
 	# Формируем placeholders и SQL
@@ -531,7 +531,7 @@ async def update(
 
 	# filters обязателен для безопасного обновления
 	if not filters or not isinstance(filters, dict):
-		logger.error("Invalid filter argument (must be non-empty dict)")
+		logger.error("Invalid filters argument (must be non-empty dict)")
 		return False
 
 	# разрешаем имя таблицы

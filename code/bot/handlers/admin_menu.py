@@ -413,8 +413,7 @@ class AddingRowResult(Enum):
 async def add_row(
 		user_id, chat_id, accept_message='Подтвердите добавление',
 		table=None,
-		values: list = None,
-		columns: list = None,
+		filters: dict = None,
 		previous_message_id=None,
 ):
 	"""
@@ -424,23 +423,12 @@ async def add_row(
 	:param chat_id: ID чата.
 	:param accept_message: Сообщение, которое будет выведено пользователю.
 	:param table: Название таблицы из датабазы
-	:param values: Значения, которые будут добавлены в датабазу
-	:param columns: Соответствующие значениям поля из датабазы
 	:param previous_message_id: ID прошлого сообщения
 	:return: AddingRowResult Enum с результатом добавления
 	"""
-	if None in (table, values, columns):
-		logger.error('Incorrect input data: table=%s, values=%s, columns=%s', type(table), type(values), type(columns))
+	if None in (table, filters, ):
+		logger.error('Incorrect input data: table=%s, filters=', type(table), filters)
 		return AddingRowResult.INCORRECT_INPUT_DATA
-	if len(values) != len(columns):
-		logger.error('Incorrect input data: the lengths of values and columns are not equal (%s and %s)', len(values),
-		             len(columns))
-		return AddingRowResult.INCORRECT_INPUT_DATA
-
-	# Переводим values и columns в словарь фильтр
-	filters = {}
-	for i in range(0, len(columns)):
-		filters[columns[i]] = i
 
 	async with connect_db() as db:
 		is_already_exists = await is_exists(database=db, table=table, filters=filters)
@@ -450,7 +438,7 @@ async def add_row(
 		insert_new_row_accept = await request_confirmation(user_id, chat_id, accept_message,
 		                                                   previous_message_id=previous_message_id)
 		if insert_new_row_accept:
-			await insert(database=db, table=table, values=values, columns=columns)
+			await insert(database=db, table=table, filters=filters)
 		else:
 			return AddingRowResult.ABORTED_BY_USER
 	return AddingRowResult.SUCCESS
@@ -475,8 +463,7 @@ async def add_facult(user_id, chat_id, previous_message_id):
 		chat_id,
 		f'Подтвердите добавление факультета "{new_facult_name}"',
 		table='FACULTS',
-		values=[new_facult_name],
-		columns=['name', ],
+		filters={'name': new_facult_name},
 		previous_message_id=previous_message_id
 	)
 	match result:
@@ -954,7 +941,9 @@ async def edit_subject_connections(user_id, chat_id, previous_message_id):
 				await insert(
 					database=db,
 					table='SUBJECT_DIRECTIONS',
-					values=[selected_subject, selected_connection[0]],
-					columns=['subject_id', 'direction_id']
+					filters={
+					'subject_id': selected_subject,
+					'direction_id': selected_connection[0]
+					}
 				)
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=None)
