@@ -1,6 +1,7 @@
 """
 В этом файле происходит обработка главного меню (пока что это только само главное меню и вывод информации о пользователе)
 """
+# TODO Переделать структуру callback'ов
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 

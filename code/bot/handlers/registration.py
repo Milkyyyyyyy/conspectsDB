@@ -13,6 +13,7 @@ from code.logging import logger
 
 # =================== Регистрация ===================
 # Обработка команды кнопки регистрации
+# TODO Переделать структуру callback'ов
 @bot.callback_query_handler(func=lambda call: call.data == 'register')
 async def callback_start_register(call):
 	logger.info("Callback 'register' received",

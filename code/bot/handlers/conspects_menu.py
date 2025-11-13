@@ -3,6 +3,8 @@ from code.logging import logger
 from code.bot.states import MainStates
 from code.bot.handlers.main_menu import main_menu
 
+# TODO Переделать структуру callback'ов
+
 @bot.callback_query_handler(func=lambda call: call.data == 'upload_conspect')
 async def call_upload_conspect(call):
 	try:
