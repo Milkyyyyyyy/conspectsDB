@@ -125,7 +125,7 @@ async def get_all(
 		table: Union[str, Enum] = None,
 		filters: Dict[str, Any] = None,
 		operator: str = "AND",
-		columns = 'rowid, *') -> Union[List[dict], None]:
+		columns='rowid, *') -> Union[List[dict], None]:
 	"""
 	Возвращает все записи из таблицы, которые соответствуют заданным фильтрам
 
@@ -407,79 +407,75 @@ async def remove_all(
 async def insert(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
-		values: Iterable = None,
-		columns: Iterable = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
+		filter: Dict[str, Any] = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
 	"""
-	:param database: sqlite3.Connection  --> Датабаза
-	:param table:   enum, str            --> Название таблицы из Tables
-	:param values:  Iterable             --> Список значений
-	:param columns: Iterable             --> Список полей
+	Вставляет запись в таблицу.
+
+	:param database: aiosqlite.Connection  --> Датабаза
+	:param table:   enum, str              --> Название таблицы из Tables
+	:param filter:  dict                   --> {column: value, ...}
 
 	:return: Истинность добавления; последний rowid, если доступен; курсор (нужен для получения названий полей)
 	"""
-
 	try:
 		cursor = await database.cursor()
 	except Exception:
 		logger.error("Invalid database connection")
 		return False
 
-	logger.info(f'Inserting into "{table}": values={values}, columns={columns}')
+	logger.info(f'Inserting into "{table}": filter={filter}')
 
-	if values is None:
-		logger.error("Values must be provided")
+	# Проверка filter
+	if not filter or not isinstance(filter, dict):
+		logger.error("Filter must be a non-empty dict")
 		return False
-	vals = tuple()
+
+	# Преобразуем ключи/значения
 	try:
-		vals = tuple(values)
+		cols = list(filter.keys())
+		vals = list(filter.values())
 	except Exception:
-		logger.exception("Values must be an iterable")
-
-	if len(vals) == 0:
-		logger.error("Values must contain at least one value")
+		logger.exception("Filter must be a dict-like mapping of column->value")
 		return False
 
+	if len(cols) == 0:
+		logger.error("Filter must contain at least one column")
+		return False
+
+	# Разрешаем имя таблицы
 	try:
 		table_sql = _resolve_table(table)
 	except Exception:
 		logger.exception("Invalid table argument")
 		return False
 
-	columns_sql = ""
-	if columns is not None:
-		try:
-			cols = list(columns)
-		except Exception:
-			logger.exception("Columns must be an iterable of strings")
-			return False
+	# Формируем безопасный список колонок
+	try:
+		safe_cols = ", ".join(_safe_identifier(c) for c in cols)
+		columns_sql = f"({safe_cols})"
+	except Exception:
+		logger.exception("Invalid column name in filter")
+		return False
 
-		if len(cols) != len(vals):
-			logger.error(f'Number of columns ({len(cols)}) does not match number of values ({len(vals)})')
-			return False
+	# Формируем placeholders и SQL
+	try:
+		placeholders = ", ".join("?" for _ in vals)
+		sql_query = f'INSERT INTO {table_sql} {columns_sql} VALUES ({placeholders})'
+		logger.debug("SQL (insert): %s -- params=%s", sql_query, vals)
+		await cursor.execute(sql_query, tuple(vals))
 
-		try:
-			safe_cols = ", ".join(_safe_identifier(c) for c in cols)
-			columns_sql = f"({safe_cols})"
-		except Exception:
-			logger.exception("Invalid column name in columns")
-			return False
+		last_id = getattr(cursor, "lastrowid", None)
+		if isinstance(last_id, int) and last_id > 0:
+			logger.info("Insert successful, lastrowid = %s", last_id)
+			return last_id, cursor
+		else:
+			logger.info("Insert successful (lastrowid not available), returning True")
+			return True, cursor
+	except Exception as e:
+		logger.exception(e)
+		return False
 
-		try:
-			placeholders = ", ".join("?" for _ in vals)
-			sql_query = f'INSERT INTO {table_sql} {columns_sql} VALUES ({placeholders})'
-			logger.debug("SQL (insert): %s -- params=%s", sql_query, values)
-			await cursor.execute(sql_query, values)
 
-			last_id = getattr(cursor, "lastrowid", None)
-			if isinstance(last_id, int) and last_id > 0:
-				logger.info("Insert successful, lastrowid = %s", last_id)
-				return last_id, cursor
-			else:
-				logger.info("Insert successful (lastrowid not available, return True")
-				return True, cursor
-		except Exception as e:
-			logger.exception(e)
-			return False
 async def update(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
