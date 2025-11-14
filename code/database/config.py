@@ -42,3 +42,7 @@ class Tables(str, Enum):
 	# study_group - группа, в которой он учится (возможно, не надо будет)
 	# diredction_id - rowid из таблицы DIRECTIONS, в которой учится пользователь
 	# role - роль пользователя ('user' или 'admin', возможно добавится отдельно 'moderator')
+
+	SUBJECT_DIRECTIONS = 'subject_directions'
+	# subject_id - id предмета, к которому относится эта строка
+	# direction_id - id направления, к которому относится этот предмет
