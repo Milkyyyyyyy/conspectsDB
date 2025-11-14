@@ -39,7 +39,6 @@ async def select_from_database(
 	:param output_field: Поле (или поля), которые будут возвращены функцией.
 	:return: Список значений заданных полей, или просто одно значение
 	"""
-
 	if None in (user_id, chat_id, table):
 		logger.error("Incorrect data")
 		return None
@@ -65,6 +64,7 @@ async def print_subdivisions(chat_id):
 	:param chat_id: ID чата
 	"""
 	facults, chairs, directions, chairs_by_facults, directions_by_chairs = await _group_subdivision()
+	logger.info(f'Printing subdivisions for {chat_id}, facults=%s, chairs=%s, directions=%s', len(facults), len(chairs), len(directions))
 
 	# Выводим схему факультетов, кафедр и направлений
 	schema = ''
@@ -170,6 +170,7 @@ async def callback_handler(call):
 		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
 
 	action = call_factory.parse(callback_data=call.data)['action']
+	logger.debug('Callback in admin menu action: %s', action)
 	match action:
 		case 'back_to_menu':
 			await main_menu(
@@ -246,6 +247,7 @@ async def callback_handler(call):
 
 @bot.message_handler(commands=['admin_menu'])
 async def command_admin_menu(message):
+	logger.info('User %s invoked command /admin_menu', message.from_user.id)
 	await admin_menu(user_id=message.from_user.id, chat_id=message.chat.id)
 
 async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
@@ -256,7 +258,7 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 	:param user_id: ID юзера.
 	:param chat_id: ID чата.
 	"""
-
+	logger.info('Printing admin menu for %s', user_id)
 	if None in (user_id, chat_id):
 		logger.error("user_id and chat_id was not provided")
 		return
@@ -274,6 +276,7 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 		is_moderator = bool(is_moderator)
 
 	if not is_moderator:
+		logger.info("User %s is not moderator or admin, exiting", user_id)
 		await main_menu(user_id, chat_id)
 		return
 
@@ -315,7 +318,7 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 	:param user_id: ID юзера.
 	:param chat_id: ID чата
 	"""
-
+	logger.info('Printing change_database menu for user %s', user_id)
 	# Собираем весь markup
 	markup = InlineKeyboardMarkup()
 	back_button = InlineKeyboardButton(
@@ -392,10 +395,13 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 	)
 	markup.row(add_facult_button, add_chair_button)
 	markup.row(add_direction_button)
+
 	markup.row(delete_facult_button, delete_chair_button)
 	markup.row(delete_direction_button)
+
 	markup.row(add_subject_button, delete_subject_button)
 	markup.row(edit_subject_connection_button)
+
 	markup.row(back_button)
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Выберите действие', reply_markup=markup)
 
@@ -426,17 +432,17 @@ async def add_row(
 	:param previous_message_id: ID прошлого сообщения
 	:return: AddingRowResult Enum с результатом добавления
 	"""
+	logger.info('Adding row with filters=%s', filters)
 	if None in (table, filters, ):
 		logger.error('Incorrect input data: table=%s, filters=', type(table), filters)
 		return AddingRowResult.INCORRECT_INPUT_DATA
-
 	async with connect_db() as db:
 		is_already_exists = await is_exists(database=db, table=table, filters=filters)
 		if is_already_exists:
 			return AddingRowResult.ROW_ALREADY_EXISTS
 
 		insert_new_row_accept = await request_confirmation(user_id, chat_id, accept_message,
-		                                                   previous_message_id=previous_message_id)
+														   previous_message_id=previous_message_id)
 		if insert_new_row_accept:
 			await insert(database=db, table=table, filters=filters)
 		else:
