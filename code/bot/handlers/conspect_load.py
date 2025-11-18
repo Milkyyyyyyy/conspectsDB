@@ -33,13 +33,15 @@ async def callback_handler(call):
 
 @bot.message_handler(commands=['new_conspect'])
 async def create_conspect(message=None, user_id=None, chat_id=None):
+	# TODO
+	# Добавь запрос файлов с помощью request_files (максимум 10)
 
 	if user_id is None:
 		user_id = message.from_user.id
 	if chat_id is None:
 		chat_id = message.chat.id
 
-	conspect_date, theme, upload_data = '', '', ''
+	conspect_date, theme, upload_date = '', '', ''
 
 	try:
 		theme = await request(
@@ -63,9 +65,9 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 			await stop_creation(chat_id)
 			return
 
-		upload_data = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
+		upload_date = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
 
-		if upload_data is None:
+		if upload_date is None:
 			logger.info("Group request returned None — stopping conspect", extra={"user_id": user_id})
 			await stop_creation(chat_id)
 			return
@@ -78,7 +80,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 		chat_id=chat_id,
 		theme=theme,
 		conspect_date=conspect_date,
-		upload_data=upload_data
+		upload_data=upload_date
 	)
 
 async def stop_creation(chat_id):
