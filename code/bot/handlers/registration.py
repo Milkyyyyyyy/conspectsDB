@@ -1,6 +1,7 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
+from code.bot.callbacks import call_factory
 from code.bot.handlers.main_menu import main_menu
 from code.bot.services.requests import request, request_list, request_confirmation
 from code.bot.services.user_service import is_user_exists, save_user_in_database
@@ -11,33 +12,28 @@ from code.database.service import connect_db
 from code.logging import logger
 
 
-# =================== Регистрация ===================
-# Обработка команды кнопки регистрации
-@bot.callback_query_handler(func=lambda call: call.data == 'register')
-async def callback_start_register(call):
-	logger.info("Callback 'register' received",
-	            extra={"user_id": getattr(call.from_user, "id", None),
-	                   "chat_id": getattr(call.message.chat, "id", None),
-	                   "message_id": getattr(call.message, "message_id", None)})
+@bot.callback_query_handler(func=call_factory.filter(area='registration').check)
+async def callback_handler(call):
+	logger.debug('Handle callback in registration...')
+	user_id = call.from_user.id
+	chat_id = call.message.chat.id
+	message_id = call.message.id
+
 	try:
 		await bot.answer_callback_query(call.id)
 	except Exception as e:
-		logger.exception("Failed to answer callback query", exc_info=e)
-	# Удаляем кнопку регистрации из сообщения (если не получилось, то ничего не делаем
-	try:
-		await bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-		logger.debug("Removed reply_markup from message",
-		             extra={"chat_id": call.message.chat.id, "message_id": call.message.message_id})
-	except Exception as e:
-		logger.warning("Couldn't remove reply_markup (non-critical)", exc_info=e)
+		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
 
-	# Запускаем регистрацию
-	await cmd_register(user_id=call.from_user.id, chat_id=call.message.chat.id)
+	action = call_factory.parse(callback_data=call.data)['action']
+	match action:
+		case 'start_register':
+			await start_registration(user_id=user_id, chat_id=chat_id)
+			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=message_id, reply_markup=None)
 
 
 # Обработка команды /register
 @bot.message_handler(commands=['register'])
-async def cmd_register(message=None, user_id=None, chat_id=None):
+async def start_registration(message=None, user_id=None, chat_id=None):
 	# Если на вход не подано user_id и chat_id, получаем эту информацию из объекта message
 	if user_id is None:
 		user_id = message.from_user.id
@@ -59,7 +55,11 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 	# Если пользователь найден, обрываем процесс регистрации
 	if isUserExists:
 		logger.info("User already exists — stopping registration", extra={"user_id": user_id})
-		await bot.send_message(chat_id, 'Вы уже зарегистрированы.')
+		await send_temporary_message(
+			chat_id=chat_id,
+			text='Вы уже зарегистрированы.',
+			delay_seconds=2
+		)
 		return
 
 	# Запрашиваем у пользователя всю нужную информацию
@@ -147,8 +147,7 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 	except Exception as e:
 		# Логируем исключение и завершаем регистрацию аккуратно
 		logger.exception("Unexpected error during registration flow", exc_info=e)
-		await send_temporary_message(bot, chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.',
-		                             delay_seconds=5)
+		await send_temporary_message(chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.', delay_seconds=5)
 		return
 	# Вызываем подтверждение регистрации
 	await accept_registration(
@@ -162,15 +161,17 @@ async def cmd_register(message=None, user_id=None, chat_id=None):
 		direction=direction
 	)
 
+
 async def stop_registration(chat_id):
 	logger.info("stop_registration called — user cancelled the flow", extra={"chat_id": chat_id})
-	await send_temporary_message(bot, chat_id, 'Завершаю регистрацию...', delay_seconds=10)
+	await send_temporary_message(chat_id, 'Завершаю регистрацию...', delay_seconds=10)
 	raise Exception('Interrupt registration')
 
 
 # Проверяем у пользователя правильность информации. Если нет - начинаем регистрацию заново
-async def accept_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None,
-							  direction=None):
+async def accept_registration(
+		user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None,
+		direction=None):
 	logger.debug("Presenting registration confirmation to user",
 	             extra={"user_id": user_id, "chat_id": chat_id,
 	                    "name": name, "surname": surname, "group": group,
@@ -181,12 +182,12 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 	buttons.add(InlineKeyboardButton("Всё правильно", callback_data="registration_accepted"))
 	buttons.add(InlineKeyboardButton("Повторить регистрацию", callback_data="register"))
 	text = (f"Проверьте правильность данных\n\n"
-			f"<blockquote><b>Имя</b>: {name}\n"
-			f"<b>Фамилия</b>: {surname}\n"
-			f"<b>Учебная группа</b>: {group}\n\n"
-			f"<b>Факультет</b>: {facult[0]}\n"
-			f"<b>Кафедра</b>: {chair[0]}\n"
-			f"<b>Направление</b>: {direction[0]}</blockquote>\n")
+	        f"<blockquote><b>Имя</b>: {name}\n"
+	        f"<b>Фамилия</b>: {surname}\n"
+	        f"<b>Учебная группа</b>: {group}\n\n"
+	        f"<b>Факультет</b>: {facult[0]}\n"
+	        f"<b>Кафедра</b>: {chair[0]}\n"
+	        f"<b>Направление</b>: {direction[0]}</blockquote>\n")
 	try:
 		response = await request_confirmation(
 			user_id=user_id,
@@ -197,13 +198,13 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 		)
 	except Exception as e:
 		logger.exception("Error while asking for registration confirmation", exc_info=e)
-		await send_temporary_message(bot, chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
 		return
 
 	# Пользователь вызвал команду /cancel
 	if response is None:
 		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
-		await send_temporary_message(bot, chat_id, text='Отменяю регситрацию...', delay_seconds=5)
+		await send_temporary_message(chat_id, text='Отменяю регситрацию...', delay_seconds=5)
 		return
 
 	# Сохраняем пользователя в датабазу и выводим сообщение
@@ -220,13 +221,14 @@ async def accept_registration(user_id=None, chat_id=None, name=None, surname=Non
 		)
 	else:
 		logger.info("User requested to repeat registration", extra={"user_id": user_id})
-		await cmd_register(user_id=user_id, chat_id=chat_id)
+		await start_registration(user_id=user_id, chat_id=chat_id)
 		return
 
 
 # Завершает регистрацию
-async def end_registration(user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None,
-						   role=None):
+async def end_registration(
+		user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None,
+		role=None):
 	logger.debug("Starting end_registration", extra={"user_id": user_id, "direction_id": direction_id, "role": role})
 	previous_message = await bot.send_message(chat_id, 'Завершаю регистрацию...')
 	previous_message_id = previous_message.id
@@ -252,12 +254,12 @@ async def end_registration(user_id=None, chat_id=None, name=None, surname=None, 
 			             extra={"chat_id": chat_id, "message_id": previous_message_id})
 		except Exception as e2:
 			logger.warning("Failed to edit previous message after DB error", exc_info=e2)
-		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+		await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
 		return
 	finally:
 		text = 'Регистрация прошла успешно' if saved else 'Не удалось зарегистрироваться.'
 		await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id)
-		await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+		await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
 		if saved:
 			try:
 				await main_menu(user_id=user_id, chat_id=chat_id)

@@ -1,8 +1,6 @@
 """
 Здесь обрабатываются все запросы к датабазе для юзеров
 Получение информации, проверка, существует ли пользователь и т.д
-
-# TODO Поправить логи
 """
 
 from code.database.queries import is_exists, get, insert
@@ -57,9 +55,15 @@ async def save_user_in_database(user_id=None, name=None, surname=None, group=Non
 				 f'direction_id={direction_id}\n'
 				 f'role={role}')
 	async with connect_db() as db:
-		values = [str(user_id), name, surname, group, direction_id, 'user']
-		columns = ['telegram_id', 'name', 'surname', 'study_group', 'direction_id', 'role']
-		await insert(database=db, table='USERS', values=values, columns=columns)
+		filters = {
+			'telegram_id': str(user_id),
+			'name': name,
+			'surname': surname,
+			'study_group': group,
+			'direction_id': direction_id,
+			'role': 'user'
+		}
+		await insert(database=db, table='USERS', filters=filters)
 	# Проверяем, сохранился ли пользователь
 	return await is_user_exists(user_id)
 

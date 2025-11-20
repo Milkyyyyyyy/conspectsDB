@@ -1,5 +1,3 @@
-# TODO ДОБАВИТЬ ЛОГИ!!!
-
 import asyncio
 from typing import List
 
@@ -7,7 +5,7 @@ from aiohttp.web_fileresponse import content_type
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from code.bot.utils import send_temporary_message, delete_message_after_delay
+from code.bot.utils import send_temporary_message, delete_message_after_delay, safe_edit_message
 from code.bot.states import MainStates, set_default_state
 from code.logging import logger
 
@@ -27,7 +25,6 @@ async def request(user_id, chat_id,
 				  request_message: str = 'Введите:',
 				  validator=None,
 				  max_retries: int | None = 3,
-				  previous_message_id: int | None = None,
 				  delete_request_message: bool = True
 				  ):
 	"""
@@ -55,6 +52,7 @@ async def request(user_id, chat_id,
 	loop = asyncio.get_running_loop()
 	attempts = 0
 	request_message_id = None
+	logger.debug('Send request to user (%s)', user_id)
 	try:
 		while True:
 			attempts += 1
@@ -65,7 +63,7 @@ async def request(user_id, chat_id,
 			try:
 				if request_message:
 					if attempts > 1:
-						await send_temporary_message(bot, chat_id, request_message, delay_seconds=5)
+						await send_temporary_message(chat_id, request_message, delay_seconds=5)
 					else:
 						sent = await bot.send_message(chat_id, request_message, parse_mode='HTML')
 						request_message_id = sent.id
@@ -93,6 +91,7 @@ async def request(user_id, chat_id,
 						data.pop('waiting_for', None)
 					return None
 
+				user_response = response
 				# Валидатор
 				err = None
 				if validator is not None:
@@ -111,11 +110,11 @@ async def request(user_id, chat_id,
 
 				if err:
 					logger.debug('Validation failed for %s: %s', key, err)
-					await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
+					await delete_message_after_delay(chat_id, response.id, delay_seconds=2)
 
 					# Если закончились попытки - возвращаем None
 					if max_retries is not None and attempts >= max_retries:
-						await send_temporary_message(bot, chat_id, text=f"{err}\n<b>(исчерпаны попытки)</b>")
+						await send_temporary_message(chat_id, text=f"{err}\n<b>(исчерпаны попытки)</b>")
 						async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 							data.pop('waiting_for', None)
 						return None
@@ -129,13 +128,14 @@ async def request(user_id, chat_id,
 					data[waiting_for] = response.text.strip()
 					data.pop('waiting_for', None)
 					logger.info('Saved response for %s: %s', key, response.text.strip())
-				if delete_request_message:
-					await delete_message_after_delay(bot, chat_id, response.id, delay_seconds=2)
-					await delete_message_after_delay(bot, chat_id, request_message_id, delay_seconds=2)
+
 				return response.text.strip()
 			except Exception as e:
 				logger.exception('Unexpected error in request loop for %s: %s', key, e)
 	finally:
+		if delete_request_message:
+			await delete_message_after_delay(chat_id, user_response.id, delay_seconds=2)
+			await delete_message_after_delay(chat_id, request_message_id, delay_seconds=2)
 		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
@@ -248,25 +248,17 @@ async def request_list(
 					else:
 						item = items_list[i]
 					text += f'<b>{i + 1}. </b> {item}\n'
-			# Генерируем markup в зависимости от режима
+			# Генерируем reply_markup в зависимости от режима
 			markup = await _generate_markup(list_index, max_index, confirmation_mode)
 
 			# Выводим сообщение. Если есть previous_message_id - меняем старое
-			if previous_message_id:
-				await bot.edit_message_text(
-					chat_id=chat_id,
-					message_id=previous_message_id,
-					text=text,
-					parse_mode='HTML')
-				await bot.edit_message_reply_markup(
-					chat_id=chat_id,
-					message_id=previous_message_id,
-					reply_markup=markup)
-			# В ином случае выводим новое сообщение и сохраняем его ID
-			else:
-				sent = await bot.send_message(chat_id, text, parse_mode='HTML', reply_markup=markup)
-				previous_message_id = sent.id
-				logger.debug('Sent request message id=%s to chat=%s', previous_message_id, chat_id)
+			previous_message_id = await safe_edit_message(
+				previous_message_id=previous_message_id,
+				chat_id=chat_id,
+				user_id=user_id,
+				text=text,
+				reply_markup=markup
+			)
 
 			# Сохраняем флаг waiting_for
 			await _save_waiting_for_flag(user_id, chat_id, waiting_for)
@@ -276,7 +268,7 @@ async def request_list(
 				response = await asyncio.wait_for(fut, timeout)
 			except asyncio.TimeoutError:
 				logger.info("Timeout in request_list for %s", key)
-				await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
+				await send_temporary_message(chat_id, 'Время ввода истекло', delay_seconds=10)
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
 				return None
@@ -330,21 +322,18 @@ async def request_list(
 				except Exception as e:
 					logger.exception("Error while preparing output in request_list for %s: %s", key, e)
 					return None
-				finally:
-					await delete_message_after_delay(
-						bot,
-						chat_id=chat_id,
-						message_id=previous_message_id,
-						delay_seconds=1)
 			else:
 				await send_temporary_message(
-					bot,
 					chat_id=chat_id,
 					text='Не нажимайте никакие лишние кнопки',
 					delay_seconds=1
 				)
 				continue
 	finally:
+		await delete_message_after_delay(
+			chat_id=chat_id,
+			message_id=previous_message_id,
+			delay_seconds=1)
 		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
@@ -407,7 +396,7 @@ async def request_confirmation(
 		await bot.edit_message_text(text='Время ввода истекло.', chat_id=chat_id, message_id=previous_message_id)
 		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=None)
 		if delete_message_after:
-			await delete_message_after_delay(bot, chat_id=chat_id, message_id=previous_message_id, delay_seconds=1)
+			await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=1)
 		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 			data.pop('waiting_for', None)
 		return False
@@ -465,7 +454,7 @@ async def request_files(
 				response = await asyncio.wait_for(queue.get(), timeout)
 			except asyncio.TimeoutError:
 				logger.info("Timeout in request_files for %s", key)
-				await send_temporary_message(bot, chat_id, 'Время ввода истекло', delay_seconds=10)
+				await send_temporary_message(chat_id, 'Время ввода истекло', delay_seconds=10)
 				async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 					data.pop('waiting_for', None)
 				return None
@@ -533,7 +522,7 @@ async def _handle_awaited_callback(call):
 	response = call.data
 	if 'cancel' in response:
 		fut.set_result(None)
-		await bot.send_message(call.message.chat.id, 'Ввод отменён')
+		await send_temporary_message(call.message.chat.id, text='Ввод отменён', delay_seconds=2)
 	else:
 		if hasattr(fut, 'set_result'):
 			fut.set_result(response)
@@ -555,7 +544,7 @@ async def _handle_awaited_answer(message):
 	text = message.text.strip()
 	if 'cancel' in text:
 		fut.set_result(None)
-		await bot.send_message(message.chat.id, 'Ввод отменён')
+		await send_temporary_message(message.chat_id, text='Ввод отменён', delay_seconds=2)
 	else:
 		if hasattr(fut, 'set_result'):
 			logger.debug(f'Put result {message} in future')

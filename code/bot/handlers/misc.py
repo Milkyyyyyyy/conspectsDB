@@ -2,7 +2,9 @@
 Прочие утилиты
 """
 from code.bot.bot_instance import bot
+from code.bot.callbacks import call_factory
 from code.logging import logger
+
 
 # Обрабатывает нажатия на кнопки, которые ничего не должны делать
 # При необходимости высвечивает сообщение на экран
@@ -15,3 +17,19 @@ async def empty_button(call):
 	else:
 		message = ' '.join(data[1:])
 		await bot.answer_callback_query(call.id, text=message, show_alert=False)
+
+
+@bot.callback_query_handler(func=call_factory.filter(action='delete').check)
+async def delete_button(call):
+	"""
+	Удаляет сообщение, на котором была кнопка delete
+	"""
+	try:
+		await bot.answer_callback_query(call.id)
+	except:
+		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
+
+	try:
+		await bot.delete_message(call.message.chat.id, call.message.id)
+	except:
+		logger.exception('Failed to delete message %s', getattr(call.message, 'id', None))

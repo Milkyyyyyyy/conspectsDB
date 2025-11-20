@@ -96,7 +96,7 @@ def _build_where_clause(filters, operator="AND"):
 		if not isinstance(specs, (list, tuple)):
 			val = specs
 		else:
-			if specs[0] in ("LIKE", "ILIKE", "IN", "BETWEEN", "STARTS_WITH", "ENDS_WITH", "CONTAINS"):
+			if specs[0] in ("LIKE", "IN", "BETWEEN", "STARTS_WITH", "ENDS_WITH", "CONTAINS"):
 				val = specs[1]
 				op = specs[0]
 			else:
@@ -124,7 +124,8 @@ async def get_all(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
 		filters: Dict[str, Any] = None,
-		operator: str = "AND") -> Union[List[dict], None]:
+		operator: str = "AND",
+		columns='rowid, *') -> Union[List[dict], None]:
 	"""
 	Возвращает все записи из таблицы, которые соответствуют заданным фильтрам
 
@@ -132,6 +133,7 @@ async def get_all(
 	:param table:    str, Enum          --> Название таблицы из Tables
 	:param filters:  dict, str          --> Фильтры
 	:param operator: str                --> Оператор фильтра, "AND" или "OR"
+	:param columns: str                 --> Поля, которые будут выбраны
 
 	:return: list --> список всех найденных записей
 
@@ -158,7 +160,7 @@ async def get_all(
 	# Собираем запрос SQL и возвращаем ответ
 	try:
 		where_sql, params = _build_where_clause(filters or {}, operator)
-		sql_query = f"SELECT rowid, * FROM {table_sql}{where_sql}"
+		sql_query = f"SELECT {columns} FROM {table_sql}{where_sql}"
 		logger.debug("SQL: %s -- params=%s", sql_query, params)
 
 		# Выполняем запрос SQL
@@ -260,7 +262,7 @@ async def is_exists(
 
 	# Проверяем, заданы ли фильтры
 	if not filters or not isinstance(filters, dict):
-		logger.error("Invalid filter argument")
+		logger.error("Invalid filters argument")
 		return None
 
 	try:
@@ -303,7 +305,7 @@ async def remove(
 
 	# Проверка наличия фильтра
 	if not filters or not isinstance(filters, dict):
-		logger.error("Invalid filter argument")
+		logger.error("Invalid filters argument")
 		return False
 
 	# Решаем str или enum в таблицу SQL
@@ -339,7 +341,7 @@ async def remove(
 		logger.debug("SQL (delete): %s -- params=%s", delete_sql, (rowid,))
 
 		# Выполняем SQL запрос
-		cursor.execute(delete_sql, (rowid,))
+		await cursor.execute(delete_sql, (rowid,))
 		logger.info("Successfully deleted row")
 		return True
 	except Exception as e:
@@ -347,32 +349,36 @@ async def remove(
 		return False
 
 
-async def remove_list(
+async def remove_all(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
-		rowids: Iterable = None) -> Union[int, Tuple[int, sqlite3.Cursor], None]:
+		filters: Dict[str, Any] = None,
+		operator: str = "AND") -> Union[int, None]:
 	"""
-	Удаляет множество записей из датабазы
+    Удаляет все записи из датабазы, соответствующие заданным фильтрам.
 
-	:param database: sqlite3.Connection  --> Датабаза
-	:param table:  enum, str             --> Название таблицы из Tables
-	:param rowids: Iterable              --> Список всех rowid
+    :param database: aiosqlite.Connection --> Датабаза
+    :param table:    enum, str            --> Название таблицы
+    :param filters:  dict                 --> Фильтры поиска (обязательно)
+    :param operator: str                  --> Оператор фильтра, "AND" или "OR"
 
-	:return: Кол-во удалённых записей; None; курсор (нужен для получения названий полей)
-	"""
+    :return: Кол-во удалённых записей (int) или None при ошибке.
+    """
+	logger.info(f'Removing all rows from "{table}" with filters={filters}...')
 
+	# Проверка датабазы и инициализация курсора
 	try:
 		cursor = await database.cursor()
 	except Exception:
 		logger.error("Invalid database connection")
 		return None
 
-	logger.info(f'Removing rows from "{table}": rowids={rowids}...')
-
-	if rowids is None:
-		logger.error("rowids list must be provided")
+	# Проверка наличия фильтра
+	if not filters or not isinstance(filters, dict):
+		logger.error("Invalid filters argument (must be non-empty dict)")
 		return None
 
+	# Решаем str или enum в таблицу SQL
 	try:
 		table_sql = _resolve_table(table)
 	except Exception:
@@ -380,30 +386,20 @@ async def remove_list(
 		return None
 
 	try:
-		rowid_list = []
-		for r in rowids:
-			if isinstance(r, int):
-				rowid_list.append(r)
-			else:
-				rowid_list.append(int(r))
-	except Exception:
-		logger.exception("Invalid rowid in rowids; all rowids must be INTEGER")
-		return None
+		# Собираем WHERE часть через существующую функцию
+		where_sql, params = _build_where_clause(filters, operator)
 
-	if len(rowid_list) == 0:
-		logger.info("Empty rowid list; nothing to delete")
-		return 0
+		# Формируем SQL запрос на удаление
+		delete_sql = f"DELETE FROM {table_sql}{where_sql}"
+		logger.debug("SQL (delete_all): %s -- params=%s", delete_sql, params)
 
-	try:
-		placeholders = ", ".join("?" for _ in rowid_list)
-		delete_sql = f"DELETE FROM {table_sql} WHERE rowid IN ({placeholders})"
-		logger.debug("SQL (bulk delete): %s -- params=%s", delete_sql, rowid_list)
-		await cursor.execute(delete_sql, tuple(rowid_list))
-		deleted = cursor.rowcount if isinstance(cursor.rowcount, int) and cursor.rowcount >= 0 else None
-		if deleted is None:
-			deleted = len(rowid_list)
-		logger.info("Deleted %d rows (requested %d)", deleted, len(rowid_list))
-		return deleted, cursor
+		# Выполняем SQL запрос
+		await cursor.execute(delete_sql, params)
+		deleted = cursor.rowcount if isinstance(cursor.rowcount, int) and cursor.rowcount >= 0 else 0
+
+		logger.info("Successfully deleted %d rows", deleted)
+		return deleted
+
 	except Exception as e:
 		logger.exception(e)
 		return None
@@ -412,79 +408,74 @@ async def remove_list(
 async def insert(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
-		values: Iterable = None,
-		columns: Iterable = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
+		filters: Dict[str, Any] = None) -> Union[bool, Tuple[bool, sqlite3.Cursor], Tuple[int, sqlite3.Cursor]]:
 	"""
-	:param database: sqlite3.Connection  --> Датабаза
-	:param table:   enum, str            --> Название таблицы из Tables
-	:param values:  Iterable             --> Список значений
-	:param columns: Iterable             --> Список полей
+	Вставляет запись в таблицу.
+
+	:param database: aiosqlite.Connection  --> Датабаза
+	:param table:   enum, str              --> Название таблицы из Tables
+	:param filters:  dict                   --> {column: value, ...}
 
 	:return: Истинность добавления; последний rowid, если доступен; курсор (нужен для получения названий полей)
 	"""
-
 	try:
 		cursor = await database.cursor()
 	except Exception:
 		logger.error("Invalid database connection")
 		return False
 
-	logger.info(f'Inserting into "{table}": values={values}, columns={columns}')
+	logger.info(f'Inserting into "{table}": filters={filters}')
 
-	if values is None:
-		logger.error("Values must be provided")
+	# Проверка filters
+	if not filters or not isinstance(filters, dict):
+		logger.error("Filter must be a non-empty dict")
 		return False
-	vals = tuple()
+
+	# Преобразуем ключи/значения
 	try:
-		vals = tuple(values)
+		cols = list(filters.keys())
+		vals = list(filters.values())
 	except Exception:
-		logger.exception("Values must be an iterable")
-
-	if len(vals) == 0:
-		logger.error("Values must contain at least one value")
+		logger.exception("Filter must be a dict-like mapping of column->value")
 		return False
 
+	if len(cols) == 0:
+		logger.error("Filter must contain at least one column")
+		return False
+	# Разрешаем имя таблицы
 	try:
 		table_sql = _resolve_table(table)
 	except Exception:
 		logger.exception("Invalid table argument")
 		return False
 
-	columns_sql = ""
-	if columns is not None:
-		try:
-			cols = list(columns)
-		except Exception:
-			logger.exception("Columns must be an iterable of strings")
-			return False
+	# Формируем безопасный список колонок
+	try:
+		safe_cols = ", ".join(_safe_identifier(c) for c in cols)
+		columns_sql = f"({safe_cols})"
+	except Exception:
+		logger.exception("Invalid column name in filters")
+		return False
 
-		if len(cols) != len(vals):
-			logger.error(f'Number of columns ({len(cols)}) does not match number of values ({len(vals)})')
-			return False
+	# Формируем placeholders и SQL
+	try:
+		placeholders = ", ".join("?" for _ in vals)
+		sql_query = f'INSERT INTO {table_sql} {columns_sql} VALUES ({placeholders})'
+		logger.debug("SQL (insert): %s -- params=%s", sql_query, vals)
+		await cursor.execute(sql_query, tuple(vals))
 
-		try:
-			safe_cols = ", ".join(_safe_identifier(c) for c in cols)
-			columns_sql = f"({safe_cols})"
-		except Exception:
-			logger.exception("Invalid column name in columns")
-			return False
+		last_id = getattr(cursor, "lastrowid", None)
+		if isinstance(last_id, int) and last_id > 0:
+			logger.info("Insert successful, lastrowid = %s", last_id)
+			return last_id, cursor
+		else:
+			logger.info("Insert successful (lastrowid not available), returning True")
+			return True, cursor
+	except Exception as e:
+		logger.exception(e)
+		return False
 
-		try:
-			placeholders = ", ".join("?" for _ in vals)
-			sql_query = f'INSERT INTO {table_sql} {columns_sql} VALUES ({placeholders})'
-			logger.debug("SQL (insert): %s -- params=%s", sql_query, values)
-			await cursor.execute(sql_query, values)
 
-			last_id = getattr(cursor, "lastrowid", None)
-			if isinstance(last_id, int) and last_id > 0:
-				logger.info("Insert successful, lastrowid = %s", last_id)
-				return last_id, cursor
-			else:
-				logger.info("Insert successful (lastrowid not available, return True")
-				return True, cursor
-		except Exception as e:
-			logger.exception(e)
-			return False
 async def update(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,
@@ -540,7 +531,7 @@ async def update(
 
 	# filters обязателен для безопасного обновления
 	if not filters or not isinstance(filters, dict):
-		logger.error("Invalid filter argument (must be non-empty dict)")
+		logger.error("Invalid filters argument (must be non-empty dict)")
 		return False
 
 	# разрешаем имя таблицы
