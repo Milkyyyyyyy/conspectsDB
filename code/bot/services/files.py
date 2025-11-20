@@ -3,11 +3,18 @@ import mimetypes
 from typing import List, Tuple
 import telebot
 from code.logging import logger
+from code.bot.bot_instance import bot
 
 
-async def save_files(bot,
-               items: List[Tuple[str, ]],
-               save_dir: str = 'downloads') -> list:
+async def save_files(
+		items: List[Tuple[str, ]],
+		save_dir: str = 'downloads') -> List[str]:
+	"""
+	:param items: список объектов, которые возвращает request_files
+	:param save_dir: Путь, куда будут сохраняться файлы
+	:return: возвращает список путей всех файлов
+	"""
+
 	os.makedirs(save_dir, exist_ok=True)
 	paths = []
 	for i, (file_type, msg) in enumerate(items, start=1):

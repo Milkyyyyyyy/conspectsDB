@@ -57,13 +57,20 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 		conspect_date = await request(
 			user_id=user_id,
 			chat_id=chat_id,
-			request_message='Введите дату текущего конспекта:',
+			request_message='Введите дату текущего конспекта в формате ДД.ММ.ГГГГ (если не знаете - напишите текущую дату):',
 			validator=validators.conspect_data
 		)
 		if conspect_date is None:
 			logger.info("Surname request returned None — stopping conspect", extra={"user_id": user_id})
 			await stop_creation(chat_id)
 			return
+
+		'''TODO
+		Здесь код запрашивает у пользователя теги/ключевые слова (необязательно. Или возможно будет лучше сделать обязательным хотя бы один)
+		
+		Затем код с помощью request_files из code.bot.services.requests запрашивает у пользователя файлы в формате document или photo
+		Сохраняешь эти файлы с помощью save_files из code.bot.services.files (чтобы они не валялись в оперативной памяти).
+		'''
 
 		upload_date = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
 
@@ -75,6 +82,8 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 		logger.exception("Unexpected error during creation flow", exc_info=e)
 		await send_temporary_message(chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.', delay_seconds=5)
 		return
+
+	# TODO В accept_creation также передаёшь ключевые слова и пути до сохранённых файлов
 	await accept_creation(
 		user_id=user_id,
 		chat_id=chat_id,
@@ -115,6 +124,7 @@ async def accept_creation(
 	if response is None:
 		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
 		await send_temporary_message(chat_id, text='Отменяю создание конспекта...', delay_seconds=5)
+		# TODO Если пользователь отменить создание конспекта -- сначала удали все сохранённые файлы
 		return
 	if response:
 		logger.info("User accepted registration — proceeding to save", extra={"user_id": user_id})
