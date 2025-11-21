@@ -9,7 +9,7 @@ from code.bot.services.requests import request, request_list, request_confirmati
 from code.bot.services.user_service import is_user_exists, save_user_in_database
 from code.bot.services.validation import validators
 from code.bot.utils import delete_message_after_delay, send_temporary_message
-from code.database.queries import get_all
+from code.database.queries import get_all, get
 from code.database.service import connect_db
 from code.logging import logger
 
@@ -44,6 +44,37 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 	conspect_date, theme, upload_date = '', '', ''
 
 	try:
+		# Предлагаем выбор предмета
+		try:
+			with connect_db() as db:
+				# Узнаём, какие предметы относятся к направлению пользователя
+				user = await get(database=db, table='USERS', filters={'telegram_id': user_id})
+				user_direction_id = user['direction_id']
+				all_subjects_by_direction = await get_all(
+					database=db,
+					table='SUBJECT_DIRECTIONS',
+					filters={'direction_id': user_direction_id}
+				)
+				# Собираем фильтр из всех подходящих предметов
+				subject_filters={'rowid': []}
+				for subject in all_subjects_by_direction:
+					subject_filters['rowid'].append(subject['subject_id'])
+
+				# Получаем все предметы из датабазы
+				all_subjects = await get_all(
+					database=db,
+					table='SUBJECTS',
+					filters=subject_filters,
+					operator='OR'
+				)
+				# TODO Здесь надо добавить request_list из all_subjects
+
+
+		except Exception as e:
+			logger.error("Unexpected error occurred: %s", e)
+			await stop_creation(chat_id)
+			return
+
 		theme = await request(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -51,7 +82,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 			validator=validators.theme
 		)
 		if theme is None:
-			logger.info("Name request returned None — stopping creation conspect", extra={"user_id": user_id})
+			logger.info("Theme request returned None — stopping creation conspect", extra={"user_id": user_id})
 			await stop_creation(chat_id)
 			return
 		conspect_date = await request(
@@ -72,12 +103,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 		Сохраняешь эти файлы с помощью save_files из code.bot.services.files (чтобы они не валялись в оперативной памяти).
 		'''
 
-		upload_date = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
-
-		if upload_date is None:
-			logger.info("Group request returned None — stopping conspect", extra={"user_id": user_id})
-			await stop_creation(chat_id)
-			return
+		upload_date = datetime.now(ZoneInfo('Europe/Ulyanovsk')).strftime("%f.%S:%M:%H %d.%m.%Y")
 	except Exception as e:
 		logger.exception("Unexpected error during creation flow", exc_info=e)
 		await send_temporary_message(chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.', delay_seconds=5)
