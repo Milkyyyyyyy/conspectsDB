@@ -5,7 +5,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
-from code.bot.services.files import save_files
+from code.bot.services.files import save_files, delete_files
 from code.bot.services.requests import request, request_list, request_confirmation, request_files
 from code.bot.services.validation import validators
 from code.bot.utils import send_temporary_message
@@ -13,6 +13,7 @@ from code.database.queries import get_all, get
 from code.database.service import connect_db
 from code.logging import logger
 from code.utils import normalize_keywords
+import os
 
 
 @bot.callback_query_handler(func=call_factory.filter(area='conspects_menu').check)
@@ -36,8 +37,6 @@ async def callback_handler(call):
 
 @bot.message_handler(commands=['new_conspect'])
 async def create_conspect(message=None, user_id=None, chat_id=None):
-	# TODO
-	# Добавь запрос файлов с помощью request_files (максимум 10)
 
 	if user_id is None:
 		user_id = message.from_user.id
@@ -106,12 +105,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 			logger.info("Surname request returned None — stopping conspect", extra={"user_id": user_id})
 			await stop_creation(chat_id)
 			return
-		'''TODO
-		Здесь код запрашивает у пользователя теги/ключевые слова (необязательно. Или возможно будет лучше сделать обязательным хотя бы один)
-		
-		Затем код с помощью request_files из code.bot.services.requests запрашивает у пользователя файлы в формате document или photo
-		Сохраняешь эти файлы с помощью save_files из code.bot.services.files (чтобы они не валялись в оперативной памяти).
-		'''
+
 		keywords = await request(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -147,9 +141,13 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 	)
 
 
-async def stop_creation(chat_id):
+async def stop_creation(chat_id, file_paths=None):
 	logger.info("stop_creation called — user cancelled the flow", extra={"chat_id": chat_id})
 	await send_temporary_message(chat_id, 'Завершаю создание конспекта...', delay_seconds=10)
+	try:
+		await delete_files(file_paths)
+	except:
+		logger.error("Не удалось очистить файлы. Возможна утечка памяти.")
 	raise Exception('Interrupt creation')
 
 
@@ -175,6 +173,18 @@ async def accept_creation(
 	        f"<b>Дата конспекта</b>: {conspect_date}\n"
 	        f"<b>Дата загрузки конспекта</b>: {upload_date}\n")
 	try:
+		''' TODO Здесь нужно поменять request_confirmation на такую структуру:
+		Мы создаём сообщение, в котором выводим всю нужную информацию
+		А в markup (кнопки) добавляем кнопки типа:
+		- Изменить тему
+		- Выбрать другой предмет
+		- ...
+		
+		Это всё поместим в while callback_data != 'accepted' или там подобное
+		Затем с помощью функции wait_for_callback мы будем ожидать от пользователя нажатие кнопки
+		  И эта функция (wait_for_callback) вернёт нам callback_data, и в зависимости от этой информации
+		мы будем предоставлять пользователю возможность на этом этапе заменить всю информацию
+		'''
 		response = await request_confirmation(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -196,13 +206,27 @@ async def accept_creation(
 		await end_creation(
 			user_id=user_id,
 			chat_id=chat_id,
+			subject_id=subject_id,
+			keywords=keywords,
 			theme=theme,
 			conspect_date=conspect_date,
-			upload_data=upload_date
+			upload_date=upload_date,
+			file_paths=file_paths
 		)
 	else:
 		logger.info("User requested to repeat registration", extra={"user_id": user_id})
 		await create_conspect(user_id=user_id, chat_id=chat_id)
 		return
-# async def end_creation(
-#		):
+
+async def end_creation(
+		 user_id=None,
+		 chat_id=None,
+		 subject_id=None,
+		 keywords=None,
+		 theme=None,
+		 conspect_date=None,
+		 upload_date=None,
+		 file_paths=None
+
+):
+	pass

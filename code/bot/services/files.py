@@ -78,3 +78,25 @@ async def save_files(
 		except Exception as e:
 			logger.error(f'Error saving file {file_type}: {e}')
 	return paths
+
+async def delete_files(
+		file_paths=None
+):
+	if file_paths is None:
+		return False
+
+	if not hasattr(file_paths, '__iter__'):
+		if not isinstance(file_paths, str):
+			file_paths = str(file_paths)
+		file_paths = [file_paths, ]
+
+	try:
+		for path in file_paths:
+			if os.path.exists(path):
+				os.remove(path)
+	except Exception as e:
+		logger.error(f"Error while deleting files: {file_paths}. {e}")
+		raise e
+	finally:
+		logger.info(f"Successfully deleted {len(file_paths)} files")
+		return True
