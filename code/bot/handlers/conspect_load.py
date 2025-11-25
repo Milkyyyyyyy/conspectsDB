@@ -5,10 +5,11 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
+from code.bot.handlers.main_menu import main_menu
 from code.bot.services.files import save_files, delete_files
 from code.bot.services.requests import request, request_list, request_confirmation, request_files
 from code.bot.services.validation import validators
-from code.bot.utils import send_temporary_message
+from code.bot.utils import send_temporary_message, send_message_with_files
 from code.database.queries import get_all, get
 from code.database.service import connect_db
 from code.logging import logger
@@ -16,7 +17,7 @@ from code.utils import normalize_keywords
 import os
 
 
-@bot.callback_query_handler(func=call_factory.filter(area='conspects_menu').check)
+@bot.callback_query_handler(func=call_factory.filter(area='conspects_upload').check)
 async def callback_handler(call):
 	logger.debug('Handle callback in creation...')
 	user_id = call.from_user.id
@@ -32,7 +33,10 @@ async def callback_handler(call):
 	match action:
 		case 'upload_conspect':
 			await create_conspect(user_id=user_id, chat_id=chat_id)
-			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=message_id, reply_markup=None)
+			try:
+				await bot.delete_message(chat_id=chat_id, message_id=message_id)
+			except:
+				logger.warning(f"Can't delete message {message_id}")
 
 
 @bot.message_handler(commands=['new_conspect'])
@@ -48,7 +52,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 	try:
 		# Предлагаем выбор предмета
 		try:
-			with connect_db() as db:
+			async with connect_db() as db:
 				# Узнаём, какие предметы относятся к направлению пользователя
 				user = await get(database=db, table='USERS', filters={'telegram_id': user_id})
 				user_direction_id = user['direction_id']
@@ -61,7 +65,11 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 				subject_filters = {'rowid': []}
 				for subject in all_subjects_by_direction:
 					subject_filters['rowid'].append(subject['subject_id'])
-
+				if len(subject_filters['rowid']) == 0:
+					await send_temporary_message(chat_id, text = '<b>Не удалось найти предметы.</b>\n'
+					                                             'Обратитесь к модерации или поменяйте факультет/кафедру/направление в меню "О пользователе"')
+					await main_menu(user_id, chat_id)
+					return
 				# Получаем все предметы из датабазы
 				all_subjects = await get_all(
 					database=db,
@@ -77,7 +85,6 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 				input_field='name',
 				output_field='rowid'
 			)
-
 
 
 		except Exception as e:
@@ -125,7 +132,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 		upload_date = datetime.now(ZoneInfo('Europe/Ulyanovsk')).strftime("%S:%M:%H %d.%m.%Y")
 	except Exception as e:
 		logger.exception("Unexpected error during creation flow", exc_info=e)
-		await send_temporary_message(chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.', delay_seconds=5)
+		await send_temporary_message(chat_id, 'Произошла ошибка при вводе данных. Попробуйте ещё раз.', delay_seconds=10)
 		return
 
 	# TODO В accept_creation также передаёшь ключевые слова и пути до сохранённых файлов
@@ -185,6 +192,11 @@ async def accept_creation(
 		  И эта функция (wait_for_callback) вернёт нам callback_data, и в зависимости от этой информации
 		мы будем предоставлять пользователю возможность на этом этапе заменить всю информацию
 		'''
+		await send_message_with_files(
+			chat_id=chat_id,
+			files_text='СЮДА НАДО ВПИСАТЬ ВСЮ НУЖНЮ ИНФОРМАЦИЮ',
+			file_paths=file_paths
+		)
 		response = await request_confirmation(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -195,11 +207,12 @@ async def accept_creation(
 	except Exception as e:
 		logger.exception("Error while asking for creation confirmation", exc_info=e)
 		await send_temporary_message(chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
+		await stop_creation(chat_id, file_paths)
 		return
-	if response is None:
+	if response is None or response == False or response == True:
 		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
 		await send_temporary_message(chat_id, text='Отменяю создание конспекта...', delay_seconds=5)
-		# TODO Если пользователь отменить создание конспекта -- сначала удали все сохранённые файлы
+		await stop_creation(chat_id, file_paths)
 		return
 	if response:
 		logger.info("User accepted registration — proceeding to save", extra={"user_id": user_id})

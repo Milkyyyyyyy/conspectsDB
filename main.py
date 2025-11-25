@@ -26,6 +26,8 @@ import code.bot.handlers.conspects_menu
 _conspect_menu = code.bot.handlers.conspects_menu
 import code.bot.handlers.admin_menu
 _admin_menu = code.bot.handlers.admin_menu
+import code.bot.handlers.conspect_load
+_conspect_load = code.bot.handlers.conspect_load
 
 
 from code.bot.utils import send_message_with_files

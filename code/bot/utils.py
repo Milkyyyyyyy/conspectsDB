@@ -94,7 +94,7 @@ async def send_message_with_files(
 		chat_id,
 		file_paths,
 		files_text,
-		markup_text,
+		markup_text=None,
 		reply_markup=None
 ):
 	"""

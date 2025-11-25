@@ -74,7 +74,7 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 	upload_conspect_button = InlineKeyboardButton(
 		'Загрузить конспект',
 		callback_data=call_factory.new(
-			area='conspects_menu',
+			area='conspects_upload',
 			action='upload_conspect'
 		)
 	)
