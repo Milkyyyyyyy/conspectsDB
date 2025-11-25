@@ -6,11 +6,11 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
-from code.bot.services.requests import request
+from code.bot.services.requests import request, request_list
 from code.bot.services.user_service import get_user_info
 from code.bot.services.validation import validators
-from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message
-from code.database.queries import update, get
+from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message, delete_message_after_delay
+from code.database.queries import update, get, get_all, insert
 from code.database.service import connect_db
 from code.logging import logger
 from code.utils import getkey
@@ -44,6 +44,8 @@ async def callback_handler(call):
 			await change_name(user_id, chat_id, username, message_id)
 		case 'change_surname':
 			await change_surname(user_id, chat_id, username, message_id)
+		case 'change_facult':
+			await change_facult(user_id, chat_id, username, message_id)
 
 
 async def main_menu(user_id, chat_id, previous_message_id=None):
@@ -142,6 +144,13 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 			action='change_surname'
 		)
 	)
+	change_surname_button = InlineKeyboardButton(
+		'Изменить факультет',
+		callback_data=call_factory.new(
+			area='main_menu',
+			action='change_facult'
+		)
+	)
 	markup.row(change_name_button, change_surname_button)
 	markup.row(back_button)
 	try:
@@ -167,6 +176,92 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 		except Exception:
 			logger.exception("Also failed to send fallback error message to chat=%s", chat_id)
 
+async def change_facult(user_id, chat_id, username, previous_message_id):
+	logger.info("Initiating change_facult for user=%s chat=%s", user_id, chat_id)
+	try:
+		async with connect_db() as db:
+			facults = await get_all(
+				database=db,
+				table='FACULTS'
+			)
+			facult_choice = await request_list(
+				user_id=user_id,
+				chat_id=chat_id,
+				items_list=facults,
+				input_field='name',
+				output_field='rowid'
+			)
+			if facult_choice is None:
+				raise Exception('Interrupt by user')
+			await change_chair(user_id, chat_id, username, previous_message_id, facult_rowid=facult_choice, connection=db)
+	except Exception:
+		logger.exception("Failed to change facult for user=%s chat=%s", user_id, chat_id)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
+		return
+async def change_chair(user_id, chat_id, username, previous_message_id, facult_rowid=None, connection=None):
+	logger.info("Initiating change_chair for user=%s chat=%s", user_id, chat_id)
+	try:
+		async with connect_db(connection) as db:
+			user_info = None
+			if facult_rowid is None:
+				user_info = await get_user_info(chat_id, user_id)
+				facult_rowid = user_info['facult_id']
+
+			chairs = await get_all(
+				database=db,
+				table='CHAIRS',
+				filters={'facult_id': facult_rowid}
+			)
+			chair_choice = await request_list(
+				user_id=user_id,
+				chat_id=chat_id,
+				items_list=chairs,
+				input_field='name',
+				output_field='rowid'
+			)
+			if chair_choice is None:
+				raise Exception('Interrupt by user')
+			await change_direction(user_id, chat_id, username, previous_message_id, chair_rowid=chair_choice, user_info=user_info, connection=db)
+	except Exception:
+		logger.exception("Failed to change chair for user=%s chat=%s", user_id, chat_id)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
+		return
+async def change_direction(user_id, chat_id, username, previous_message_id, chair_rowid=None, user_info=None, connection=None):
+	logger.info("Initiating change_chair for user=%s chat=%s", user_id, chat_id)
+	try:
+		async with connect_db(connection) as db:
+			if chair_rowid is None:
+				if user_info is None:
+					user_info = await get_user_info(chat_id, user_id)
+				chair_rowid = user_info['chair_id']
+			directions = await get_all(
+				database=db,
+				table='DIRECTIONS',
+				filters={'chair_id': chair_rowid}
+			)
+			direction_choice = await request_list(
+				user_id=user_id,
+				chat_id=chat_id,
+				items_list=directions,
+				input_field='name',
+				output_field='rowid'
+			)
+			if direction_choice is None:
+				raise Exception('Interrupt by user')
+			await update(
+				database=db,
+				table='USERS',
+				filters={'telegram_id': user_id},
+				values=[direction_choice, ],
+				columns=['direction_id', ]
+			)
+	except Exception:
+		logger.exception("Failed to change direction for user=%s chat=%s", user_id, chat_id)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
+		return
 
 async def change_name(user_id, chat_id, username, previous_message_id):
 	logger.info("Initiating change_name for user=%s chat=%s", user_id, chat_id)
@@ -180,13 +275,16 @@ async def change_name(user_id, chat_id, username, previous_message_id):
 			validator=validators.name,
 			request_message='Введите новое имя:'
 		)
+		if not isinstance(name, str):
+			logger.info('User %s provided invalid name input: %r', user_id, name)
+			await send_temporary_message(chat_id, text='Имя не было изменено.', delay_seconds=10)
+			raise Exception('Invalid input')
 	except Exception as e:
 		logger.exception("Request for new name failed for user=%s chat=%s", user_id, chat_id)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
 		return
-	if not isinstance(name, str):
-		logger.info('User %s provided invalid name input: %r', user_id, name)
-		await send_temporary_message(chat_id, text='Имя не было изменено.', delay_seconds=10)
-		return
+
 
 	updated = None
 	try:
@@ -202,6 +300,8 @@ async def change_name(user_id, chat_id, username, previous_message_id):
 	except Exception as e:
 		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
 		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
 		return
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'
@@ -222,13 +322,16 @@ async def change_surname(user_id, chat_id, username, previous_message_id):
 			validator=validators.surname,
 			request_message='Введите новую фамилию:'
 		)
+		if not isinstance(surname, str):
+			logger.info('User %s provided invalid name input: %r', user_id, surname)
+			await send_temporary_message(chat_id, text='Фамилия не была изменена.', delay_seconds=10)
+			raise Exception('Invalid input')
 	except Exception as e:
 		logger.exception("Request for new name failed for user=%s chat=%s", user_id, chat_id)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
 		return
-	if not isinstance(surname, str):
-		logger.info('User %s provided invalid name input: %r', user_id, surname)
-		await send_temporary_message(chat_id, text='Фамилия не была изменена.', delay_seconds=10)
-		return
+
 
 	updated = None
 	try:
@@ -244,6 +347,8 @@ async def change_surname(user_id, chat_id, username, previous_message_id):
 	except Exception as e:
 		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
 		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		                      username=username)
 		return
 	finally:
 		text = 'Обновлено' if updated else 'Не удалось обновить'

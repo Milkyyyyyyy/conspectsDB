@@ -6,6 +6,7 @@
 from code.database.queries import is_exists, get, insert
 from code.database.service import connect_db
 from code.logging import logger
+from code.database.utils import safe_row_to_dict
 
 
 # Возвращает True, если пользователь зарегистрирован
@@ -22,21 +23,35 @@ async def get_user_info(chat_id=None, user_id=None):
 		return None
 	async with connect_db() as db:
 		user = await get(database=db, table='USERS', filters={'telegram_id': user_id})
-		direction = await get(database=db, table='DIRECTIONS', filters={'rowid': user['direction_id']})
-		chair = await get(database=db, table='CHAIRS', filters={'rowid': direction['chair_id']})
-		facult = await get(database=db, table='FACULTS', filters={'rowid': chair['facult_id']})
+		direction_id = user['direction_id']
+		direction = await get(database=db, table='DIRECTIONS', filters={'rowid': direction_id})
+		direction = await safe_row_to_dict(direction)
+		chair_id = direction.get('chair_id', None)
+		if chair_id is None:
+			chair = {}
+			facult = {}
+		else:
+			chair = await get(database=db, table='CHAIRS', filters={'rowid': chair_id})
+			chair = await safe_row_to_dict(chair)
+			facult_id = chair.get('facult_id', None)
+			if chair_id is None:
+				facult = {}
+			else:
+				facult = await get(database=db, table='FACULTS', filters={'rowid': facult_id})
+				facult = await safe_row_to_dict(facult)
+
 
 	output = {
 		'telegram_id': user['telegram_id'],
 		'name': user['name'],
 		'surname': user['surname'],
 		'study_group': user['study_group'],
-		'direction_id': direction['rowid'],
-		'direction_name': direction['name'],
-		'chair_id': chair['rowid'],
-		'chair_name': chair['name'],
-		'facult_id': facult['rowid'],
-		'facult_name': facult['name']
+		'direction_id': direction_id,
+		'direction_name': direction.get('name', 'Неизвестное направление'),
+		'chair_id': chair.get('rowid', None),
+		'chair_name': chair.get('name', 'Неизвестная кафедра'),
+		'facult_id': facult.get('rowid', None),
+		'facult_name': facult.get('name', 'Неизвестный факультет'),
 	}
 	return output
 async def save_user_in_database(user_id=None, name=None, surname=None, group=None, direction_id=None, role=None):

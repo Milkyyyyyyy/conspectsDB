@@ -26,7 +26,8 @@ async def request(user_id, chat_id,
 				  request_message: str = 'Введите:',
 				  validator=None,
 				  max_retries: int | None = 3,
-				  delete_request_message: bool = True
+				  delete_request_message: bool = True,
+                  previous_message_id=None
 				  ):
 	"""
 	Запрашивает у пользователя некоторую информацию, возвращает его ответ
@@ -52,22 +53,24 @@ async def request(user_id, chat_id,
 	await _set_request_state(user_id, chat_id)
 	loop = asyncio.get_running_loop()
 	attempts = 0
-	request_message_id = None
+	request_message_id = previous_message_id
 	logger.debug('Send request to user (%s)', user_id)
 	try:
 		while True:
 			attempts += 1
 			fut = loop.create_future()
 			awaiters[key] = fut
-
 			# Отправляем сообщение пользователю с запросом
 			try:
 				if request_message:
 					if attempts > 1:
 						await send_temporary_message(chat_id, request_message, delay_seconds=5)
 					else:
-						sent = await bot.send_message(chat_id, request_message, parse_mode='HTML')
-						request_message_id = sent.id
+						# sent = await bot.send_message(chat_id, request_message, parse_mode='HTML')
+						sent = await safe_edit_message(previous_message_id=previous_message_id,
+						                        chat_id=chat_id,
+						                        text=request_message)
+						request_message_id = sent
 						logger.debug('Sent request message id=%s to chat=%s', request_message_id, chat_id)
 
 				# Добавляем флаг, что мы ожидаем
@@ -82,7 +85,7 @@ async def request(user_id, chat_id,
 					await bot.send_message(chat_id, "Время ввода истекло")
 					async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 						data.pop('waiting_for', None)
-					return None
+					return None, previous_message_id
 				finally:
 					awaiters.pop(key, None)
 
@@ -90,7 +93,7 @@ async def request(user_id, chat_id,
 					logger.info('User cancelled input %s', key)
 					async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 						data.pop('waiting_for', None)
-					return None
+					return None, previous_message_id
 
 				user_response = response
 				# Валидатор
@@ -118,7 +121,7 @@ async def request(user_id, chat_id,
 						await send_temporary_message(chat_id, text=f"{err}\n<b>(исчерпаны попытки)</b>")
 						async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 							data.pop('waiting_for', None)
-						return None
+						return None, previous_message_id
 
 					# В ином случае продолжаем цикл с новым сообщением
 					request_message = f"{err}\nПопробуйте ещё раз или отмените командой /cancel."
@@ -130,13 +133,10 @@ async def request(user_id, chat_id,
 					data.pop('waiting_for', None)
 					logger.info('Saved response for %s: %s', key, response.text.strip())
 
-				return response.text.strip()
+				return response.text.strip(), request_message_id
 			except Exception as e:
 				logger.exception('Unexpected error in request loop for %s: %s', key, e)
 	finally:
-		if delete_request_message:
-			await delete_message_after_delay(chat_id, user_response.id, delay_seconds=2)
-			await delete_message_after_delay(chat_id, request_message_id, delay_seconds=2)
 		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
 
@@ -347,7 +347,8 @@ async def request_confirmation(
 		accept_text: str = 'Подтвердить',
 		decline_text: str = 'Отменить',
 		previous_message_id: int = None,
-		delete_message_after: bool = True
+		delete_message_after: bool = True,
+		delete_markup_after_choice: bool = True
 ):
 	"""
 	Запрашивает у пользователя подтверждения чего-либо
@@ -374,53 +375,62 @@ async def request_confirmation(
 	loop = asyncio.get_running_loop()
 	fut = loop.create_future()
 	awaiters[key] = fut
-
-	accept_button = InlineKeyboardButton(text=accept_text, callback_data='accept')
-	decline_button = InlineKeyboardButton(text=decline_text, callback_data='decline')
-	markup = InlineKeyboardMarkup()
-	markup.row(accept_button, decline_button)
-
-	if previous_message_id:
-		await bot.edit_message_text(chat_id=chat_id, message_id=previous_message_id, text=text, parse_mode='HTML')
-		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=markup)
-	else:
-		sent = await bot.send_message(chat_id, text, reply_markup=markup, parse_mode='HTML')
-		previous_message_id = getattr(sent, 'id', None)
-
-	await _save_waiting_for_flag(user_id, chat_id, waiting_for)
-
-	# Пробуем получить ответ
 	try:
-		response = await asyncio.wait_for(fut, timeout)
-	except asyncio.TimeoutError:
-		logger.info("Timeout in request_confirmation for %s", key)
-		await bot.edit_message_text(text='Время ввода истекло.', chat_id=chat_id, message_id=previous_message_id)
-		await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=None)
-		if delete_message_after:
-			await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=1)
-		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
-			data.pop('waiting_for', None)
+		accept_button = InlineKeyboardButton(text=accept_text, callback_data='accept')
+		decline_button = InlineKeyboardButton(text=decline_text, callback_data='decline')
+		markup = InlineKeyboardMarkup()
+		markup.row(accept_button, decline_button)
+
+		message_id = await safe_edit_message(
+			previous_message_id=previous_message_id,
+			chat_id=chat_id,
+			text=text,
+			reply_markup=markup
+		)
+
+		await _save_waiting_for_flag(user_id, chat_id, waiting_for)
+
+		# Пробуем получить ответ
+		try:
+			response = await asyncio.wait_for(fut, timeout)
+		except asyncio.TimeoutError:
+			logger.info("Timeout in request_confirmation for %s", key)
+			await bot.edit_message_text(text='Время ввода истекло.', chat_id=chat_id, message_id=previous_message_id)
+			await bot.edit_message_reply_markup(chat_id=chat_id, message_id=previous_message_id, reply_markup=None)
+			if delete_message_after:
+				await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=1)
+			async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+				data.pop('waiting_for', None)
+			return False
+		finally:
+			# Удаляем из ожидания
+			await set_default_state(user_id, chat_id)
+			awaiters.pop(key, None)
+
+		# Если пользователь отменил
+		if response is None:
+			logger.info("User cancelled request_confirmation %s", key)
+			return None
+		# Если пользователь отклонил
+		if isinstance(response, str):
+			if 'decline' in response:
+				logger.debug("User declined confirmation %s", key)
+				return False
+			# Если пользователь подтвердил
+			elif 'accept' in response:
+				logger.debug("User accepted confirmation %s", key)
+				return True
+		logger.warning("Unknown response in request_confirmation for %s: %s", key, response)
 		return False
 	finally:
-		# Удаляем из ожидания
-		await set_default_state(user_id, chat_id)
+		if delete_markup_after_choice:
+			await safe_edit_message(
+				previous_message_id=message_id,
+				chat_id=chat_id,
+				text=text,
+				reply_markup=None
+			)
 		awaiters.pop(key, None)
-
-	# Если пользователь отменил
-	if response is None:
-		logger.info("User cancelled request_confirmation %s", key)
-		return None
-	# Если пользователь отклонил
-	if isinstance(response, str):
-		if 'decline' in response:
-			logger.debug("User declined confirmation %s", key)
-			return False
-		# Если пользователь подтвердил
-		elif 'accept' in response:
-			logger.debug("User accepted confirmation %s", key)
-			return True
-	logger.warning("Unknown response in request_confirmation for %s: %s", key, response)
-	return False
 
 
 async def request_files(
@@ -600,7 +610,7 @@ async def _handle_awaited_callback(call):
 
 
 # Принимает все сообщения от пользователя, который находится в ожидании
-@bot.message_handler(content_types=['files_text'], func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
+@bot.message_handler(content_types=['text'], func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
 async def _handle_awaited_answer(message):
 	key = (message.from_user.id, message.chat.id)
 	async with bot.retrieve_data(key[0], key[1]) as data:

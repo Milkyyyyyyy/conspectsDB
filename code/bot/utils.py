@@ -59,11 +59,24 @@ async def send_temporary_message(chat_id, text, delay_seconds=10):
 
 
 async def safe_edit_message(
-		previous_message_id=None, chat_id=None, user_id=None, text='Не был введён текст', reply_markup=None):
-	if chat_id is None or user_id is None:
+		previous_message_id=None,
+		chat_id=None,
+		user_id=None,
+		text='',
+		reply_markup=None,
+		send_message=True
+	):
+	if chat_id is None:
 		return
 	try:
-		if not previous_message_id is None:
+		if previous_message_id is None:
+			if send_message:
+				logger.debug('There is no previous_message_id => just sending it')
+				message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+				return message.id
+			else:
+				return previous_message_id
+		else:
 			attempt = 0
 			while attempt < 3:
 				try:
@@ -78,14 +91,14 @@ async def safe_edit_message(
 					await asyncio.sleep(0.1)
 				finally:
 					logger.debug("Successfully edited message (%s) text and markup", previous_message_id)
-					return
-			logger.error("Can't edit message => just sending it")
-			message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
-			return message.id
-		else:
-			logger.debug('There is no previous_message_id => just sending it')
-			message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
-			return message.id
+					return previous_message_id
+			if send_message:
+				logger.error("Can't edit message => just sending it")
+				message = await bot.send_message(chat_id=chat_id, text=text, parse_mode='HTML', reply_markup=reply_markup)
+				return message.id
+			else:
+				return previous_message_id
+
 	except:
 		logger.error("Unexpected error")
 		return
@@ -163,9 +176,6 @@ async def send_message_with_files(
 	# Если есть reply_markup, выводим отдельное сообщение с markup'ом
 	if reply_markup and markup_text and not isinstance(reply_markup, types.ReplyKeyboardMarkup):
 		await bot.send_message(chat_id, text=markup_text, reply_markup=reply_markup, parse_mode='HTML')
-
-
-
 
 
 
