@@ -10,6 +10,7 @@ from code.bot.states import MainStates, set_default_state
 from code.logging import logger
 
 awaiters: dict[tuple[int, int], asyncio.Future | asyncio.Queue] = {}
+specific_awaiters: dict[tuple[int, int, int], asyncio.Future | asyncio.Queue] = {}
 
 async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
 	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
@@ -489,6 +490,40 @@ async def request_files(
 	finally:
 		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
+async def wait_for_callback_on_message(
+		user_id: int,
+		chat_id: int,
+		message_id: int,
+		timeout: float = 120.0
+):
+	specific_key = (user_id, chat_id, message_id)
+	if specific_key in specific_awaiters and not specific_awaiters[specific_key]:
+		logger.warning('Attempting to wait for callback but already waiting for %s', user_id),
+		raise RuntimeError('Already waiting for a response from the user')
+
+	await _save_waiting_for_flag(user_id, chat_id, 'callback')
+
+	loop = asyncio.get_running_loop()
+	fut  = loop.create_future()
+	specific_awaiters[specific_key] = fut
+
+	try:
+		try:
+			response = await asyncio.wait_for(fut, timeout)
+		except asyncio.TimeoutError:
+			logger.info('Timeout waiting for specific callbkac %s', specific_key)
+			async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+				data.pop('waiting_for', None)
+			return None
+
+		if response is None:
+			logger.info('User cancelled specific callback %s', specific_key)
+			return None
+		return response
+	finally:
+		specific_awaiters.pop(specific_key, None)
+		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
+			data.pop('waiting_for', None)
 
 @bot.message_handler(content_types=['photo', 'document'])
 async def _handle_awaited_files(message):
@@ -512,16 +547,50 @@ async def _handle_awaited_files(message):
 async def _handle_awaited_callback(call):
 	await bot.answer_callback_query(call.id)
 	key = (call.from_user.id, call.message.chat.id)
-	async with bot.retrieve_data(key[0], key[1]) as data:
-		if not('callback' in data['waiting_for']):
+
+	# Получаем id сообщения из callback (совместимо с разными атрибутами)
+	msg_id = getattr(call.message, 'message_id', None)
+	if msg_id is None:
+		msg_id = getattr(call.message, 'id', None)
+
+	# Сначала пытаемся отдать результат специфическому ожидателю (user, chat, message)
+	specific_key = (call.from_user.id, call.message.chat.id, msg_id)
+	fut_specific = specific_awaiters.get(specific_key)
+	if fut_specific is not None and not (isinstance(fut_specific, asyncio.Future) and fut_specific.done()):
+		logger.info('Handle awaited specific callback from %s on message %s', key, msg_id)
+		response = call.data
+		# отмена
+		if 'cancel' in response:
+			try:
+				fut_specific.set_result(None)
+			except Exception:
+				pass
+			await send_temporary_message(call.message.chat.id, text='Ввод отменён', delay_seconds=2)
 			return
-	logger.info('Handle awaited  callback from %s', key)
+		# ставим результат
+		if hasattr(fut_specific, 'set_result'):
+			try:
+				fut_specific.set_result(response)
+			except Exception:
+				pass
+		elif hasattr(fut_specific, 'put'):
+			await fut_specific.put(response)
+		return
+
+	# fallback — существующее поведение для общих awaiters по (user, chat)
+	async with bot.retrieve_data(key[0], key[1]) as data:
+		if not('callback' in data.get('waiting_for', '')):
+			return
+	logger.info('Handle awaited callback from %s', key)
 	fut = awaiters.get(key)
 	if fut is None or (isinstance(fut, asyncio.Future) and fut.done()):
 		return
 	response = call.data
 	if 'cancel' in response:
-		fut.set_result(None)
+		try:
+			fut.set_result(None)
+		except Exception:
+			pass
 		await send_temporary_message(call.message.chat.id, text='Ввод отменён', delay_seconds=2)
 	else:
 		if hasattr(fut, 'set_result'):
@@ -531,7 +600,7 @@ async def _handle_awaited_callback(call):
 
 
 # Принимает все сообщения от пользователя, который находится в ожидании
-@bot.message_handler(content_types=['text'], func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
+@bot.message_handler(content_types=['files_text'], func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
 async def _handle_awaited_answer(message):
 	key = (message.from_user.id, message.chat.id)
 	async with bot.retrieve_data(key[0], key[1]) as data:

@@ -3,11 +3,18 @@ import mimetypes
 from typing import List, Tuple
 import telebot
 from code.logging import logger
+from code.bot.bot_instance import bot
 
 
-async def save_files(bot,
-               items: List[Tuple[str, ]],
-               save_dir: str = 'downloads') -> list:
+async def save_files(
+		items: List[Tuple[str, ]],
+		save_dir: str = 'downloads') -> List[str]:
+	"""
+	:param items: список объектов, которые возвращает request_files
+	:param save_dir: Путь, куда будут сохраняться файлы
+	:return: возвращает список путей всех файлов
+	"""
+
 	os.makedirs(save_dir, exist_ok=True)
 	paths = []
 	for i, (file_type, msg) in enumerate(items, start=1):
@@ -71,3 +78,25 @@ async def save_files(bot,
 		except Exception as e:
 			logger.error(f'Error saving file {file_type}: {e}')
 	return paths
+
+async def delete_files(
+		file_paths=None
+):
+	if file_paths is None:
+		return False
+
+	if not hasattr(file_paths, '__iter__'):
+		if not isinstance(file_paths, str):
+			file_paths = str(file_paths)
+		file_paths = [file_paths, ]
+
+	try:
+		for path in file_paths:
+			if os.path.exists(path):
+				os.remove(path)
+	except Exception as e:
+		logger.error(f"Error while deleting files: {file_paths}. {e}")
+		raise e
+	finally:
+		logger.info(f"Successfully deleted {len(file_paths)} files")
+		return True
