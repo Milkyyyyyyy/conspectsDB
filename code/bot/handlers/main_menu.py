@@ -253,9 +253,9 @@ async def change_direction(user_id, chat_id, username, previous_message_id, chai
 			await update(
 				database=db,
 				table='USERS',
-				filters={'user_id': user_id},
+				filters={'telegram_id': user_id},
 				values=[direction_choice, ],
-				columns=['direction_id']
+				columns=['direction_id', ]
 			)
 	except Exception:
 		logger.exception("Failed to change direction for user=%s chat=%s", user_id, chat_id)

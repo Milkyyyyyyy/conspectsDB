@@ -876,7 +876,7 @@ async def add_subject(user_id, chat_id, previous_message_id):
 		case AddingRowResult.ABORTED_BY_USER:
 			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=5)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлен предмет {subject_name}', delay_seconds=5)
+			await send_temporary_message(chat_id, f'Успешно добавлен предмет <b>"{subject_name}"</b>', delay_seconds=5)
 	await asyncio.sleep(0.5)
 	await admin_menu(user_id=user_id, chat_id=chat_id)
 
