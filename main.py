@@ -4,7 +4,7 @@ import asyncio
 import re
 from datetime import datetime, timezone
 
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
 
 from code.bot.bot_instance import bot
 from code.bot.handlers.main_menu import main_menu
@@ -27,7 +27,8 @@ _conspect_menu = code.bot.handlers.conspects_menu
 import code.bot.handlers.admin_menu
 _admin_menu = code.bot.handlers.admin_menu
 
-from code.bot.services.files import save_files
+
+from code.bot.utils import send_message_with_files
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -35,12 +36,19 @@ from code.bot.services.requests import request_list, request_confirmation, reque
 from code.bot.services.validation import validators
 @bot.message_handler(commands=['test'])
 async def test(message):
-	user_id, chat_id = message.from_user.id, message.chat.id
-	response = await request_files(
-		user_id=user_id,
-		chat_id=chat_id
+
+	button1 = InlineKeyboardButton('Кнопка1', callback_data='опу')
+	button2 = InlineKeyboardButton('Кнопка2', callback_data='опу')
+	markup = ReplyKeyboardMarkup(resize_keyboard=True)
+	markup.row(button1, button2)
+	file_paths = ['files/conspect_files/test1.jpg', 'files/conspect_files/test2.jpg']
+	await send_message_with_files(
+		chat_id=message.chat.id,
+		file_paths=file_paths,
+		files_text='Тест подпись',
+		markup_text='Выберите <b>действие</b>:',
+		reply_markup=markup
 	)
-	print(await save_files(bot, response, 'test/download'))
 
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
