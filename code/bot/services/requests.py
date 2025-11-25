@@ -600,7 +600,7 @@ async def _handle_awaited_callback(call):
 
 
 # Принимает все сообщения от пользователя, который находится в ожидании
-@bot.message_handler(content_types=['text'], func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
+@bot.message_handler(content_types=['files_text'], func=lambda m: (m.from_user.id, m.chat.id) in awaiters)
 async def _handle_awaited_answer(message):
 	key = (message.from_user.id, message.chat.id)
 	async with bot.retrieve_data(key[0], key[1]) as data:
