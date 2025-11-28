@@ -268,7 +268,7 @@ async def change_name(user_id, chat_id, username, previous_message_id):
 
 	name = None
 	try:
-		name = await request(
+		name, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			timeout=30,
@@ -315,7 +315,7 @@ async def change_surname(user_id, chat_id, username, previous_message_id):
 
 	surname = None
 	try:
-		surname = await request(
+		surname, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			timeout=30,

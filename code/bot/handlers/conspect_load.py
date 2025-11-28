@@ -92,7 +92,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 			await stop_creation(chat_id)
 			return
 
-		theme = await request(
+		theme, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			request_message='Введите тему текущего конспекта:',
@@ -102,7 +102,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 			logger.info("Theme request returned None — stopping creation conspect", extra={"user_id": user_id})
 			await stop_creation(chat_id)
 			return
-		conspect_date = await request(
+		conspect_date, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			request_message='Введите дату текущего конспекта в формате ДД.ММ.ГГГГ (если не знаете - напишите текущую дату):',
@@ -113,7 +113,7 @@ async def create_conspect(message=None, user_id=None, chat_id=None):
 			await stop_creation(chat_id)
 			return
 
-		keywords = await request(
+		keywords, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			request_message='Введите ключевые слова для поиска через пробел или иной разделитель (или оставьте пустым)'
