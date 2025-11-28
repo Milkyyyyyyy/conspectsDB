@@ -504,11 +504,12 @@ async def wait_for_callback_on_message(
 		user_id: int,
 		chat_id: int,
 		message_id: int,
-		timeout: float = 120.0
+		timeout: float = 120.0,
+		delete_callback_after=True
 ):
 	specific_key = (user_id, chat_id, message_id)
-	if specific_key in specific_awaiters and not specific_awaiters[specific_key]:
-		logger.warning('Attempting to wait for callback but already waiting for %s', user_id),
+	if specific_key in specific_awaiters and not specific_awaiters[specific_key].done():
+		logger.warning('Attempting to wait for callback but already waiting for %s', specific_key)
 		raise RuntimeError('Already waiting for a response from the user')
 
 	await _save_waiting_for_flag(user_id, chat_id, 'callback')
@@ -521,7 +522,7 @@ async def wait_for_callback_on_message(
 		try:
 			response = await asyncio.wait_for(fut, timeout)
 		except asyncio.TimeoutError:
-			logger.info('Timeout waiting for specific callbkac %s', specific_key)
+			logger.info('Timeout waiting for specific callback %s', specific_key)
 			async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 				data.pop('waiting_for', None)
 			return None
@@ -534,6 +535,12 @@ async def wait_for_callback_on_message(
 		specific_awaiters.pop(specific_key, None)
 		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 			data.pop('waiting_for', None)
+		try:
+			await bot.edit_message_reply_markup(
+				chat_id=chat_id, message_id=message_id, reply_markup=None
+			)
+		except:
+			logger.info("Can't delete markup on message %s", message_id)
 
 @bot.message_handler(content_types=['photo', 'document'])
 async def _handle_awaited_files(message):
@@ -553,7 +560,7 @@ async def _handle_awaited_files(message):
 	except asyncio.QueueFull:
 		pass
 # Принимает все кнопки от пользователя, который находится в ожидании
-@bot.callback_query_handler(func=lambda call: (call.from_user.id, call.message.chat.id) in awaiters)
+@bot.callback_query_handler(func=lambda call: (call.from_user.id, call.message.chat.id) in awaiters or (call.from_user.id, call.message.chat.id, call.message.id) in specific_awaiters)
 async def _handle_awaited_callback(call):
 	await bot.answer_callback_query(call.id)
 	key = (call.from_user.id, call.message.chat.id)
@@ -588,9 +595,6 @@ async def _handle_awaited_callback(call):
 		return
 
 	# fallback — существующее поведение для общих awaiters по (user, chat)
-	async with bot.retrieve_data(key[0], key[1]) as data:
-		if not('callback' in data.get('waiting_for', '')):
-			return
 	logger.info('Handle awaited callback from %s', key)
 	fut = awaiters.get(key)
 	if fut is None or (isinstance(fut, asyncio.Future) and fut.done()):
