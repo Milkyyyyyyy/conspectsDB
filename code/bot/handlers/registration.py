@@ -66,7 +66,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 	name, surname, group = '', '', ''
 	facult = chair = direction = (None, None)
 	try:
-		name = await request(
+		name, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			request_message='Введите <b>ваше</b> имя:',
@@ -76,7 +76,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 			logger.info("Name request returned None — stopping registration", extra={"user_id": user_id})
 			await stop_registration(chat_id)
 			return
-		surname = await request(
+		surname, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			request_message='Введите <b>вашу</b> фамилию:',
@@ -86,7 +86,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 			logger.info("Surname request returned None — stopping registration", extra={"user_id": user_id})
 			await stop_registration(chat_id)
 			return
-		group = await request(
+		group, _ = await request(
 			user_id=user_id,
 			chat_id=chat_id,
 			request_message='Введите учебную группу:',
