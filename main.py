@@ -8,6 +8,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 
 from code.bot.bot_instance import bot
 from code.bot.handlers.main_menu import main_menu
+from code.bot.services.conspects import send_conspect_message
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
 from code.database.queries import is_exists, get_all, get, insert
@@ -36,21 +37,27 @@ from code.bot.utils import send_message_with_files
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from code.bot.services.requests import request_list, request_confirmation, request_files
 from code.bot.services.validation import validators
+
+from code.database.service import connect_db
+from code.database.queries import get_all
+
+from code.bot.services.files import hard_cleaning
 @bot.message_handler(commands=['test'])
 async def test(message):
-
-	button1 = InlineKeyboardButton('Кнопка1', callback_data='опу')
-	button2 = InlineKeyboardButton('Кнопка2', callback_data='опу')
-	markup = ReplyKeyboardMarkup(resize_keyboard=True)
-	markup.row(button1, button2)
-	file_paths = ['files/conspect_files/test1.jpg', 'files/conspect_files/test2.jpg']
-	await send_message_with_files(
-		chat_id=message.chat.id,
-		file_paths=file_paths,
-		files_text='Тест подпись',
-		markup_text='Выберите <b>действие</b>:',
-		reply_markup=markup
-	)
+	async with connect_db() as db:
+		conspects = await get_all(
+			database=db,
+			table='CONSPECTS',
+			filters = {
+				'status': ['pending', 'NOT']
+			}
+		)
+		for conspect in conspects:
+			await send_conspect_message(
+				message.from_user.id,
+				message.chat.id,
+				conspect_id=conspect['rowid']
+			)
 
 # Логирование всех обновлений (например, сообщений от пользователя)
 async def log_updates(updates):
@@ -67,6 +74,7 @@ async def log_updates(updates):
 
 
 async def main():
+	await hard_cleaning()
 	try:
 		logger.info("Starting polling...")
 		bot.set_update_listener(log_updates)
