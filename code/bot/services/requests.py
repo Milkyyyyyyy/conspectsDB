@@ -452,7 +452,7 @@ async def request_files(
 	awaiters[key] = queue
 
 	accept_button = InlineKeyboardButton('Подтвердить', callback_data='accept')
-	decline_button = InlineKeyboardButton('Отменить', callback_data='cancel')
+	decline_button = InlineKeyboardButton('Отменить', callback_data='cancel_files')
 	markup = InlineKeyboardMarkup()
 	markup.row(accept_button, decline_button)
 	await bot.send_message(chat_id, text=request_message, parse_mode='HTML', reply_markup=markup)
@@ -471,12 +471,12 @@ async def request_files(
 				return None
 
 			# обработка элементов очереди
-			# 1) если пришёл callback 'accept' или 'cancel' (строка)
+			# 1) если пришёл callback 'accept' или 'cancel_files' (строка)
 			if isinstance(response, str):
 				if response == 'accept':
 					return files
-				elif response == 'cancel':
-					return None
+				elif response == 'cancel_files':
+					return 'cancel'
 				else:
 					# игнор/логирование неизвестной строки
 					continue
@@ -600,9 +600,12 @@ async def _handle_awaited_callback(call):
 	if fut is None or (isinstance(fut, asyncio.Future) and fut.done()):
 		return
 	response = call.data
-	if 'cancel' in response:
+	if response == 'cancel':
 		try:
-			fut.set_result(None)
+			if hasattr(fut, 'set_result'):
+				fut.set_result(None)
+			if hasattr(fut, 'put'):
+				await fut.put(None)
 		except Exception:
 			pass
 		await send_temporary_message(call.message.chat.id, text='Ввод отменён', delay_seconds=2)

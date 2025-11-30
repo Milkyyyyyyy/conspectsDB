@@ -2,7 +2,7 @@ from code.bot.handlers.main_menu import main_menu
 from code.bot.utils import send_message_with_files
 from code.database.service import connect_db
 from code.bot.bot_instance import bot
-from code.database.queries import get, get_all
+from code.database.queries import get, get_all, update
 from code.logging import logger
 import asyncio
 
@@ -42,18 +42,27 @@ async def send_conspect_message(user_id, chat_id, conspect_id, reply_markup=None
 					'conspect_id': conspect_id
 				}
 			)
-			print(subject_row)
 			if not paths_row:
 				raise Exception(f'No conspects files found for {conspect_id=}')
 
 			for path in paths_row:
 				file_paths.append(path['path'])
 
+			keywords = conspect['keywords']
 			text = (f'Информация о конспекте 📚\n'
 			        f'<blockquote><b>🏫 Предмет:</b> {subject_name}\n'
 			        f'<b>📝 Тема:</b> {conspect['theme']}\n'
+			        f'<b>🏷️ Теги:</b> {keywords}\n'
 			        f'<b>⭐ Рейтинг:</b> {conspect['rating']}\n'
-			        f'<b>👁️ Просмотры:</b> {conspect['views']}</blockquote>\n')
+			        f'<b>👁️ Просмотры:</b> {int(conspect['views'])+1}</blockquote>\n')
+			new_views = int(conspect['views']) + 1
+			await update(
+				database=db,
+				table='CONSPECTS',
+				values=[new_views, ],
+				columns=['views', ],
+				filters={'rowid': conspect['rowid']}
+			)
 			await send_message_with_files(
 				chat_id,
 				file_paths=file_paths,
