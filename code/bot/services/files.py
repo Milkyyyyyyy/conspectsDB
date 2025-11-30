@@ -118,5 +118,6 @@ async def hard_cleaning():
 					files_to_delete.append(full_path)
 		await delete_files(files_to_delete)
 
-	except:
-		pass
+	except Exception as e:
+		logger.exception(f'Error occurred while hard cleaning: {e}')
+		return

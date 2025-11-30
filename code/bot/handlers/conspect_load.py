@@ -18,7 +18,7 @@ from code.logging import logger
 from code.utils import normalize_keywords
 import asyncio
 import os
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 from code.utils import normalize_paths
 
 # Константы в начале модуля
@@ -69,6 +69,9 @@ async def create_conspect(
 
 		# Загрузка файлов с повторными попытками
 		files = await _request_files_with_retry(user_id, chat_id, MAX_FILE_UPLOAD_ATTEMPTS)
+		if files is None:
+			asyncio.create_task(main_menu(user_id, chat_id))
+			return
 		file_paths = await save_files(files, save_dir=CONSPECT_FILES_DIR)
 		file_paths = await normalize_paths(file_paths)
 
@@ -112,35 +115,18 @@ async def stop_creation(chat_id, user_id, file_paths=None):
 	asyncio.create_task(main_menu(user_id, chat_id))
 	return
 async def _collect_conspect_metadata(user_id, chat_id):
-	theme, _ = await request(
-		user_id=user_id,
-		chat_id=chat_id,
-		request_message='Введите тему текущего конспекта:',
-		validator=validators.theme
-	)
+	theme, _ = await request_theme(user_id, chat_id)
 	if theme is None:
 		logger.info("Theme request returned None — stopping creation conspect", extra={"user_id": user_id})
 		await stop_creation(chat_id, user_id)
 		return
-	conspect_date, _ = await request(
-		user_id=user_id,
-		chat_id=chat_id,
-		request_message='Введите дату текущего конспекта в формате ДД.ММ.ГГГГ\nЕсли не знаете - напишите текущую дату):',
-		validator=validators.conspect_date
-	)
+	conspect_date, _ = await request_date(user_id, chat_id)
 	if conspect_date is None:
 		logger.info("Surname request returned None — stopping conspect", extra={"user_id": user_id})
 		await stop_creation(chat_id, user_id)
 		return
 
-	keywords, _ = await request(
-		user_id=user_id,
-		chat_id=chat_id,
-		request_message='Введите ключевые слова для поиска через пробел или запятую.\n'
-						'Это очень поможет пользователям найти ваш конспект.'
-
-	)
-	keywords = await normalize_keywords(keywords)
+	keywords, _ = await request_keywords(user_id, chat_id)
 	return theme, conspect_date, keywords
 async def _get_subject_selection(user_id, chat_id):
 	async with connect_db() as db:
@@ -181,16 +167,18 @@ async def _get_subject_selection(user_id, chat_id):
 async def _request_files_with_retry(
 		user_id: int,
 		chat_id: int,
-		max_attempts: int
-) -> List:
+		max_attempts: int,
+		request_message: str = 'Отправьте файлы конспекта (фото или документ) и нажмите "подтвердить"'
+) -> Union[List, None]:
 	"""Запрос файлов с повторными попытками."""
 	for attempt in range(1, max_attempts + 1):
 		files = await request_files(
 			user_id=user_id,
 			chat_id=chat_id,
-			request_message='Отправьте файлы конспекта (фото или документ)'
+			request_message=request_message
 		)
-
+		if files == 'cancel':
+			return None
 		if files:
 			return files
 
@@ -208,8 +196,42 @@ async def _request_files_with_retry(
 
 # Исправленные кнопки в accept_creation
 
+async def get_conspect_info_text(subject_name, theme, conspect_date, keywords):
+	conspect_info = (f"<blockquote><b>📖 Предмет: </b> {subject_name}\n"
+	                 f"<b>📝 Тема: </b> {theme}\n"
+	                 f"<b>📅 Дата конспекта: </b> {conspect_date}\n"
+	                 f"<b>🔍 Ключевые слова: </b> {keywords}</blockquote>\n")
+	return conspect_info
+async def request_theme(user_id, chat_id,
+                        request_message='Введите тему текущего конспекта:'):
+	theme, message_id = await request(
+		user_id=user_id,
+		chat_id=chat_id,
+		request_message=request_message,
+		validator=validators.theme
+	)
+	return theme, message_id
+async def request_date(user_id, chat_id,
+                       request_message='Введите дату текущего конспекта в формате ДД.ММ.ГГГГ\n'
+                                       'Если не знаете - напишите текущую дату):'):
+	date, message_id = await request(
+		user_id=user_id,
+		chat_id=chat_id,
+		request_message=request_message,
+		validator=validators.conspect_date
+	)
+	return date, message_id
+async def request_keywords(user_id, chat_id,
+                           request_message = 'Введите ключевые слова для поиска через пробел или запятую.\n'
+		                'Это очень поможет пользователям найти ваш конспект.'):
+	keywords, message_id = await request(
+		user_id=user_id,
+		chat_id=chat_id,
+		request_message=request_message
 
-
+	)
+	keywords = await normalize_keywords(keywords)
+	return keywords, message_id
 async def accept_creation(
 		user_id=None,
 		chat_id=None,
@@ -238,39 +260,64 @@ async def accept_creation(
 		  И эта функция (wait_for_callback) вернёт нам callback_data, и в зависимости от этой информации
 		мы будем предоставлять пользователю возможность на этом этапе заменить всю информацию
 		'''
-		conspect_info = (f"<blockquote><b>📖 Предмет: </b> {subject_name}\n"
-						 f"<b>📝 Тема: </b> {theme}\n"
-						 f"<b>📅 Дата конспекта: </b> {conspect_date}\n"
-						 f"<b>🔍 Ключевые слова: </b> {keywords}</blockquote>\n")
 
-		await send_message_with_files(
-			chat_id=chat_id,
-			files_text=conspect_info,
-			file_paths=file_paths
-		)
+
 		accept_button = InlineKeyboardButton('✅ Да', callback_data='True')
 		decline_button = InlineKeyboardButton('❌ Нет', callback_data='False')
-		cancel_button = InlineKeyboardButton('⛔ Отмена', callback_data='None')
-		markup = InlineKeyboardMarkup([[accept_button, decline_button, cancel_button]])
-		message = await bot.send_message(chat_id, text='Выложить этот конспект в открытый доступ?', reply_markup=markup)
-		response = await wait_for_callback_on_message(
-			user_id=user_id,
-			chat_id=chat_id,
-			message_id=message.id
-		)
-		if response == 'None':
-			response = None
+		change_files_button = InlineKeyboardButton('Прикрепить другие файлы', callback_data='change_files')
+		change_theme_button = InlineKeyboardButton('Изменить тему', callback_data='change_theme')
+		change_date_button = InlineKeyboardButton('Изменить дату', callback_data='change_date')
+		change_keywords_button = InlineKeyboardButton('Изменить теги', callback_data='change_keywords')
+		markup = InlineKeyboardMarkup()
+		markup.row(change_files_button)
+		markup.row(change_theme_button, change_date_button, change_keywords_button)
+		markup.row(accept_button, decline_button)
+
+		response = ''
+		while not response in ('True', 'False', 'None'):
+			conspect_info = await get_conspect_info_text(subject_name, theme, conspect_date, keywords)
+			message = await send_message_with_files(
+				chat_id=chat_id,
+				files_text=conspect_info,
+				file_paths=file_paths,
+				markup_text='Выберите действие:',
+				reply_markup=markup
+			)
+			response = await wait_for_callback_on_message(
+				user_id=user_id,
+				chat_id=chat_id,
+				message_id=message.id
+			)
+			match response:
+				case ('True', 'False'):
+					break
+				case 'change_files':
+					new_files = await _request_files_with_retry(user_id, chat_id, 3,
+					                                      request_message='Добавьте новые файлы и нажмите "подтвердить"')
+					if new_files is None:
+						continue
+					new_file_paths = await save_files(new_files, 'files/conspect_files')
+					await delete_files(file_paths)
+					file_paths = new_file_paths
+				case 'change_theme':
+					new_theme, _ = await request_theme(user_id, chat_id, request_message='Введите новую тему')
+					theme = new_theme
+				case 'change_date':
+					new_date, _ = await request_date(user_id, chat_id, request_message='Введите новую дату')
+					conspect_date = new_date
+				case 'change_keywords':
+					new_keywords, _ = await request_keywords(user_id, chat_id, request_message='Введите новые теги')
+					keywords = new_keywords
 	except Exception as e:
 		logger.exception("Error while asking for creation confirmation", exc_info=e)
 		await send_temporary_message(chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
 		await stop_creation(chat_id, user_id, file_paths)
 		return
-	print(response)
-	if response == 'None' or response == 'False':
+	if response == 'False':
 		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
-		await send_temporary_message(chat_id, text='Отменяю создание конспекта...', delay_seconds=5)
 		await stop_creation(chat_id, user_id, file_paths)
 		return
+
 	keywords_str = ", ".join(keywords.split(' '))
 	if response == 'True':
 		logger.info("User accepted registration — proceeding to save", extra={"user_id": user_id})

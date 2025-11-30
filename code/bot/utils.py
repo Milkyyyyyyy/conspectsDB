@@ -103,6 +103,7 @@ async def safe_edit_message(
 		logger.error("Unexpected error")
 		return
 
+
 async def send_message_with_files(
 		chat_id,
 		file_paths,
@@ -114,17 +115,18 @@ async def send_message_with_files(
 	:param chat_id: ID чата
 	:param file_paths: Относительные пути до файлов
 	:param files_text: Подпись под файлом или под медиа-группой (если файлов несколько)
-	:markup_text: Сообщение, которое будет выводиться с reply_markup
-	:reply_markup: markup сообщения
+	:param markup_text: Сообщение, которое будет выводиться с reply_markup
+	:param reply_markup: markup сообщения
+	:return: Message object или None
 	"""
 
 	# Если файлов нет - просто выводим сообщение с markup'ом
 	if not file_paths:
 		text = files_text
-		if reply_markup:
-			text += f'\n\n{reply_markup}'
-		await bot.send_message(chat_id, text, reply_markup, parse_mode='HTML')
-		return
+		if markup_text:
+			text += f'\n\n{markup_text}'
+		message = await bot.send_message(chat_id, text, reply_markup=reply_markup, parse_mode='HTML')
+		return message
 
 	# Делаем объект итерируемым
 	if isinstance(file_paths, str):
@@ -149,6 +151,15 @@ async def send_message_with_files(
 
 	total_files = len(photos) + len(documents)
 
+	# Если нет валидных файлов после проверки
+	if total_files == 0:
+		if markup_text and reply_markup:
+			message = await bot.send_message(chat_id, text=markup_text, reply_markup=reply_markup, parse_mode='HTML')
+			return message
+		return None
+
+	sent_message = None
+
 	# Если файлов суммарно больше одного, мы выводим медиа-группу
 	if total_files > 1:
 		media_group = []
@@ -161,22 +172,27 @@ async def send_message_with_files(
 			with open(doc_path, 'rb') as document:
 				caption = files_text if len(photos) == 0 and i == 0 else None
 				media_group.append(types.InputMediaDocument(document.read(), caption=caption, parse_mode='HTML'))
-		message = await bot.send_media_group(chat_id, media_group)
+
+		# send_media_group возвращает список сообщений, берём первое
+		messages = await bot.send_media_group(chat_id, media_group)
+		sent_message = messages[0] if messages else None
 
 	# Если документ или фото только одно, выводим одиночные файлы
 	elif len(photos) == 1 and len(documents) == 0:
 		with open(photos[0], 'rb') as photo:
-			await bot.send_photo(chat_id, photo, caption=files_text, parse_mode='HTML')
-
+			sent_message = await bot.send_photo(chat_id, photo, caption=files_text, parse_mode='HTML')
 
 	elif len(documents) == 1 and len(photos) == 0:
 		with open(documents[0], 'rb') as document:
-			await bot.send_document(chat_id, document, caption=files_text, parse_mode='HTML')
+			sent_message = await bot.send_document(chat_id, document, caption=files_text, parse_mode='HTML')
 
 	# Если есть reply_markup, выводим отдельное сообщение с markup'ом
 	if reply_markup and markup_text and not isinstance(reply_markup, types.ReplyKeyboardMarkup):
-		await bot.send_message(chat_id, text=markup_text, reply_markup=reply_markup, parse_mode='HTML')
+		markup_message = await bot.send_message(chat_id, text=markup_text, reply_markup=reply_markup, parse_mode='HTML')
+		# Возвращаем сообщение с markup'ом, если оно было отправлено
+		return markup_message
 
+	return sent_message
 
 
 async def get_greeting():
