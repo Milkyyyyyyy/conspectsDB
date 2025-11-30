@@ -6,17 +6,18 @@ from code.database.queries import get, get_all, update
 from code.logging import logger
 import asyncio
 
-async def send_conspect_message(user_id, chat_id, conspect_id, reply_markup=None, markup_text=None):
+async def send_conspect_message(user_id, chat_id, conspect_id, reply_markup=None, markup_text=None, conspect_row=None):
 	file_paths =  []
 	try:
 		async with connect_db() as db:
-			conspect_row = await get(
-				database=db,
-				table = 'CONSPECTS',
-				filters={
-					'rowid': conspect_id
-				}
-			)
+			if conspect_row is None:
+				conspect_row = await get(
+					database=db,
+					table = 'CONSPECTS',
+					filters={
+						'rowid': conspect_id
+					}
+				)
 			if conspect_row is None:
 				print(conspect_row)
 				raise Exception(f'No conspect found with {conspect_id=}')
@@ -63,13 +64,14 @@ async def send_conspect_message(user_id, chat_id, conspect_id, reply_markup=None
 				columns=['views', ],
 				filters={'rowid': conspect['rowid']}
 			)
-			await send_message_with_files(
+			message = await send_message_with_files(
 				chat_id,
 				file_paths=file_paths,
 				files_text = text,
 				markup_text=markup_text,
 				reply_markup=reply_markup
 			)
+			return message
 
 	except Exception as e:
 		logger.exception(f'Error while fetching conspect from database: {e}')

@@ -80,7 +80,14 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 			action='upload_conspect'
 		)
 	)
-	markup.row(upload_conspect_button)
+	users_conspect_button = InlineKeyboardButton(
+		'Мои конспекты',
+		callback_data=call_factory.new(
+			area='user_conspects',
+			action='user_conspects'
+		)
+	)
+	markup.row(upload_conspect_button, users_conspect_button)
 	markup.row(show_info_button)
 
 	# Если юзер модератор, добавляем кнопку с доступом к панели админа
