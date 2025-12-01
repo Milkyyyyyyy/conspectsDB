@@ -31,6 +31,8 @@ import code.bot.handlers.conspect_load
 _conspect_load = code.bot.handlers.conspect_load
 import code.bot.handlers.user_conspects
 _user_conspects = code.bot.handlers.user_conspects
+import code.bot.handlers.conspects_searching
+_conspects_searching = code.bot.handlers.conspects_searching
 
 
 from code.bot.utils import send_message_with_files

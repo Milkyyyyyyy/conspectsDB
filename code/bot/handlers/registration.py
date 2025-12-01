@@ -40,13 +40,13 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 	if chat_id is None:
 		chat_id = message.chat.id
 
-	logger.info("Register command invoked", extra={"user_id": user_id, "chat_id": chat_id})
+	logger.info("Register command invoked")
 	logger.debug(f"cmd_register params: user_id={user_id}, chat_id={chat_id}")
 
 	# Проверяем, существует ли пользователь
 	try:
 		isUserExists = await is_user_exists(user_id)
-		logger.debug("is_user_exists result", extra={"user_id": user_id, "exists": isUserExists})
+		logger.debug("is_user_exists result")
 	except Exception as e:
 		logger.exception("Error while checking user existence", exc_info=e)
 		await bot.send_message(chat_id, "Произошла ошибка проверки пользователя. Повторите позже.")
@@ -54,7 +54,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 
 	# Если пользователь найден, обрываем процесс регистрации
 	if isUserExists:
-		logger.info("User already exists — stopping registration", extra={"user_id": user_id})
+		logger.info("User already exists — stopping registration")
 		await send_temporary_message(
 			chat_id=chat_id,
 			text='Вы уже зарегистрированы.',
@@ -73,7 +73,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 			validator=validators.name
 		)
 		if name is None:
-			logger.info("Name request returned None — stopping registration", extra={"user_id": user_id})
+			logger.info("Name request returned None — stopping registration")
 			await stop_registration(chat_id)
 			return
 		surname, _ = await request(
@@ -83,7 +83,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 			validator=validators.surname
 		)
 		if surname is None:
-			logger.info("Surname request returned None — stopping registration", extra={"user_id": user_id})
+			logger.info("Surname request returned None — stopping registration")
 			await stop_registration(chat_id)
 			return
 		group, _ = await request(
@@ -93,13 +93,13 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 			validator=validators.group
 		)
 		if group is None:
-			logger.info("Group request returned None — stopping registration", extra={"user_id": user_id})
+			logger.info("Group request returned None — stopping registration")
 			await stop_registration(chat_id)
 			return
 
 		# Получаем справочники из БД и просим выбрать
 		async with connect_db() as db:
-			logger.debug("Fetching faculties from DB", extra={"user_id": user_id})
+			logger.debug("Fetching faculties from DB")
 			facult_db = await get_all(database=db, table='FACULTS')
 
 			facult = await request_list(
@@ -111,11 +111,11 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 				output_field=['name', 'rowid']
 			)
 			if not facult:
-				logger.info("Faculty selection cancelled or empty", extra={"user_id": user_id})
+				logger.info("Faculty selection cancelled or empty")
 				await stop_registration(chat_id)
 				return
 
-			logger.debug("Fetching chairs for faculty from DB", extra={"facult_id": facult[1]})
+			logger.debug("Fetching chairs for faculty from DB")
 			chair_db = await get_all(database=db, table='CHAIRS', filters={'facult_id': facult[1]})
 			chair = await request_list(
 				user_id=user_id,
@@ -126,11 +126,11 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 				output_field=['name', 'rowid']
 			)
 			if not chair:
-				logger.info("Chair selection cancelled or empty", extra={"user_id": user_id})
+				logger.info("Chair selection cancelled or empty")
 				await stop_registration(chat_id)
 				return
 
-			logger.debug("Fetching directions for chair from DB", extra={"chair_id": chair[1]})
+			logger.debug("Fetching directions for chair from DB")
 			direction_db = await get_all(database=db, table='DIRECTIONS', filters={'chair_id': chair[1]})
 			direction = await request_list(
 				user_id=user_id,
@@ -141,7 +141,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 				output_field=['name', 'rowid']
 			)
 			if not direction:
-				logger.info("Direction selection cancelled or empty", extra={"user_id": user_id})
+				logger.info("Direction selection cancelled or empty")
 				await stop_registration(chat_id)
 				return
 	except Exception as e:
@@ -163,7 +163,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 
 
 async def stop_registration(chat_id):
-	logger.info("stop_registration called — user cancelled the flow", extra={"chat_id": chat_id})
+	logger.info("stop_registration called — user cancelled the flow")
 	await send_temporary_message(chat_id, 'Завершаю регистрацию...', delay_seconds=10)
 	raise Exception('Interrupt registration')
 
@@ -172,10 +172,7 @@ async def stop_registration(chat_id):
 async def accept_registration(
 		user_id=None, chat_id=None, name=None, surname=None, group=None, facult=None, chair=None,
 		direction=None):
-	logger.debug("Presenting registration confirmation to user",
-	             extra={"user_id": user_id, "chat_id": chat_id,
-	                    "name": name, "surname": surname, "group": group,
-	                    "facult": facult, "chair": chair, "direction": direction})
+	logger.debug("Presenting registration confirmation to user")
 
 	# Собираем кнопки
 	buttons = InlineKeyboardMarkup()
@@ -203,13 +200,13 @@ async def accept_registration(
 
 	# Пользователь вызвал команду /cancel
 	if response is None:
-		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
+		logger.info("User cancelled at confirmation step")
 		await send_temporary_message(chat_id, text='Отменяю регситрацию...', delay_seconds=5)
 		return
 
 	# Сохраняем пользователя в датабазу и выводим сообщение
 	if response:
-		logger.info("User accepted registration — proceeding to save", extra={"user_id": user_id})
+		logger.info("User accepted registration — proceeding to save")
 		await end_registration(
 			user_id=user_id,
 			chat_id=chat_id,
@@ -220,7 +217,7 @@ async def accept_registration(
 			role='user'
 		)
 	else:
-		logger.info("User requested to repeat registration", extra={"user_id": user_id})
+		logger.info("User requested to repeat registration")
 		await start_registration(user_id=user_id, chat_id=chat_id)
 		return
 
@@ -229,10 +226,10 @@ async def accept_registration(
 async def end_registration(
 		user_id=None, chat_id=None, name=None, surname=None, group=None, direction_id=None,
 		role=None):
-	logger.debug("Starting end_registration", extra={"user_id": user_id, "direction_id": direction_id, "role": role})
+	logger.debug("Starting end_registration")
 	previous_message = await bot.send_message(chat_id, 'Завершаю регистрацию...')
 	previous_message_id = previous_message.id
-	logger.debug("Sent intermediate 'finishing' message", extra={"chat_id": chat_id, "message_id": previous_message_id})
+	logger.debug("Sent intermediate 'finishing' message")
 
 	saved = False
 	try:
@@ -244,14 +241,13 @@ async def end_registration(
 			direction_id=direction_id,
 			role=role
 		)
-		logger.debug("save_user_in_database returned", extra={"user_id": user_id, "saved": saved})
+		logger.debug("save_user_in_database returned")
 	except Exception as e:
 		logger.exception("Error while saving user in database", exc_info=e)
 		try:
 			await bot.edit_message_text(text='Произошла ошибка. Повторите попытку позже', chat_id=chat_id,
 			                            message_id=previous_message_id)
-			logger.debug("Updated previous message to show error",
-			             extra={"chat_id": chat_id, "message_id": previous_message_id})
+			logger.debug("Updated previous message to show error")
 		except Exception as e2:
 			logger.warning("Failed to edit previous message after DB error", exc_info=e2)
 		await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
