@@ -1,34 +1,38 @@
 import asyncio
 from typing import List
 
-from aiohttp.web_fileresponse import content_type
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
-from code.bot.utils import send_temporary_message, delete_message_after_delay, safe_edit_message
 from code.bot.states import MainStates, set_default_state
+from code.bot.utils import send_temporary_message, delete_message_after_delay, safe_edit_message
 from code.logging import logger
 
 awaiters: dict[tuple[int, int], asyncio.Future | asyncio.Queue] = {}
 specific_awaiters: dict[tuple[int, int, int], asyncio.Future | asyncio.Queue] = {}
 
+
 async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
 	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 		data['waiting_for'] = waiting_for
 		logger.debug('Set waiting_for for %s:%s -> %s', user_id, chat_id, waiting_for)
+
+
 async def _set_request_state(user_id, chat_id):
 	logger.debug('Setting request state for user=%s chat=%s', user_id, chat_id)
-	await bot.set_state(user_id=user_id,chat_id=chat_id, state=MainStates.request_state)
+	await bot.set_state(user_id=user_id, chat_id=chat_id, state=MainStates.request_state)
+
 
 # Запрашивает и ждёт у пользователя информацию
-async def request(user_id, chat_id,
-				  timeout: float = 60.0,
-				  request_message: str = 'Введите:',
-				  validator=None,
-				  max_retries: int | None = 3,
-				  delete_request_message: bool = True,
-                  previous_message_id=None
-				  ):
+async def request(
+		user_id, chat_id,
+		timeout: float = 60.0,
+		request_message: str = 'Введите:',
+		validator=None,
+		max_retries: int | None = 3,
+		delete_request_message: bool = True,
+		previous_message_id=None
+		):
 	"""
 	Запрашивает у пользователя некоторую информацию, возвращает его ответ
 
@@ -68,8 +72,8 @@ async def request(user_id, chat_id,
 					else:
 						# sent = await bot.send_message(chat_id, request_message, parse_mode='HTML')
 						sent = await safe_edit_message(previous_message_id=previous_message_id,
-						                        chat_id=chat_id,
-						                        text=request_message)
+						                               chat_id=chat_id,
+						                               text=request_message)
 						request_message_id = sent
 						logger.debug('Sent request message id=%s to chat=%s', request_message_id, chat_id)
 
@@ -109,7 +113,8 @@ async def request(user_id, chat_id,
 							if maybe_err:
 								err = maybe_err
 					except Exception as e:
-						logger.exception('Validator raised exception for user (%s) message (%s): %s', key, response.text, e)
+						logger.exception('Validator raised exception for user (%s) message (%s): %s', key,
+						                 response.text, e)
 						err = 'Ошибка проверки'
 
 				if err:
@@ -434,10 +439,10 @@ async def request_confirmation(
 
 
 async def request_files(
-	user_id: int,
-	chat_id: int,
-	request_message: str = 'Отправьте файлы:',
-	timeout: float = 60.0,
+		user_id: int,
+		chat_id: int,
+		request_message: str = 'Отправьте файлы:',
+		timeout: float = 60.0,
 ):
 	key = (user_id, chat_id)
 	if key in awaiters:
@@ -500,6 +505,8 @@ async def request_files(
 	finally:
 		await set_default_state(user_id, chat_id)
 		awaiters.pop(key, None)
+
+
 async def wait_for_callback_on_message(
 		user_id: int,
 		chat_id: int,
@@ -515,7 +522,7 @@ async def wait_for_callback_on_message(
 	await _save_waiting_for_flag(user_id, chat_id, 'callback')
 
 	loop = asyncio.get_running_loop()
-	fut  = loop.create_future()
+	fut = loop.create_future()
 	specific_awaiters[specific_key] = fut
 
 	try:
@@ -535,12 +542,14 @@ async def wait_for_callback_on_message(
 		specific_awaiters.pop(specific_key, None)
 		async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 			data.pop('waiting_for', None)
-		try:
-			await bot.edit_message_reply_markup(
-				chat_id=chat_id, message_id=message_id, reply_markup=None
-			)
-		except:
-			logger.info("Can't delete markup on message %s", message_id)
+		if delete_callback_after:
+			try:
+				await bot.edit_message_reply_markup(
+					chat_id=chat_id, message_id=message_id, reply_markup=None
+				)
+			except:
+				logger.info("Can't delete markup on message %s", message_id)
+
 
 @bot.message_handler(content_types=['photo', 'document'])
 async def _handle_awaited_files(message):
@@ -559,8 +568,11 @@ async def _handle_awaited_files(message):
 		await queue.put(message)
 	except asyncio.QueueFull:
 		pass
+
+
 # Принимает все кнопки от пользователя, который находится в ожидании
-@bot.callback_query_handler(func=lambda call: (call.from_user.id, call.message.chat.id) in awaiters or (call.from_user.id, call.message.chat.id, call.message.id) in specific_awaiters)
+@bot.callback_query_handler(func=lambda call: (call.from_user.id, call.message.chat.id) in awaiters or (
+call.from_user.id, call.message.chat.id, call.message.id) in specific_awaiters)
 async def _handle_awaited_callback(call):
 	await bot.answer_callback_query(call.id)
 	key = (call.from_user.id, call.message.chat.id)
@@ -621,7 +633,7 @@ async def _handle_awaited_callback(call):
 async def _handle_awaited_answer(message):
 	key = (message.from_user.id, message.chat.id)
 	async with bot.retrieve_data(key[0], key[1]) as data:
-		if not('message' in data['waiting_for']):
+		if not ('message' in data['waiting_for']):
 			return
 	logger.info('Handle awaited message from %s', key)
 	fut = awaiters.get(key)

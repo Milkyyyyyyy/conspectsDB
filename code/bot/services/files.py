@@ -1,4 +1,5 @@
 import os
+import uuid
 import mimetypes
 from typing import List, Tuple
 import telebot
@@ -19,6 +20,7 @@ async def save_files(
 	os.makedirs(save_dir, exist_ok=True)
 	paths = []
 	for i, (file_type, msg) in enumerate(items, start=1):
+		unique_uuid = uuid.uuid4()
 		try:
 			if file_type == 'photo':
 				if not getattr(msg, 'photo', None):
@@ -34,7 +36,7 @@ async def save_files(
 					ext = '.jpg'
 
 				filename = (f'{i}.{msg.from_user.id if msg.from_user else 'unknown'}.'
-				            f'{file_id}{ext}')
+				            f'{file_id}.{unique_uuid}{ext}')
 				path = os.path.join(save_dir, filename)
 				with open(path, 'wb') as f:
 					f.write(file_bytes)
@@ -51,7 +53,8 @@ async def save_files(
 				file_bytes = await bot.download_file(file_info.file_path)
 
 				if getattr(doc, 'file_name', None):
-					filename = doc.file_name
+					base, ext = os.path.splitext(doc.file_name)
+					filename = f'{base}.{unique_uuid}{ext}'
 				else:
 					ext = None
 					if getattr(doc, 'mime_type', None):
@@ -61,7 +64,7 @@ async def save_files(
 					if not ext:
 						ext = ''
 					filename = (f'{i}.{msg.from_user.id if msg.from_user else 'unknown'}.'
-					            f'{file_id}{ext}')
+					            f'{file_id}.{unique_uuid}{ext}')
 				safe_path = os.path.join(save_dir, filename)
 				base, ext = os.path.splitext(safe_path)
 				counter = 1

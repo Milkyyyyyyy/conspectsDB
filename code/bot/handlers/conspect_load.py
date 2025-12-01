@@ -1,24 +1,23 @@
+import asyncio
+import os
 from datetime import datetime
+from typing import Optional, List, Union
 from zoneinfo import ZoneInfo
 
-from aiosqlite import connect
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
 from code.bot.handlers.main_menu import main_menu
 from code.bot.services.files import save_files, delete_files
-from code.bot.services.requests import (request, request_list, request_confirmation, request_files,
-										wait_for_callback_on_message)
+from code.bot.services.requests import (request, request_list, request_files,
+                                        wait_for_callback_on_message)
 from code.bot.services.validation import validators
 from code.bot.utils import send_temporary_message, send_message_with_files
 from code.database.queries import get_all, get, insert
 from code.database.service import connect_db
 from code.logging import logger
 from code.utils import normalize_keywords
-import asyncio
-import os
-from typing import Optional, Tuple, List, Union
 from code.utils import normalize_paths
 
 # Константы в начале модуля
@@ -104,6 +103,7 @@ async def create_conspect(
 			except Exception as cleanup_error:
 				logger.error(f"Failed to delete files: {cleanup_error}")
 
+
 async def stop_creation(chat_id, user_id, file_paths=None):
 	logger.info("stop_creation called", extra={"chat_id": chat_id})
 	await send_temporary_message(chat_id, 'Завершаю создание конспекта...', delay_seconds=10)
@@ -114,6 +114,8 @@ async def stop_creation(chat_id, user_id, file_paths=None):
 			logger.error(f"Failed to delete files: {cleanup_error}")
 	asyncio.create_task(main_menu(user_id, chat_id))
 	return
+
+
 async def _collect_conspect_metadata(user_id, chat_id):
 	theme, _ = await request_theme(user_id, chat_id)
 	if theme is None:
@@ -128,6 +130,8 @@ async def _collect_conspect_metadata(user_id, chat_id):
 
 	keywords, _ = await request_keywords(user_id, chat_id)
 	return theme, conspect_date, keywords
+
+
 async def _get_subject_selection(user_id, chat_id):
 	async with connect_db() as db:
 		# Узнаём, какие предметы относятся к направлению пользователя
@@ -144,7 +148,7 @@ async def _get_subject_selection(user_id, chat_id):
 			subject_filters['rowid'].append(subject['subject_id'])
 		if len(subject_filters['rowid']) == 0:
 			await send_temporary_message(chat_id, text='<b>Не удалось найти предметы.</b>\n'
-													   'Обратитесь к модерации или поменяйте факультет/кафедру/направление в меню "О пользователе"')
+			                                           'Обратитесь к модерации или поменяйте факультет/кафедру/направление в меню "О пользователе"')
 			await main_menu(user_id, chat_id)
 			return
 		# Получаем все предметы из датабазы
@@ -163,6 +167,7 @@ async def _get_subject_selection(user_id, chat_id):
 		output_field=['rowid', 'name']
 	)
 	return subject_id, subject_name
+
 
 async def _request_files_with_retry(
 		user_id: int,
@@ -202,8 +207,11 @@ async def get_conspect_info_text(subject_name, theme, conspect_date, keywords):
 	                 f"<b>📅 Дата конспекта: </b> {conspect_date}\n"
 	                 f"<b>🔍 Ключевые слова: </b> {keywords}</blockquote>\n")
 	return conspect_info
-async def request_theme(user_id, chat_id,
-                        request_message='Введите тему текущего конспекта:'):
+
+
+async def request_theme(
+		user_id, chat_id,
+		request_message='Введите тему текущего конспекта:'):
 	theme, message_id = await request(
 		user_id=user_id,
 		chat_id=chat_id,
@@ -211,9 +219,12 @@ async def request_theme(user_id, chat_id,
 		validator=validators.theme
 	)
 	return theme, message_id
-async def request_date(user_id, chat_id,
-                       request_message='Введите дату текущего конспекта в формате ДД.ММ.ГГГГ\n'
-                                       'Если не знаете - напишите текущую дату):'):
+
+
+async def request_date(
+		user_id, chat_id,
+		request_message='Введите дату текущего конспекта в формате ДД.ММ.ГГГГ\n'
+		                'Если не знаете - напишите текущую дату):'):
 	date, message_id = await request(
 		user_id=user_id,
 		chat_id=chat_id,
@@ -221,8 +232,11 @@ async def request_date(user_id, chat_id,
 		validator=validators.conspect_date
 	)
 	return date, message_id
-async def request_keywords(user_id, chat_id,
-                           request_message = 'Введите ключевые слова для поиска через пробел или запятую.\n'
+
+
+async def request_keywords(
+		user_id, chat_id,
+		request_message='Введите ключевые слова для поиска через пробел или запятую.\n'
 		                'Это очень поможет пользователям найти ваш конспект.'):
 	keywords, message_id = await request(
 		user_id=user_id,
@@ -232,6 +246,8 @@ async def request_keywords(user_id, chat_id,
 	)
 	keywords = await normalize_keywords(keywords)
 	return keywords, message_id
+
+
 async def accept_creation(
 		user_id=None,
 		chat_id=None,
@@ -245,8 +261,8 @@ async def accept_creation(
 
 ):
 	logger.debug("Presenting registration confirmation to user",
-				 extra={"user_id": user_id, "chat_id": chat_id,
-						"theme": theme, "conspect_date": conspect_date, "upload_date": upload_date})
+	             extra={"user_id": user_id, "chat_id": chat_id,
+	                    "theme": theme, "conspect_date": conspect_date, "upload_date": upload_date})
 	try:
 		''' TODO Здесь нужно поменять request_confirmation на такую структуру:
 		Мы создаём сообщение, в котором выводим всю нужную информацию
@@ -261,9 +277,8 @@ async def accept_creation(
 		мы будем предоставлять пользователю возможность на этом этапе заменить всю информацию
 		'''
 
-
-		accept_button = InlineKeyboardButton('✅ Да', callback_data='True')
-		decline_button = InlineKeyboardButton('❌ Нет', callback_data='False')
+		accept_button = InlineKeyboardButton('✅ Да', callback_data='accept')
+		decline_button = InlineKeyboardButton('❌ Нет', callback_data='decline')
 		change_files_button = InlineKeyboardButton('Прикрепить другие файлы', callback_data='change_files')
 		change_theme_button = InlineKeyboardButton('Изменить тему', callback_data='change_theme')
 		change_date_button = InlineKeyboardButton('Изменить дату', callback_data='change_date')
@@ -274,7 +289,7 @@ async def accept_creation(
 		markup.row(accept_button, decline_button)
 
 		response = ''
-		while not response in ('True', 'False', 'None'):
+		while response not in ('accept', 'decline'):
 			conspect_info = await get_conspect_info_text(subject_name, theme, conspect_date, keywords)
 			message = await send_message_with_files(
 				chat_id=chat_id,
@@ -289,11 +304,11 @@ async def accept_creation(
 				message_id=message.id
 			)
 			match response:
-				case ('True', 'False'):
+				case ('accept', 'decline'):
 					break
 				case 'change_files':
 					new_files = await _request_files_with_retry(user_id, chat_id, 3,
-					                                      request_message='Добавьте новые файлы и нажмите "подтвердить"')
+					                                            request_message='Добавьте новые файлы и нажмите "подтвердить"')
 					if new_files is None:
 						continue
 					new_file_paths = await save_files(new_files, 'files/conspect_files')
@@ -313,13 +328,13 @@ async def accept_creation(
 		await send_temporary_message(chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
 		await stop_creation(chat_id, user_id, file_paths)
 		return
-	if response == 'False':
+	if response == 'decline':
 		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
 		await stop_creation(chat_id, user_id, file_paths)
 		return
 
 	keywords_str = ", ".join(keywords.split(' '))
-	if response == 'True':
+	if response == 'accept':
 		logger.info("User accepted registration — proceeding to save", extra={"user_id": user_id})
 		await end_creation(
 			user_id=user_id,
@@ -335,6 +350,8 @@ async def accept_creation(
 		logger.info("User requested to repeat registration", extra={"user_id": user_id})
 		await create_conspect(user_id=user_id, chat_id=chat_id)
 		return
+
+
 async def end_creation(
 		user_id=None,
 		chat_id=None,
@@ -361,14 +378,14 @@ async def end_creation(
 					'views': 0,
 					'status': 'pending',
 					'rating': 0,
-					'anonymous' : False
+					'anonymous': False
 				}
 			)
 			for path in file_paths:
 				await insert(
 					database=db,
 					table='CONSPECTS_FILES',
-					filters = {
+					filters={
 						'conspect_id': conspect_id,
 						'path': path
 					}
