@@ -46,7 +46,14 @@ async def delete_conspect(conspect_id: int = None, conspect_row = None):
 	finally:
 		return True
 
-async def send_conspect_message(user_id, chat_id, conspect_id=None, reply_markup=None, markup_text=None, conspect_row=None):
+async def send_conspect_message(
+		user_id,
+		chat_id,
+		conspect_id=None,
+		reply_markup=None,
+		markup_text=None,
+		conspect_row=None,
+):
 	if conspect_id is None and conspect_row is None:
 		logger.error('Not provided conspect_id nor conspect_row')
 		return None

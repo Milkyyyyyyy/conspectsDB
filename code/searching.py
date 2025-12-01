@@ -77,7 +77,7 @@ def _score_strings(item_lemmas: str, query_lemmas: str) -> float:
 		return 0.6 * j + 0.4 * s
 
 
-def search_and_rank(
+async def search_and_rank(
 		items: Iterable[Dict[str, Any]],
 		query: str,
 		keys: Sequence[str] = ('theme',),
