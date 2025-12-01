@@ -3,6 +3,7 @@ from collections import defaultdict
 from enum import Enum
 from typing import Union, List
 
+from select import select
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from code.bot.bot_instance import bot
@@ -39,7 +40,6 @@ async def select_from_database(
 	:param output_field: Поле (или поля), которые будут возвращены функцией.
 	:return: Список значений заданных полей, или просто одно значение
 	"""
-
 	if None in (user_id, chat_id, table):
 		logger.error("Incorrect data")
 		return None
@@ -58,13 +58,14 @@ async def select_from_database(
 	return choice
 
 
-async def print_subdivisions(chat_id):
+async def print_subdivisions(chat_id, previous_message_id=None):
 	"""
 	Выводит всю датабазу факультетов, кафедр и направлений в виде схемы
 
 	:param chat_id: ID чата
 	"""
 	facults, chairs, directions, chairs_by_facults, directions_by_chairs = await _group_subdivision()
+	logger.info(f'Printing subdivisions for {chat_id}, facults=%s, chairs=%s, directions=%s', len(facults), len(chairs), len(directions))
 
 	# Выводим схему факультетов, кафедр и направлений
 	schema = ''
@@ -78,18 +79,24 @@ async def print_subdivisions(chat_id):
 			for direction_id in directions_by_chairs[chair_rowid]:
 				direction = directions[direction_id]
 				schema += '| | ' + direction['name'] + '\n'
-
 	# Собираем markup
 	back_button = InlineKeyboardButton(
 		'<-- Назад',
 		callback_data=call_factory.new(
-			area='',
-			action='delete'
+			area='admin_menu',
+			action='admin_menu'
 		)
 	)
 	markup = InlineKeyboardMarkup()
 	markup.add(back_button)
-	await bot.send_message(chat_id, schema, reply_markup=markup)
+	if schema == '':
+		schema = 'Не обнаружено факультетов.'
+	await safe_edit_message(
+		previous_message_id=previous_message_id,
+		chat_id=chat_id,
+		text=schema,
+		reply_markup=markup
+	)
 	return
 
 
@@ -170,6 +177,7 @@ async def callback_handler(call):
 		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
 
 	action = call_factory.parse(callback_data=call.data)['action']
+	logger.debug('Callback in admin menu action: %s', action)
 	match action:
 		case 'back_to_menu':
 			await main_menu(
@@ -241,11 +249,12 @@ async def callback_handler(call):
 				previous_message_id=message_id
 			)
 		case 'show_database':
-			await print_subdivisions(chat_id)
+			await print_subdivisions(chat_id, previous_message_id=message_id)
 
 
 @bot.message_handler(commands=['admin_menu'])
 async def command_admin_menu(message):
+	logger.info('User %s invoked command /admin_menu', message.from_user.id)
 	await admin_menu(user_id=message.from_user.id, chat_id=message.chat.id)
 
 async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
@@ -256,7 +265,7 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 	:param user_id: ID юзера.
 	:param chat_id: ID чата.
 	"""
-
+	logger.info('Printing admin menu for %s', user_id)
 	if None in (user_id, chat_id):
 		logger.error("user_id and chat_id was not provided")
 		return
@@ -274,6 +283,7 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 		is_moderator = bool(is_moderator)
 
 	if not is_moderator:
+		logger.info("User %s is not moderator or admin, exiting", user_id)
 		await main_menu(user_id, chat_id)
 		return
 
@@ -315,7 +325,7 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 	:param user_id: ID юзера.
 	:param chat_id: ID чата
 	"""
-
+	logger.info('Printing change_database menu for user %s', user_id)
 	# Собираем весь markup
 	markup = InlineKeyboardMarkup()
 	back_button = InlineKeyboardButton(
@@ -392,10 +402,13 @@ async def change_database_menu(previous_message_id, user_id, chat_id):
 	)
 	markup.row(add_facult_button, add_chair_button)
 	markup.row(add_direction_button)
+
 	markup.row(delete_facult_button, delete_chair_button)
 	markup.row(delete_direction_button)
+
 	markup.row(add_subject_button, delete_subject_button)
 	markup.row(edit_subject_connection_button)
+
 	markup.row(back_button)
 	await safe_edit_message(previous_message_id, chat_id, user_id, 'Выберите действие', reply_markup=markup)
 
@@ -415,6 +428,7 @@ async def add_row(
 		table=None,
 		filters: dict = None,
 		previous_message_id=None,
+		delete_message_after: bool = False,
 ):
 	"""
 	Утилита для добавления записи в датабазу
@@ -426,17 +440,18 @@ async def add_row(
 	:param previous_message_id: ID прошлого сообщения
 	:return: AddingRowResult Enum с результатом добавления
 	"""
+	logger.info('Adding row with filters=%s', filters)
 	if None in (table, filters, ):
 		logger.error('Incorrect input data: table=%s, filters=', type(table), filters)
 		return AddingRowResult.INCORRECT_INPUT_DATA
-
 	async with connect_db() as db:
 		is_already_exists = await is_exists(database=db, table=table, filters=filters)
 		if is_already_exists:
 			return AddingRowResult.ROW_ALREADY_EXISTS
 
 		insert_new_row_accept = await request_confirmation(user_id, chat_id, accept_message,
-		                                                   previous_message_id=previous_message_id)
+														   previous_message_id=previous_message_id,
+		                                                   delete_message_after=delete_message_after)
 		if insert_new_row_accept:
 			await insert(database=db, table=table, filters=filters)
 		else:
@@ -453,19 +468,22 @@ async def add_facult(user_id, chat_id, previous_message_id):
 	:param previous_message_id: ID прошлого сообщения
 	:return:
 	"""
-	new_facult_name = await request(
+	new_facult_name, message_id = await request(
 		user_id,
 		chat_id,
 		request_message='Введите название факультета',
+		previous_message_id=previous_message_id
 	)
+	previous_message_id = message_id
 	result = await add_row(
 		user_id,
 		chat_id,
 		f'Подтвердите добавление факультета "{new_facult_name}"',
 		table='FACULTS',
 		filters={'name': new_facult_name},
-		previous_message_id=previous_message_id
+		delete_message_after=True
 	)
+
 	match result:
 		case AddingRowResult.INCORRECT_INPUT_DATA:
 			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)', delay_seconds=2)
@@ -474,8 +492,9 @@ async def add_facult(user_id, chat_id, previous_message_id):
 		case AddingRowResult.ABORTED_BY_USER:
 			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлен факультет {new_facult_name}', delay_seconds=1)
-	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+			await send_temporary_message(chat_id, f'Успешно добавлен факультет <b>"{new_facult_name}"</b>', delay_seconds=10)
+	await asyncio.sleep(0.5)
+	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=None)
 
 
 async def add_chair(user_id, chat_id, previous_message_id):
@@ -495,23 +514,22 @@ async def add_chair(user_id, chat_id, previous_message_id):
 	)
 	# Админ отменил добавление
 	if facult_id is None:
-		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+		await admin_menu(user_id=user_id, chat_id=chat_id)
 		return
-	new_chair_name = await request(
+	new_chair_name, message_id = await request(
 		user_id,
 		chat_id,
 		request_message='Введите название кафедры',
 		delete_request_message=True
 	)
-
+	previous_message_id = message_id
 	result = await add_row(
 		user_id,
 		chat_id,
 		f'Подтвердите добавление кафедры "{new_chair_name}"',
 		table='CHAIRS',
-		values=[new_chair_name, facult_id],
-		columns=['name', 'facult_id'],
-		previous_message_id=previous_message_id
+		filters={'name': new_chair_name, 'facult_id':facult_id},
+		delete_message_after=True
 	)
 
 	match result:
@@ -520,10 +538,11 @@ async def add_chair(user_id, chat_id, previous_message_id):
 		case AddingRowResult.ROW_ALREADY_EXISTS:
 			await send_temporary_message(chat_id, 'Такая кафедра уже существует', delay_seconds=2)
 		case AddingRowResult.ABORTED_BY_USER:
-			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
+			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=5)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлена кафедра {new_chair_name}', delay_seconds=1)
-	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+			await send_temporary_message(chat_id, f'Успешно добавлена кафедра <b>"{new_chair_name}"</b>', delay_seconds=1)
+	await asyncio.sleep(0.5)
+	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=None)
 
 
 async def add_direction(user_id, chat_id, previous_message_id):
@@ -554,25 +573,26 @@ async def add_direction(user_id, chat_id, previous_message_id):
 		header='Выберите факультет',
 		filters={'facult_id': facult_id}
 	)
+
 	# Админ отменил добавление
 	if chair_id is None:
-		await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+		await admin_menu(user_id=user_id, chat_id=chat_id)
 		return
 
-	new_direction_name = await request(
+	new_direction_name, message_id = await request(
 		user_id,
 		chat_id,
 		request_message='Введите название направления',
 		delete_request_message=True
 	)
+	previous_message_id = message_id
 	result = await add_row(
 		user_id,
 		chat_id,
 		f'Подтвердите добавление направления "{new_direction_name}"',
 		table='DIRECTIONS',
-		values=[new_direction_name, chair_id],
-		columns=['name', 'chair_id'],
-		previous_message_id=previous_message_id
+		filters={'name': new_direction_name, 'chair_id':chair_id},
+		delete_message_after=True
 	)
 	match result:
 		case AddingRowResult.INCORRECT_INPUT_DATA:
@@ -582,9 +602,10 @@ async def add_direction(user_id, chat_id, previous_message_id):
 		case AddingRowResult.ABORTED_BY_USER:
 			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлено направление {new_direction_name}',
-			                             delay_seconds=1)
-	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+			await send_temporary_message(chat_id, f'Успешно добавлено направление <b>"{new_direction_name}"</b>',
+			                             delay_seconds=5)
+	await asyncio.sleep(0.5)
+	await admin_menu(user_id=user_id, chat_id=chat_id)
 
 
 async def delete_facult(user_id, chat_id, previous_message_id):
@@ -666,8 +687,7 @@ async def delete_facult(user_id, chat_id, previous_message_id):
 			)
 	await admin_menu(
 		user_id=user_id,
-		chat_id=chat_id,
-		previous_message_id=previous_message_id
+		chat_id=chat_id
 	)
 	return
 
@@ -834,30 +854,31 @@ async def add_subject(user_id, chat_id, previous_message_id):
 	"""
 	Добавление предмета пользователем
 	"""
-	subject_name = await request(
+	subject_name, message_id = await request(
 		user_id,
 		chat_id,
 		request_message='Введите название предмета'
 	)
+	previous_message_id=message_id
 	result = await add_row(
 		user_id,
 		chat_id,
 		f'Подтвердите добавление предмета "{subject_name}"',
 		table='SUBJECTS',
-		values=[subject_name],
-		columns=['name', ],
-		previous_message_id=previous_message_id
+		filters={'name': subject_name},
+		delete_message_after=True
 	)
 	match result:
 		case AddingRowResult.INCORRECT_INPUT_DATA:
-			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)', delay_seconds=2)
+			await send_temporary_message(chat_id, 'Неправильные вводные данные (см. логи)', delay_seconds=7)
 		case AddingRowResult.ROW_ALREADY_EXISTS:
-			await send_temporary_message(chat_id, 'Такой предмет уже существует', delay_seconds=2)
+			await send_temporary_message(chat_id, 'Такой предмет уже существует', delay_seconds=7)
 		case AddingRowResult.ABORTED_BY_USER:
-			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=1)
+			await send_temporary_message(chat_id, 'Отменяю...', delay_seconds=5)
 		case AddingRowResult.SUCCESS:
-			await send_temporary_message(chat_id, f'Успешно добавлен предмет {subject_name}', delay_seconds=1)
-	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id)
+			await send_temporary_message(chat_id, f'Успешно добавлен предмет <b>"{subject_name}"</b>', delay_seconds=5)
+	await asyncio.sleep(0.5)
+	await admin_menu(user_id=user_id, chat_id=chat_id)
 
 
 async def delete_subject(user_id, chat_id, previous_message_id):
@@ -895,6 +916,13 @@ async def edit_subject_connections(user_id, chat_id, previous_message_id):
 		'SUBJECTS',
 		header='Выберите предмет'
 	)
+	if selected_subject is None:
+		await admin_menu(
+			user_id=user_id,
+			chat_id=chat_id,
+			previous_message_id=previous_message_id
+		)
+		return
 	while True:
 		async with connect_db() as db:
 			directions = await get_all(
@@ -908,9 +936,9 @@ async def edit_subject_connections(user_id, chat_id, previous_message_id):
 			)
 			existing_ids = []
 			for con in already_existing_connections:
-				existing_ids.append(con['direction_id'])
+				existing_ids.append((con['subject_id'], con['direction_id']))
 			for direction in directions:
-				if direction['rowid'] in existing_ids:
+				if (direction['rowid'], selected_subject) in existing_ids:
 					direction['name'] += ' ➖'
 					direction['exist'] = True
 				else:
