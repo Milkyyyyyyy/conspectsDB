@@ -5,7 +5,7 @@ from code.bot.utils import safe_edit_message
 from code.database.service import connect_db
 from code.database.queries import get, get_all
 from code.bot.services.conspects import *
-from telebot.apihelper import ApiException, ApiHTTPException
+from telebot.apihelper import ApiException, ApiHTTPException, edit_message_reply_markup
 import math
 from typing import Dict, Optional
 from code.searching import *
@@ -35,14 +35,22 @@ async def update_conspect_row(filters={}, query=None):
 			table='CONSPECTS',
 			filters=filters
 		)
-	conspect_dicts = []
-	for conspect in conspects:
-		conspect_dicts.append(await safe_row_to_dict(conspect))
+		conspect_dicts = []
+		for conspect in conspects:
+			conspect_dicts.append(await safe_row_to_dict(conspect))
+		all_subjects_names = []
+
+		for i, conspect in enumerate(conspect_dicts):
+			subject = await get(database=db,
+			                    table='SUBJECTS',
+			                    filters={'rowid': conspect['subject_id']})
+			conspect_dicts[i]['subject_name'] = subject['name']
+
 	if query is not None:
 		conspect_dicts = await search_and_rank(
 			conspect_dicts,
 			query,
-			keys = ('theme', 'keywords')
+			keys = ('theme', 'keywords', 'subject_name')
 		)
 	return conspect_dicts
 async def update_conspect_info(all_conspects_rows, page, conspects_per_page, filters={}):
@@ -108,9 +116,9 @@ async def conspect_searching(
 			 last_index) = await update_conspect_info(all_conspects_rows, page, conspects_per_page)
 			rule_line = '───────────────────────────\n'
 			header = (
-				         f'📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})\n'
-				         '🔍 Фильтр: Все предметы\n'
-				         f'{'' if users_query == '' else f'Запрос: {users_query}\n\n'}'
+				         f'<b>📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})</b>\n'
+				         '<b>🔍 Фильтр:</b> <i>Все предметы</i>\n'
+				         f'{'' if users_query == '' else f'<b>Запрос:</b> <i>{users_query}</i>\n\n'}'
 			         ) + rule_line
 			message_text = await get_conspects_list_slice(
 				header,
@@ -154,6 +162,14 @@ async def conspect_searching(
 		else:
 			match response:
 				case 'back':
+					try:
+						await bot.edit_message_reply_markup(
+							chat_id,
+							previous_message_id,
+							reply_markup=None
+						)
+					except:
+						logger.exception("Can't delete markup")
 					asyncio.create_task(main_menu(user_id, chat_id))
 					return
 				case 'next_page':
@@ -165,13 +181,18 @@ async def conspect_searching(
 						page-=1
 						update_message_text=True
 				case 'set_filter':
-					users_query, _ = await request(
+					users_query, request_message_id = await request(
 						user_id,
 						chat_id,
 						request_message='Введите запрос\nНапишите "-" для очистки запроса'
 					)
 					if users_query == '-':
 						users_query = None
+					try:
+						await bot.delete_message(chat_id, request_message_id)
+						await bot.delete_message(chat_id, request_message_id+1)
+					except:
+						logger.exception("Can't delete messages")
 					update_conspect = True
 
 

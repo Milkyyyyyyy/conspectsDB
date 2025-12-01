@@ -74,21 +74,21 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		)
 	)
 	search_conspect = InlineKeyboardButton(
-		'Найти конспект',
+		'🔍 Найти конспект',
 		callback_data=call_factory.new(
 			area='conspects_searching',
 			action='conspects_searching'
 		)
 	)
 	upload_conspect_button = InlineKeyboardButton(
-		'Загрузить конспект',
+		'📤 Загрузить конспект',
 		callback_data=call_factory.new(
 			area='conspects_upload',
 			action='upload_conspect'
 		)
 	)
 	users_conspect_button = InlineKeyboardButton(
-		'Мои конспекты',
+		'📚 Мои конспекты',
 		callback_data=call_factory.new(
 			area='user_conspects',
 			action='user_conspects'

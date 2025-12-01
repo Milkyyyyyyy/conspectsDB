@@ -142,6 +142,7 @@ async def _get_subject_selection(user_id, chat_id):
 			table='SUBJECT_DIRECTIONS',
 			filters={'direction_id': user_direction_id}
 		)
+		print(user_direction_id)
 		# Собираем фильтр из всех подходящих предметов
 		subject_filters = {'rowid': []}
 		for subject in all_subjects_by_direction:
@@ -279,10 +280,10 @@ async def accept_creation(
 
 		accept_button = InlineKeyboardButton('✅ Да', callback_data='accept')
 		decline_button = InlineKeyboardButton('❌ Нет', callback_data='decline')
-		change_files_button = InlineKeyboardButton('Прикрепить другие файлы', callback_data='change_files')
-		change_theme_button = InlineKeyboardButton('Изменить тему', callback_data='change_theme')
-		change_date_button = InlineKeyboardButton('Изменить дату', callback_data='change_date')
-		change_keywords_button = InlineKeyboardButton('Изменить теги', callback_data='change_keywords')
+		change_files_button = InlineKeyboardButton('📎 Прикрепить другие файлы', callback_data='change_files')
+		change_theme_button = InlineKeyboardButton('✏️ Изменить тему', callback_data='change_theme')
+		change_date_button = InlineKeyboardButton('📅 Изменить дату', callback_data='change_date')
+		change_keywords_button = InlineKeyboardButton('🏷️ Изменить теги', callback_data='change_keywords')
 		markup = InlineKeyboardMarkup()
 		markup.row(change_files_button)
 		markup.row(change_theme_button, change_date_button, change_keywords_button)

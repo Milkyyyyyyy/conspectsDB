@@ -936,9 +936,9 @@ async def edit_subject_connections(user_id, chat_id, previous_message_id):
 			)
 			existing_ids = []
 			for con in already_existing_connections:
-				existing_ids.append(con['direction_id'])
+				existing_ids.append((con['subject_id'], con['direction_id']))
 			for direction in directions:
-				if direction['rowid'] in existing_ids:
+				if (direction['rowid'], selected_subject) in existing_ids:
 					direction['name'] += ' ➖'
 					direction['exist'] = True
 				else:
