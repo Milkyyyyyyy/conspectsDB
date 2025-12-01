@@ -15,7 +15,8 @@ from typing import List, Dict
 import math
 import asyncio
 from code.bot.services.conspects import (make_list_of_conspects, generate_list_markup, get_conspects_list_slice,
-                                         send_conspect_message, delete_conspect)
+                                         send_conspect_message, delete_conspect,
+                                         get_all_subjects)
 
 
 @bot.callback_query_handler(func=call_factory.filter(area='user_conspects').check)
@@ -35,6 +36,7 @@ async def callback_handler(call):
 	match action:
 		case 'user_conspects':
 			await user_conspect(user_id, chat_id)
+
 
 async def print_user_conspects(user_id, chat_id, conspects_list=None, conspects_per_page=10, page=1):
 	markup = InlineKeyboardMarkup()
@@ -68,10 +70,16 @@ async def print_user_conspects(user_id, chat_id, conspects_list=None, conspects_
 
 
 	response = ''
-	conspects_formatted_list, conspect_by_index = await make_list_of_conspects(conspects_list)
 	update_markup = True
+	update_conspect_list = True
 	previous_message_id=None
+	conspects_formatted_list, conspect_by_index = await make_list_of_conspects(conspects_list)
+	print(await get_all_subjects(conspects_list))
 	while response != 'back':
+		if update_conspect_list:
+			conspects_formatted_list, conspect_by_index = await make_list_of_conspects(conspects_list)
+			update_conspect_list = False
+
 		first_index = (page-1)*conspects_per_page
 		last_index = first_index + conspects_per_page
 		if last_index > conspects_amount:

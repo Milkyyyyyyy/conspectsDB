@@ -4,6 +4,7 @@ from code.bot.utils import send_message_with_files
 from code.database.service import connect_db
 from code.bot.bot_instance import bot
 from code.database.queries import get, get_all, update, remove, remove_all
+from code.database.utils import safe_row_to_dict
 from code.logging import logger
 import asyncio
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -181,3 +182,20 @@ async def get_conspects_list_slice(
 		message_text += f'\n<b><i>📖 Страница {current_page}/{last_page}</i></b>'
 
 	return message_text
+
+async def get_all_subjects(conspects_list):
+	subject_ids = set()
+	for conspect in conspects_list:
+		subject_ids.add(conspect['subject_id'])
+	subject_ids = list(subject_ids)
+
+	subjects = []
+	async with connect_db() as db:
+		all_subjects = await get_all(
+			database=db,
+			table='SUBJECTS',
+			filters = {'rowid': subject_ids}
+		)
+	for item in all_subjects:
+		subjects.append(await safe_row_to_dict(item))
+	return subjects
