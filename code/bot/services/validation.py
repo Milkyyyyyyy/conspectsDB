@@ -35,7 +35,7 @@ class Validators:
 
 validators = Validators()
 validators.add('name',
-			   r"^[А-Яа-яA-Za-z\-]{2,30}$",
+			   r"^[А-Яа-яЁёA-Za-z\-]{2,30}$",
 			   "<b>Некорректное имя.</b>\n"
 			   "Оно должно содержать <b>только кириллицу или латиницу буквы</b> (от 2 до 30 букв).\n")
 validators.add('surname',
