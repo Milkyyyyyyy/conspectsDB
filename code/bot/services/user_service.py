@@ -3,7 +3,7 @@
 Получение информации, проверка, существует ли пользователь и т.д
 """
 
-from code.database.queries import is_exists, get, insert
+from code.database.queries import is_exists, get, insert, get_all
 from code.database.service import connect_db
 from code.logging import logger
 from code.database.utils import safe_row_to_dict
@@ -40,6 +40,12 @@ async def get_user_info(chat_id=None, user_id=None):
 				facult = await get(database=db, table='FACULTS', filters={'rowid': facult_id})
 				facult = await safe_row_to_dict(facult)
 
+		conspect_rows = await get_all(
+			database=db,
+			table='CONSPECTS',
+			filters = {'user_telegram_id': user_id}
+		)
+
 
 	output = {
 		'telegram_id': user['telegram_id'],
@@ -52,6 +58,7 @@ async def get_user_info(chat_id=None, user_id=None):
 		'chair_name': chair.get('name', 'Неизвестная кафедра'),
 		'facult_id': facult.get('rowid', None),
 		'facult_name': facult.get('name', 'Неизвестный факультет'),
+		'all_conspects': conspect_rows
 	}
 	return output
 async def save_user_in_database(user_id=None, name=None, surname=None, group=None, direction_id=None, role=None):

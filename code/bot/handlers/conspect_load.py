@@ -328,13 +328,13 @@ async def accept_creation(
 		await send_temporary_message(chat_id, text='Произошла ошибка. Повторите позже.', delay_seconds=5)
 		await stop_creation(chat_id, user_id, file_paths)
 		return
-	if response == 'False':
+	if response == 'decline':
 		logger.info("User cancelled at confirmation step", extra={"user_id": user_id})
 		await stop_creation(chat_id, user_id, file_paths)
 		return
 
 	keywords_str = ", ".join(keywords.split(' '))
-	if response == 'True':
+	if response == 'accept':
 		logger.info("User accepted registration — proceeding to save", extra={"user_id": user_id})
 		await end_creation(
 			user_id=user_id,

@@ -128,7 +128,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 	                f"<b>Факультет</b>: {user_info['facult_name']}\n"
 	                f"<b>Кафедра</b>: {user_info['chair_name']}\n"
 	                f"<b>Направление</b>: {user_info['direction_name']}\n\n"
-	                f"<b>Кол-во загруженных конспектов</b>: В РАЗРАБОТКЕ</blockquote>")
+	                f"<b>Кол-во загруженных конспектов</b>: {len(user_info['all_conspects'])}</blockquote>")
 	markup = InlineKeyboardMarkup()
 	back_button = InlineKeyboardButton(
 		'Назад',
@@ -151,7 +151,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 			action='change_surname'
 		)
 	)
-	change_surname_button = InlineKeyboardButton(
+	change_facult = InlineKeyboardButton(
 		'Изменить факультет',
 		callback_data=call_factory.new(
 			area='main_menu',
@@ -159,6 +159,7 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 		)
 	)
 	markup.row(change_name_button, change_surname_button)
+	markup.row(change_facult)
 	markup.row(back_button)
 	try:
 		if previous_message_id is None or not isinstance(previous_message_id, int):
