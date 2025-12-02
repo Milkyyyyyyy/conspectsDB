@@ -76,9 +76,12 @@ async def log_updates(updates):
 		logger.debug("%s | %s | %s | %s", datetime.now(timezone.utc).isoformat(),
 					 msg.from_user.id, msg.from_user.username, msg.text)
 
-
+async def regular_checks():
+	while True:
+		await hard_cleaning()
+		await asyncio.sleep(30*60)
 async def main():
-	await hard_cleaning()
+	asyncio.create_task(regular_checks())
 	try:
 		logger.info("Starting polling...")
 		bot.set_update_listener(log_updates)
