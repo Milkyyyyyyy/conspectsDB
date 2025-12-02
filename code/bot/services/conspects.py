@@ -71,7 +71,6 @@ async def send_conspect_message(
 			else:
 				conspect_id = conspect_row['rowid']
 			if conspect_row is None:
-				print(conspect_row)
 				raise Exception(f'No conspect found with {conspect_id=}')
 			conspect = dict(conspect_row)
 			subject_row = await get(
@@ -143,7 +142,7 @@ async def make_list_of_conspects(conspects_list):
 			)
 			status = conspect['status']
 			if status == 'accepted':
-				status = '✅ Опубл.'
+				status = '✅ Проверенно.'
 			elif status == 'pending':
 				status = '⏳ Модерация'
 			elif status == 'rejected':

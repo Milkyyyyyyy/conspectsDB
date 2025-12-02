@@ -172,7 +172,6 @@ async def get_all(
 		logger.exception(e)
 		return None
 
-
 async def get(
 		database: aiosqlite.Connection = None,
 		table: Union[str, Enum] = None,

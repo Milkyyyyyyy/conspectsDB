@@ -142,7 +142,6 @@ async def _get_subject_selection(user_id, chat_id):
 			table='SUBJECT_DIRECTIONS',
 			filters={'direction_id': user_direction_id}
 		)
-		print(user_direction_id)
 		# Собираем фильтр из всех подходящих предметов
 		subject_filters = {'rowid': []}
 		for subject in all_subjects_by_direction:

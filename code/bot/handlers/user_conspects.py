@@ -9,9 +9,11 @@ with pagination and interactive buttons support.
 # list of conspects into different functions and move part to services.conspects.py
 
 from code.bot.bot_instance import bot
+from code.bot.handlers.conspects_searching import update_conspect_row
 from code.bot.handlers.main_menu import main_menu
 from code.bot.services.requests import wait_for_callback_on_message, request_confirmation
 from code.bot.utils import safe_edit_message
+from code.database.utils import safe_row_to_dict
 from code.logging import logger
 from code.bot.callbacks import call_factory
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -21,6 +23,8 @@ from code.database.queries import get, get_all
 from typing import List, Dict, Optional, Tuple
 import math
 import asyncio
+from datetime import datetime
+
 from code.bot.services.conspects import (
     make_list_of_conspects,
     generate_list_markup,
@@ -91,8 +95,24 @@ async def callback_handler(call) -> None:
                     'Critical error when processing user_conspects for user_id=%s',
                     user_id
                 )
+async def update_conspect_row(user_id):
+	async with connect_db() as db:
+		conspects = await get_all(
+			database=db,
+			table='CONSPECTS',
+			filters={'user_telemgram_id': user_id}
+		)
+		conspect_dicts = []
+		for conspect in conspects:
+			conspect_dicts.append(await safe_row_to_dict(conspect))
+		all_subjects_names = []
 
-
+		for i, conspect in enumerate(conspect_dicts):
+			subject = await get(database=db,
+			                    table='SUBJECTS',
+			                    filters={'rowid': conspect['subject_id']})
+			conspect_dicts[i]['subject_name'] = subject['name']
+	return conspect_dicts
 async def print_user_conspects(
     user_id: int,
     chat_id: int,
@@ -190,8 +210,10 @@ async def print_user_conspects(
             # Update conspects list if necessary
             if update_conspect_list:
                 logger.debug('Updating conspects list for user_id=%s', user_id)
+                conspects_list = await update_conspect_row(user_id)
                 conspects_formatted_list, conspect_by_index = await make_list_of_conspects(conspects_list)
                 update_conspect_list = False
+                update_markup = True
 
             # Calculate indices for current page
             first_index = (page - 1) * conspects_per_page
@@ -253,6 +275,8 @@ async def print_user_conspects(
 
             # Handle selection of specific conspect
             if 'conspect' in response:
+                update_conspect_list = True
+                update_markup = True
                 try:
                     conspect_index = int(response.split()[-1])
                     logger.info(
@@ -511,6 +535,7 @@ async def user_conspect(user_id: int, chat_id: int) -> None:
                 table='CONSPECTS',
                 filters={'user_telegram_id': user_id}
             )
+            conspects.sort(key=lambda x: datetime.strptime(x['upload_date'], "%H:%M:%S %d.%m.%Y"), reverse=True)
             logger.info(
                 'Retrieved %d conspects from DB for user_id=%s',
                 len(conspects) if conspects else 0, user_id
