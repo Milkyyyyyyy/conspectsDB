@@ -29,7 +29,11 @@ async def callback_handler(call):
 		case 'conspects_searching':
 			await conspect_searching(user_id, chat_id)
 
-async def update_conspect_row(filters={}, query=None):
+async def update_conspect_row(filters={}, query=None, show_hidden_conspects=False):
+	if show_hidden_conspects:
+		filters['status'] = ['accepted', 'pending']
+	else:
+		filters['status'] = ['accepted']
 	async with connect_db() as db:
 		conspects = await get_all(
 			database=db,
@@ -43,8 +47,8 @@ async def update_conspect_row(filters={}, query=None):
 
 		for i, conspect in enumerate(conspect_dicts):
 			subject = await get(database=db,
-			                    table='SUBJECTS',
-			                    filters={'rowid': conspect['subject_id']})
+								table='SUBJECTS',
+								filters={'rowid': conspect['subject_id']})
 			conspect_dicts[i]['subject_name'] = subject['name']
 
 	if query is not None:
@@ -54,16 +58,9 @@ async def update_conspect_row(filters={}, query=None):
 			keys = ('theme', 'keywords', 'subject_name')
 		)
 	else:
-		for conspect in conspect_dicts:
-			print(conspect['upload_date'])
 		conspect_dicts.sort(key=lambda x: datetime.strptime(x['upload_date'], "%H:%M:%S %d.%m.%Y"), reverse=True)
-		print()
-		for conspect in conspect_dicts:
-			print(conspect['upload_date'])
 	return conspect_dicts
-async def update_conspect_info(all_conspects_rows, page, conspects_per_page, filters={}):
-	# filters['status'] = 'accepted'
-
+async def update_conspect_info(all_conspects_rows, page, conspects_per_page):
 	conspects_amount = len(all_conspects_rows)
 	last_page = math.ceil(conspects_amount / conspects_per_page)
 	formatted_list, conspects_by_index = await make_list_of_conspects(all_conspects_rows)
@@ -71,11 +68,11 @@ async def update_conspect_info(all_conspects_rows, page, conspects_per_page, fil
 	first_index = (page - 1) * conspects_per_page
 	last_index = min(first_index + conspects_per_page, conspects_amount)
 	return (conspects_amount,
-	        last_page,
-	        formatted_list,
-	        conspects_by_index,
-	        first_index,
-	        last_index)
+			last_page,
+			formatted_list,
+			conspects_by_index,
+			first_index,
+			last_index)
 async def conspect_searching(
 		user_id,
 		chat_id,
@@ -100,10 +97,10 @@ async def conspect_searching(
 	users_query = None
 	rule_line = '───────────────────────────\n'
 	header = (
-		         f'📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})\n'
-		         '🔍 Фильтр: Все предметы\n'
-		         f'{'' if users_query is None else f'Запрос: {users_query}\n'}'
-	         ) + rule_line
+				 f'📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})\n'
+				 '🔍 Фильтр: Все предметы\n'
+				 f'{'' if users_query is None else f'Запрос: {users_query}\n'}'
+			 ) + rule_line
 
 
 
@@ -111,9 +108,10 @@ async def conspect_searching(
 	update_message_text = True
 	response = ''
 	previous_message_id = None
+	show_not_moderated = False
 	while response != 'back':
 		if update_conspect:
-			all_conspects_rows = await update_conspect_row(query=users_query)
+			all_conspects_rows = await update_conspect_row(query=users_query, show_hidden_conspects=show_not_moderated)
 			update_conspect = False
 			update_message_text = True
 		if update_message_text:
@@ -124,11 +122,11 @@ async def conspect_searching(
 			 last_index) = await update_conspect_info(all_conspects_rows, page, conspects_per_page)
 			rule_line = '───────────────────────────\n'
 			header = (
-				         f'<b>📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})</b>\n'
-				         '<b>🔍 Фильтр:</b> <i>Все предметы</i>\n'
-				         f'{'' if users_query is None else f'<b>Запрос:</b> <i>{users_query}</i>\n\n'}'
+						 f'<b>📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})</b>\n'
+						 '<b>🔍 Фильтр:</b> <i>Все предметы</i>\n'
+						 f'{'' if users_query is None else f'<b>Запрос:</b> <i>{users_query}</i>\n\n'}'
 
-			         ) + rule_line
+					 ) + rule_line
 			message_text = await get_conspects_list_slice(
 				header,
 				rule_line,
@@ -142,7 +140,11 @@ async def conspect_searching(
 				first_index,
 				last_index
 			)
+			show_hide_not_moderated = InlineKeyboardButton(
+				'Показать непроверенные' if not show_not_moderated else 'Скрыть непроверенные',
+				callback_data='show_hide_not_moderated')
 			markup.row(previous_page_button, set_filter_button, next_page_button)
+			markup.row(show_hide_not_moderated)
 			markup.row(back_button)
 			previous_message_id = await safe_edit_message(
 				previous_message_id,
@@ -165,8 +167,8 @@ async def conspect_searching(
 		if 'conspect' in response:
 			conspect_index = int(response.split()[-1])
 			await print_conspect_by_index(user_id,
-			                              chat_id,
-			                              conspects_by_index, conspect_index)
+										  chat_id,
+										  conspects_by_index, conspect_index)
 			update_conspect = True
 		else:
 			match response:
@@ -203,101 +205,120 @@ async def conspect_searching(
 					except:
 						logger.exception("Can't delete messages")
 					update_conspect = True
+				case 'show_hide_not_moderated':
+					show_not_moderated = not show_not_moderated
+					update_conspect = True
 
 
 async def print_conspect_by_index(
-    user_id: int,
-    chat_id: int,
-    conspects_by_index: Dict[int, Dict],
-    conspect_index: int,
-    previous_message_id: Optional[int] = None
+	user_id: int,
+	chat_id: int,
+	conspects_by_index: Dict[int, Dict],
+	conspect_index: int,
+	previous_message_id: Optional[int] = None
 ) -> None:
-    """
-    Displays full information about a specific conspect by its index.
+	"""
+	Displays full information about a specific conspect by its index.
 
-    :param user_id: Telegram user ID
-    :param chat_id: Chat ID for sending messages
-    :param conspects_by_index: Dictionary {index: conspect data}
-    :param conspect_index: Index of the selected conspect
-    :param previous_message_id: ID of previous message for deletion
-    :return: None
-    """
-    logger.info(
-        'Displaying conspect with index=%d for user_id=%s',
-        conspect_index, user_id
-    )
+	:param user_id: Telegram user ID
+	:param chat_id: Chat ID for sending messages
+	:param conspects_by_index: Dictionary {index: conspect data}
+	:param conspect_index: Index of the selected conspect
+	:param previous_message_id: ID of previous message for deletion
+	:return: None
+	"""
+	logger.info(
+		'Displaying conspect with index=%d for user_id=%s',
+		conspect_index, user_id
+	)
 
-    # Check if conspect with given index exists
-    if conspect_index not in conspects_by_index:
-        logger.error(
-            'Conspect with index=%d not found for user_id=%s',
-            conspect_index, user_id
-        )
-        return
+	# Check if conspect with given index exists
+	if conspect_index not in conspects_by_index:
+		logger.error(
+			'Conspect with index=%d not found for user_id=%s',
+			conspect_index, user_id
+		)
+		return
 
-    # Create control buttons
-    back_button = InlineKeyboardButton('Назад к конспектам', callback_data='back')
-    markup = InlineKeyboardMarkup()
-    markup.row(back_button)
+	# Create control buttons
+	keep_conspect_button = InlineKeyboardButton('Оставить конспект в чате', callback_data='keep_conspect')
+	back_button = InlineKeyboardButton('Назад к конспектам', callback_data='back')
+	markup = InlineKeyboardMarkup()
+	markup.row(keep_conspect_button)
+	markup.row(back_button)
 
-    # Get conspect data
-    conspect = conspects_by_index[conspect_index]
-    logger.debug('Conspect data retrieved: %s', conspect['theme'])
+	# Get conspect data
+	conspect = conspects_by_index[conspect_index]
+	logger.debug('Conspect data retrieved: %s', conspect['theme'])
 
-    response = ''
+	response = ''
+	delete_conspect_after = True
+	already_sent = False
+	# Loop for handling actions with conspect
+	while response != 'back':
+		try:
+			# Send message with conspect
+			if not already_sent:
+				message = await send_conspect_message(
+					user_id,
+					chat_id,
+					conspect_row=conspect,
+					reply_markup=markup,
+					markup_text='Выберите действие'
+				)
+				already_sent = True
+				logger.debug('Conspect message sent to user_id=%s', user_id)
 
-    # Loop for handling actions with conspect
-    while response != 'back':
-        try:
-            # Send message with conspect
-            message = await send_conspect_message(
-                user_id,
-                chat_id,
-                conspect_row=conspect,
-                reply_markup=markup,
-                markup_text='Выберите действие'
-            )
-            logger.debug('Conspect message sent to user_id=%s', user_id)
+			# Wait for user action (timeout 10 seconds)
+			response = await wait_for_callback_on_message(
+				user_id,
+				chat_id,
+				message_id=message.id,
+				timeout=60*3,
+				delete_callback_after=False
+			)
+			# Handle timeout
+			if response is None:
+				logger.info('Timeout when viewing conspect for user_id=%s', user_id)
+				response = 'back'
 
-            # Wait for user action (timeout 10 seconds)
-            response = await wait_for_callback_on_message(
-                user_id,
-                chat_id,
-                message_id=message.id,
-                timeout=60*2
-            )
+			logger.debug('Received response="%s" when viewing conspect for user_id=%s', response, user_id)
 
-            # Handle timeout
-            if response is None:
-                logger.info('Timeout when viewing conspect for user_id=%s', user_id)
-                response = 'back'
-                continue
+			# Handle actions
+			match response:
+				case 'back':
+					logger.info('Returning to conspects list for user_id=%s', user_id)
+					try:
+						await bot.delete_message(chat_id, message.id)
+						if delete_conspect_after:
+							await bot.delete_message(chat_id, message.id - 1)
+						logger.debug('Conspect messages deleted for user_id=%s', user_id)
+					except ApiException as e:
+						logger.warning(
+							'Failed to delete conspect messages for user_id=%s: %s',
+							user_id, str(e)
+						)
+					except Exception as e:
+						logger.exception(
+							'Unexpected error when deleting messages for user_id=%s',
+							user_id
+						)
+				case 'keep_conspect':
+					delete_conspect_after = False
+					markup = InlineKeyboardMarkup()
+					markup.row(back_button)
+					try:
+						await bot.edit_message_reply_markup(
+							chat_id,
+							message_id=message.id,
+							reply_markup=markup
+						)
+					except Exception as e:
+						logger.exception("Can't delete markup")
 
-            logger.debug('Received response="%s" when viewing conspect for user_id=%s', response, user_id)
-
-            # Handle actions
-            match response:
-                case 'back':
-                    logger.info('Returning to conspects list for user_id=%s', user_id)
-                    try:
-                        await bot.delete_message(chat_id, message.id)
-                        await bot.delete_message(chat_id, message.id - 1)
-                        logger.debug('Conspect messages deleted for user_id=%s', user_id)
-                    except ApiException as e:
-                        logger.warning(
-                            'Failed to delete conspect messages for user_id=%s: %s',
-                            user_id, str(e)
-                        )
-                    except Exception as e:
-                        logger.exception(
-                            'Unexpected error when deleting messages for user_id=%s',
-                            user_id
-                        )
-                    return
-
-        except Exception as e:
-            logger.exception(
-                'Critical error when displaying conspect for user_id=%s',
-                user_id
-            )
-            break
+		except Exception as e:
+			logger.exception(
+				'Critical error when displaying conspect for user_id=%s',
+				user_id
+			)
+			break
