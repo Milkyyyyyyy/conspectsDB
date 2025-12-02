@@ -9,13 +9,108 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
 from code.bot.handlers.main_menu import main_menu
-from code.bot.services.requests import request, request_list, request_confirmation
+from code.bot.services.requests import request, request_list, request_confirmation, wait_for_callback_on_message
 from code.bot.states import MainStates
 from code.bot.utils import send_temporary_message, safe_edit_message, delete_message_after_delay
-from code.database.queries import get, is_exists, insert, get_all, remove, remove_all
+from code.database.queries import get, is_exists, insert, get_all, remove, remove_all, update
 from code.database.service import connect_db
+from code.database.utils import safe_row_to_dict
 from code.logging import logger
 from code.utils import getkey
+from code.bot.services.conspects import send_conspect_message
+
+
+@bot.callback_query_handler(func=call_factory.filter(area='admin_menu').check)
+async def callback_handler(call):
+	"""
+	Handler для callback'ов в области admin_menu
+	"""
+	logger.debug('Handle callback in admin menu...')
+	user_id = call.from_user.id
+	chat_id = call.message.chat.id
+	message_id = call.message.id
+
+	try:
+		await bot.answer_callback_query(call.id)
+	except Exception as e:
+		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
+
+	action = call_factory.parse(callback_data=call.data)['action']
+	logger.debug('Callback in admin menu action: %s', action)
+	match action:
+		case 'back_to_menu':
+			await main_menu(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+			return
+		case 'admin_menu':
+			await admin_menu(message_id, user_id, chat_id)
+		case 'change_database':
+			await change_database_menu(
+				previous_message_id=message_id,
+				user_id=user_id,
+				chat_id=chat_id
+			)
+		case 'add_facult':
+			await add_facult(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id,
+			)
+		case 'add_chair':
+			await add_chair(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'add_direction':
+			await add_direction(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'delete_facult':
+			await delete_facult(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'delete_chair':
+			await delete_chair(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'delete_direction':
+			await delete_direction(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'add_subject':
+			await add_subject(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'delete_subject':
+			await delete_subject(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'edit_subject_connection':
+			await edit_subject_connections(
+				user_id=user_id,
+				chat_id=chat_id,
+				previous_message_id=message_id
+			)
+		case 'show_database':
+			await print_subdivisions(chat_id, previous_message_id=message_id)
+		case 'check_conspects':
+			await check_conspects(user_id, chat_id)
 
 
 # ===================================
@@ -161,95 +256,6 @@ async def _group_subdivision():
 
 # ================================
 
-@bot.callback_query_handler(func=call_factory.filter(area='admin_menu').check)
-async def callback_handler(call):
-	"""
-	Handler для callback'ов в области admin_menu
-	"""
-	logger.debug('Handle callback in admin menu...')
-	user_id = call.from_user.id
-	chat_id = call.message.chat.id
-	message_id = call.message.id
-
-	try:
-		await bot.answer_callback_query(call.id)
-	except Exception as e:
-		logger.exception('Failed to answer callback query for user=%s', getattr(call.from_user, 'id', None))
-
-	action = call_factory.parse(callback_data=call.data)['action']
-	logger.debug('Callback in admin menu action: %s', action)
-	match action:
-		case 'back_to_menu':
-			await main_menu(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-			return
-		case 'admin_menu':
-			await admin_menu(message_id, user_id, chat_id)
-		case 'change_database':
-			await change_database_menu(
-				previous_message_id=message_id,
-				user_id=user_id,
-				chat_id=chat_id
-			)
-		case 'add_facult':
-			await add_facult(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id,
-			)
-		case 'add_chair':
-			await add_chair(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'add_direction':
-			await add_direction(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'delete_facult':
-			await delete_facult(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'delete_chair':
-			await delete_chair(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'delete_direction':
-			await delete_direction(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'add_subject':
-			await add_subject(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'delete_subject':
-			await delete_subject(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'edit_subject_connection':
-			await edit_subject_connections(
-				user_id=user_id,
-				chat_id=chat_id,
-				previous_message_id=message_id
-			)
-		case 'show_database':
-			await print_subdivisions(chat_id, previous_message_id=message_id)
 
 
 @bot.message_handler(commands=['admin_menu'])
@@ -289,6 +295,14 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 
 	markup = InlineKeyboardMarkup()
 
+	check_conspects_button = InlineKeyboardButton(
+		'Проверить новые конспекты',
+		callback_data=call_factory.new(
+			area='admin_menu',
+			action='check_conspects'
+		)
+	)
+
 	change_database_button = InlineKeyboardButton(
 		'Изменить датабазу',
 		callback_data=call_factory.new(
@@ -311,6 +325,7 @@ async def admin_menu(previous_message_id=None, user_id=None, chat_id=None):
 		)
 	)
 
+	markup.row(check_conspects_button)
 	markup.row(change_database_button, show_database_button)
 	markup.row(back_to_menu_button)
 
@@ -975,3 +990,72 @@ async def edit_subject_connections(user_id, chat_id, previous_message_id):
 					}
 				)
 	await admin_menu(user_id=user_id, chat_id=chat_id, previous_message_id=None)
+
+async def check_conspects(user_id, chat_id):
+	# Сначала находим все конспекты, которые требуют проверки
+	async with connect_db() as db:
+		conspects_row = await get_all(
+			database=db,
+			table='CONSPECTS',
+			filters={'status': 'pending'}
+		)
+	if len(conspects_row) == 0:
+		await bot.send_message(chat_id, 'Нет непроверенных конспектов.')
+		await asyncio.sleep(0.25)
+		asyncio.create_task(admin_menu(user_id=user_id, chat_id=chat_id))
+		return
+	get_next_conspect = True
+	response = 'back'
+	next_button = InlineKeyboardButton('Дальше', callback_data='next_conspect')
+	accept_button = InlineKeyboardButton('✅ Принять', callback_data='accept_conspect')
+	decline_button = InlineKeyboardButton('❌ Отклонить', callback_data='decline_conspect')
+	quit_button = InlineKeyboardButton('Назад в меню', callback_data='quit_checking')
+	markup = InlineKeyboardMarkup()
+	markup.row(accept_button, decline_button)
+	markup.row(next_button)
+	markup.row(quit_button)
+
+	message = None
+	while response != 'quit_checking':
+		if len(conspects_row) == 0:
+			await admin_menu(user_id=user_id, chat_id=chat_id)
+			return
+		next_conspect = conspects_row.pop()
+		message = await send_conspect_message(
+			user_id=user_id,
+			chat_id=chat_id,
+			conspect_row=next_conspect,
+			reply_markup = markup,
+			markup_text = 'Подтвердите или отклоните этот конспект'
+		)
+		response = await wait_for_callback_on_message(
+			user_id,
+			chat_id,
+			message_id = message.id,
+			delete_callback_after=False,
+			timeout = 60*5
+		)
+
+		async with connect_db() as db:
+			match response:
+				case 'quit_checking':
+					await admin_menu(user_id=user_id, chat_id=chat_id)
+					return
+				case 'accept_conspect':
+					await update(
+						database=db,
+						table='CONSPECTS',
+						filters = {'rowid': next_conspect['rowid']},
+						values = ['accepted', ],
+						columns = ['status', ]
+					)
+				case 'decline_conspect':
+					await update(
+						database=db,
+						table='CONSPECTS',
+						filters={'rowid': next_conspect['rowid']},
+						values=['declined', ],
+						columns=['status', ]
+					)
+				case 'next_conspect':
+					continue
