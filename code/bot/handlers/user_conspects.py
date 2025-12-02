@@ -511,6 +511,7 @@ async def user_conspect(user_id: int, chat_id: int) -> None:
                 table='CONSPECTS',
                 filters={'user_telegram_id': user_id}
             )
+            conspects.sort(key= lambda x: x['upload_date'])
             logger.info(
                 'Retrieved %d conspects from DB for user_id=%s',
                 len(conspects) if conspects else 0, user_id

@@ -52,6 +52,8 @@ async def update_conspect_row(filters={}, query=None):
 			query,
 			keys = ('theme', 'keywords', 'subject_name')
 		)
+	else:
+		conspect_dicts.sort(key=lambda x: x['upload_date'])
 	return conspect_dicts
 async def update_conspect_info(all_conspects_rows, page, conspects_per_page, filters={}):
 	# filters['status'] = 'accepted'
