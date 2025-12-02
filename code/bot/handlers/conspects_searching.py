@@ -9,6 +9,7 @@ from telebot.apihelper import ApiException, ApiHTTPException, edit_message_reply
 import math
 from typing import Dict, Optional
 from code.searching import *
+from datetime import datetime
 
 @bot.callback_query_handler(func=call_factory.filter(area='conspects_searching').check)
 async def callback_handler(call):
@@ -53,7 +54,12 @@ async def update_conspect_row(filters={}, query=None):
 			keys = ('theme', 'keywords', 'subject_name')
 		)
 	else:
-		conspect_dicts.sort(key=lambda x: x['upload_date'])
+		for conspect in conspect_dicts:
+			print(conspect['upload_date'])
+		conspect_dicts.sort(key=lambda x: datetime.strptime(x['upload_date'], "%H:%M:%S %d.%m.%Y"), reverse=True)
+		print()
+		for conspect in conspect_dicts:
+			print(conspect['upload_date'])
 	return conspect_dicts
 async def update_conspect_info(all_conspects_rows, page, conspects_per_page, filters={}):
 	# filters['status'] = 'accepted'
@@ -120,7 +126,8 @@ async def conspect_searching(
 			header = (
 				         f'<b>📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})</b>\n'
 				         '<b>🔍 Фильтр:</b> <i>Все предметы</i>\n'
-				         f'{'' if users_query == '' else f'<b>Запрос:</b> <i>{users_query}</i>\n\n'}'
+				         f'{'' if users_query is None else f'<b>Запрос:</b> <i>{users_query}</i>\n\n'}'
+
 			         ) + rule_line
 			message_text = await get_conspects_list_slice(
 				header,

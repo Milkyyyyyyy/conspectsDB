@@ -22,6 +22,8 @@ from code.database.queries import get, get_all
 from typing import List, Dict, Optional, Tuple
 import math
 import asyncio
+from datetime import datetime
+
 from code.bot.services.conspects import (
     make_list_of_conspects,
     generate_list_markup,
@@ -513,7 +515,7 @@ async def user_conspect(user_id: int, chat_id: int) -> None:
                 table='CONSPECTS',
                 filters={'user_telegram_id': user_id}
             )
-            conspects.sort(key= lambda x: x['upload_date'])
+            conspects.sort(key=lambda x: datetime.strptime(x['upload_date'], "%H:%M:%S %d.%m.%Y"), reverse=True)
             logger.info(
                 'Retrieved %d conspects from DB for user_id=%s',
                 len(conspects) if conspects else 0, user_id
