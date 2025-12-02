@@ -9,6 +9,7 @@ with pagination and interactive buttons support.
 # list of conspects into different functions and move part to services.conspects.py
 
 from code.bot.bot_instance import bot
+from code.bot.handlers.conspects_searching import update_conspect_row
 from code.bot.handlers.main_menu import main_menu
 from code.bot.services.requests import wait_for_callback_on_message, request_confirmation
 from code.bot.utils import safe_edit_message
@@ -253,6 +254,7 @@ async def print_user_conspects(
 
             # Handle selection of specific conspect
             if 'conspect' in response:
+                update_conspect_list = True
                 try:
                     conspect_index = int(response.split()[-1])
                     logger.info(
