@@ -169,7 +169,25 @@ async def generate_list_markup(first_index, last_index, markup=None, numbers_per
 	if len(next_row) != 0:
 		markup.row(*next_row)
 	return markup
+async def get_conspect_files_amount(consepct_id=None, conspect_row=None):
+	if consepct_id is None and conspect_row is None:
+		return 0
+	async with connect_db() as db:
+		if conspect_row is None:
+			conspect_row = await get(
+				database=db,
+				table='CONSPECTS',
+				filters={'rowid':conspect_row}
+			)
+		else:
+			conspect_id = conspect_row['rowid']
 
+		files = await get_all(
+			database=db,
+			table='CONSPECTS_FILES',
+			filters={'conspect_id': conspect_id}
+		)
+	return len(files)
 async def get_conspects_list_slice(
 		header: str,
 		rule_line: str,

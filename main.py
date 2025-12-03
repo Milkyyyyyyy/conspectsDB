@@ -1,5 +1,3 @@
-# TODO !СДЕЛАТЬ РЕФАКТОРИНГ, ВСЁ ПЕРЕМЕСТИТЬ В РАЗНЫЕ ФАЙЛЫ!!! (почти готово)
-
 import asyncio
 import re
 from datetime import datetime, timezone
@@ -90,6 +88,18 @@ async def check_awaiters():
 		await print_awaiters()
 		await asyncio.sleep(2)
 async def main():
+	import os
+	import sys
+
+	if getattr(sys, 'frozen', False):
+		# Если программа скомпилирована
+		application_path = os.path.dirname(sys.executable)
+	else:
+		# Если запускается как обычный скрипт
+		application_path = os.path.dirname(os.path.abspath(__file__))
+
+	os.chdir(application_path)
+
 	# asyncio.create_task(check_awaiters())
 	asyncio.create_task(regular_cleaning())
 	asyncio.create_task(regular_views_checking())

@@ -71,8 +71,10 @@ async def create_conspect(
 		if files is None:
 			asyncio.create_task(main_menu(user_id, chat_id))
 			return
+		wait_message = await bot.send_message(chat_id, text='Скачиваю ваши файлы...')
 		file_paths = await save_files(files, save_dir=CONSPECT_FILES_DIR)
 		file_paths = await normalize_paths(file_paths)
+		await bot.delete_message(chat_id=chat_id, message_id=wait_message.id)
 
 		# Сбор метаданных
 		theme, conspect_date, keywords = await _collect_conspect_metadata(user_id, chat_id)
@@ -180,7 +182,8 @@ async def _request_files_with_retry(
 		files = await request_files(
 			user_id=user_id,
 			chat_id=chat_id,
-			request_message=request_message
+			request_message=request_message,
+			timeout=60*5
 		)
 		if files == 'cancel':
 			return None
@@ -216,7 +219,8 @@ async def request_theme(
 		user_id=user_id,
 		chat_id=chat_id,
 		request_message=request_message,
-		validator=validators.theme
+		validator=validators.theme,
+		timeout=60*2
 	)
 	return theme, message_id
 
@@ -229,7 +233,8 @@ async def request_date(
 		user_id=user_id,
 		chat_id=chat_id,
 		request_message=request_message,
-		validator=validators.conspect_date
+		validator=validators.conspect_date,
+		timeout=60*2
 	)
 	return date, message_id
 
@@ -241,7 +246,8 @@ async def request_keywords(
 	keywords, message_id = await request(
 		user_id=user_id,
 		chat_id=chat_id,
-		request_message=request_message
+		request_message=request_message,
+		timeout=60*3
 
 	)
 	keywords = await normalize_keywords(keywords)
@@ -277,8 +283,8 @@ async def accept_creation(
 		мы будем предоставлять пользователю возможность на этом этапе заменить всю информацию
 		'''
 
-		accept_button = InlineKeyboardButton('✅ Да', callback_data='accept')
-		decline_button = InlineKeyboardButton('❌ Нет', callback_data='decline')
+		accept_button = InlineKeyboardButton('✅ Загрузить', callback_data='accept')
+		decline_button = InlineKeyboardButton('❌ Отменить', callback_data='decline')
 		change_files_button = InlineKeyboardButton('📎 Прикрепить другие файлы', callback_data='change_files')
 		change_theme_button = InlineKeyboardButton('✏️ Изменить тему', callback_data='change_theme')
 		change_date_button = InlineKeyboardButton('📅 Изменить дату', callback_data='change_date')

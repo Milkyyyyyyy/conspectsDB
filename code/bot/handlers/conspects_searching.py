@@ -170,7 +170,9 @@ async def conspect_searching(
 			conspect_index = int(response.split()[-1])
 			await print_conspect_by_index(user_id,
 										  chat_id,
-										  conspects_by_index, conspect_index)
+										  conspects_by_index, conspect_index,
+			                              previous_message_id
+			                              )
 			update_conspect = True
 		else:
 			match response:
@@ -217,7 +219,7 @@ async def print_conspect_by_index(
 	chat_id: int,
 	conspects_by_index: Dict[int, Dict],
 	conspect_index: int,
-	previous_message_id: Optional[int] = None
+	previous_message_id
 ) -> None:
 	"""
 	Displays full information about a specific conspect by its index.
@@ -233,7 +235,7 @@ async def print_conspect_by_index(
 		'Displaying conspect with index=%d for user_id=%s',
 		conspect_index, user_id
 	)
-
+	wait_message = await bot.send_message(chat_id, text='Подождите немного, загружаю конспект...')
 	# Check if conspect with given index exists
 	if conspect_index not in conspects_by_index:
 		logger.error(
@@ -244,6 +246,7 @@ async def print_conspect_by_index(
 
 	# Get conspect data
 	conspect = conspects_by_index[conspect_index]
+	files_amount = await get_conspect_files_amount(conspect_row=conspect)
 	logger.debug('Conspect data retrieved: %s', conspect['theme'])
 
 	# Create control buttons
@@ -289,6 +292,7 @@ async def print_conspect_by_index(
 					reply_markup=markup,
 					markup_text='Выберите действие'
 				)
+				await bot.delete_message(chat_id, wait_message.id)
 				already_sent = True
 				logger.debug('Conspect message sent to user_id=%s', user_id)
 
@@ -319,9 +323,10 @@ async def print_conspect_by_index(
 						reaction=user_reaction
 					)
 					try:
-						await bot.delete_message(chat_id, message.id)
+						ids_to_delete = [message.id]
 						if delete_conspect_after:
-							await bot.delete_message(chat_id, message.id - 1)
+							ids_to_delete.extend(list(range(message.id-1, message.id-files_amount-1, -1)))
+						await bot.delete_messages(chat_id,  ids_to_delete)
 						logger.debug('Conspect messages deleted for user_id=%s', user_id)
 					except ApiException as e:
 						logger.warning(
