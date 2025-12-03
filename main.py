@@ -79,10 +79,11 @@ async def regular_cleaning():
 	while True:
 		await hard_cleaning()
 		await asyncio.sleep(30*60)
-async def regular_views_checking():
+async def regular_views_checking(hard_update=False):
 	while True:
-		await update_all_views_and_reactions()
-		await asyncio.sleep(2*60)
+		await update_all_views_and_reactions(hard_update)
+		hard_update=False
+		await asyncio.sleep(1)
 async def check_awaiters():
 	while True:
 		await print_awaiters()
@@ -102,7 +103,7 @@ async def main():
 
 	# asyncio.create_task(check_awaiters())
 	asyncio.create_task(regular_cleaning())
-	asyncio.create_task(regular_views_checking())
+	asyncio.create_task(regular_views_checking(True))
 	try:
 		logger.info("Starting polling...")
 		bot.set_update_listener(log_updates)

@@ -10,6 +10,7 @@ import asyncio
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
+
 async def delete_conspect(conspect_id: int = None, conspect_row = None):
 	if conspect_id is None and conspect_row is None:
 		logger.error('Not provided conspect_id nor conspect_row')
@@ -211,6 +212,8 @@ async def get_conspects_list_slice(
 		message_text += f'\n<b><i>📖 Страница {current_page}/{last_page}</i></b>'
 
 	return message_text
+
+conspects_to_update = set()
 async def get_reaction(conspect_id, user_id):
 	async with connect_db() as db:
 		reaction_row = await get(
@@ -220,10 +223,11 @@ async def get_reaction(conspect_id, user_id):
 			         'conspect_id': conspect_id}
 		)
 	if not reaction_row:
-		return 0
+		return None
 	else:
 		return reaction_row['reaction']
 async def add_reaction(conspect_id, conspect_author_id, user_id, reaction):
+	global conspects_to_update
 	async with connect_db() as db:
 		if str(user_id) != str(conspect_author_id):
 			reaction_row = await get(
@@ -234,16 +238,18 @@ async def add_reaction(conspect_id, conspect_author_id, user_id, reaction):
 			)
 			is_already_exists = (reaction_row is not None)
 			if not is_already_exists:
+				conspects_to_update.add(conspect_id)
 				await insert(
 					database=db,
 					table='REACTIONS',
 					filters={
 						'user_telegram_id': user_id,
 						'conspect_id': conspect_id,
-						'reaction': 0
+						'reaction': reaction
 					}
 				)
 			elif reaction_row['reaction'] != reaction:
+				conspects_to_update.add(conspect_id)
 				await update(
 					database=db,
 					table='REACTIONS',
@@ -254,35 +260,29 @@ async def add_reaction(conspect_id, conspect_author_id, user_id, reaction):
 					values=[reaction, ],
 					columns=['reaction', ]
 				)
-async def update_all_views_and_reactions():
-	logger.info("Starting update_all_views_and_reactions")
 
+
+
+
+async def update_all_views_and_reactions(hard_update=False):
+	global conspects_to_update
+	conspects_ids = list(conspects_to_update.copy())
+	conspects_to_update.clear()
+	if len(conspects_ids) == 0 and not hard_update:
+		return
+	logger.info("Starting update_all_views_and_reactions")
 	async with connect_db() as db:
 		logger.debug("Database connection established")
-
-		conspects = await get_all(
-			database=db,
-			table='CONSPECTS'
-		)
-		logger.info(f"Retrieved {len(conspects)} conspects from database")
-
-		for idx, conspect in enumerate(conspects, 1):
-			conspect_id = conspect['rowid']
-			logger.debug(f"Processing conspect {idx}/{len(conspects)}, ID: {conspect_id}")
-
+		for conspect_id in conspects_ids:
 			reactions = await get_all(
 				database=db,
 				table='REACTIONS',
-				filters={
-					'conspect_id': conspect_id
-				}
+				filters={'conspect_id': conspect_id}
 			)
-
 			views = len(reactions)
 			rating = 0
 			for reaction in reactions:
 				rating += int(reaction['reaction'])
-			logger.debug(f"Conspect ID {conspect_id}: views={views}, rating={rating}")
 
 			await update(
 				database=db,
@@ -291,10 +291,44 @@ async def update_all_views_and_reactions():
 				values=[views, rating],
 				columns=['views', 'rating']
 			)
+			conspects_ids.remove(conspect_id)
 
-			logger.debug(f"Updated conspect ID {conspect_id} successfully")
 
-		logger.info(f"Successfully updated {len(conspects)} conspects")
+		if hard_update:
+			conspects = await get_all(
+				database=db,
+				table='CONSPECTS'
+			)
+			logger.info(f"Retrieved {len(conspects)} conspects from database")
+			for idx, conspect in enumerate(conspects, 1):
+				conspect_id = conspect['rowid']
+				logger.debug(f"Processing conspect {idx}/{len(conspects)}, ID: {conspect_id}")
+
+				reactions = await get_all(
+					database=db,
+					table='REACTIONS',
+					filters={
+						'conspect_id': conspect_id
+					}
+				)
+
+				views = len(reactions)
+				rating = 0
+				for reaction in reactions:
+					rating += int(reaction['reaction'])
+				logger.debug(f"Conspect ID {conspect_id}: views={views}, rating={rating}")
+
+				await update(
+					database=db,
+					table='CONSPECTS',
+					filters={'rowid': conspect_id},
+					values=[views, rating],
+					columns=['views', 'rating']
+				)
+
+				logger.debug(f"Updated conspect ID {conspect_id} successfully")
+
+			logger.info(f"Successfully updated {len(conspects)} conspects")
 async def get_all_subjects(conspects_list):
 	subject_ids = set()
 	for conspect in conspects_list:
