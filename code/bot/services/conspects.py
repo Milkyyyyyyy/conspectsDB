@@ -3,7 +3,7 @@ from code.bot.services.files import delete_files
 from code.bot.utils import send_message_with_files
 from code.database.service import connect_db
 from code.bot.bot_instance import bot
-from code.database.queries import get, get_all, update, remove, remove_all
+from code.database.queries import get, get_all, update, remove, remove_all, is_exists, insert
 from code.database.utils import safe_row_to_dict
 from code.logging import logger
 import asyncio
@@ -105,14 +105,12 @@ async def send_conspect_message(
 			        f'<b>📝 Тема:</b> {conspect['theme']}\n'
 			        f'<b>🏷️ Теги:</b> {keywords}\n'
 			        f'<b>⭐ Рейтинг:</b> {conspect['rating']}\n'
-			        f'<b>👁️ Просмотры:</b> {int(conspect['views'])+1}</blockquote>\n')
-			new_views = int(conspect['views']) + 1
-			await update(
-				database=db,
-				table='CONSPECTS',
-				values=[new_views, ],
-				columns=['views', ],
-				filters={'rowid': conspect['rowid']}
+			        f'<b>👁️ Просмотры:</b> {int(conspect['views'])}</blockquote>\n')
+			await add_reaction(
+				conspect_id=conspect_id,
+				conspect_author_id=conspect['user_telegram_id'],
+				user_id=user_id,
+				reaction=0
 			)
 			message = await send_message_with_files(
 				chat_id,
@@ -135,11 +133,14 @@ async def make_list_of_conspects(conspects_list):
 	conspect_dict = {}
 	async with connect_db() as db:
 		for i, conspect in enumerate(conspects_list, start=1):
-			subject = await get(
-				database=db,
-				table='SUBJECTS',
-				filters={'rowid': conspect['subject_id']}
-			)
+			subject_name = conspect.get('subject_name', None)
+			if not subject_name:
+				subject = await get(
+					database=db,
+					table='SUBJECTS',
+					filters={'rowid': conspect['subject_id']}
+				)
+				subject_name = subject['name']
 			status = conspect['status']
 			if status == 'accepted':
 				status = '✅ Проверенно.'
@@ -148,7 +149,7 @@ async def make_list_of_conspects(conspects_list):
 			elif status == 'rejected':
 				status = '❌ Отклонено'
 			text = (f'{i}. <b>{conspect['theme']}</b>\n'
-			        f'      {subject['name']}  •  {conspect['conspect_date']}\n'
+			        f'      {subject_name}  •  {conspect['conspect_date']}\n'
 			        f'      👁 {conspect['views']}  • ⭐️ {conspect['rating']}  •  {status}')
 			formatted_list.append(text)
 			conspect_dict[i-1] = conspect
@@ -188,7 +189,90 @@ async def get_conspects_list_slice(
 		message_text += f'\n<b><i>📖 Страница {current_page}/{last_page}</i></b>'
 
 	return message_text
+async def get_reaction(conspect_id, user_id):
+	async with connect_db() as db:
+		reaction_row = await get(
+			database=db,
+			table='REACTIONS',
+			filters={'user_telegram_id': user_id,
+			         'conspect_id': conspect_id}
+		)
+	if not reaction_row:
+		return 0
+	else:
+		return reaction_row['reaction']
+async def add_reaction(conspect_id, conspect_author_id, user_id, reaction):
+	async with connect_db() as db:
+		if str(user_id) != str(conspect_author_id):
+			reaction_row = await get(
+				database=db,
+				table='REACTIONS',
+				filters={'user_telegram_id': user_id,
+				         'conspect_id': conspect_id}
+			)
+			is_already_exists = (reaction_row is not None)
+			if not is_already_exists:
+				await insert(
+					database=db,
+					table='REACTIONS',
+					filters={
+						'user_telegram_id': user_id,
+						'conspect_id': conspect_id,
+						'reaction': 0
+					}
+				)
+			elif reaction_row['reaction'] != reaction:
+				await update(
+					database=db,
+					table='REACTIONS',
+					filters={
+						'user_telegram_id': user_id,
+						'conspect_id': conspect_id,
+					},
+					values=[reaction, ],
+					columns=['reaction', ]
+				)
+async def update_all_views_and_reactions():
+	logger.info("Starting update_all_views_and_reactions")
 
+	async with connect_db() as db:
+		logger.debug("Database connection established")
+
+		conspects = await get_all(
+			database=db,
+			table='CONSPECTS'
+		)
+		logger.info(f"Retrieved {len(conspects)} conspects from database")
+
+		for idx, conspect in enumerate(conspects, 1):
+			conspect_id = conspect['rowid']
+			logger.debug(f"Processing conspect {idx}/{len(conspects)}, ID: {conspect_id}")
+
+			reactions = await get_all(
+				database=db,
+				table='REACTIONS',
+				filters={
+					'conspect_id': conspect_id
+				}
+			)
+
+			views = len(reactions)
+			rating = 0
+			for reaction in reactions:
+				rating += int(reaction['reaction'])
+			logger.debug(f"Conspect ID {conspect_id}: views={views}, rating={rating}")
+
+			await update(
+				database=db,
+				table='CONSPECTS',
+				filters={'rowid': conspect_id},
+				values=[views, rating],
+				columns=['views', 'rating']
+			)
+
+			logger.debug(f"Updated conspect ID {conspect_id} successfully")
+
+		logger.info(f"Successfully updated {len(conspects)} conspects")
 async def get_all_subjects(conspects_list):
 	subject_ids = set()
 	for conspect in conspects_list:
