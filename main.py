@@ -8,10 +8,10 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 
 from code.bot.bot_instance import bot
 from code.bot.handlers.main_menu import main_menu
-from code.bot.services.conspects import send_conspect_message
+from code.bot.services.conspects import send_conspect_message, update_all_views_and_reactions
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
-from code.database.queries import is_exists, get_all, get, insert
+from code.database.queries import is_exists, get_all, get, insert, update
 from code.database.service import connect_db
 from code.logging import logger
 
@@ -73,15 +73,20 @@ async def log_updates(updates):
 		except:
 			msg = upd
 		if not msg: continue
-		logger.debug("%s | %s | %s | %s", datetime.now(timezone.utc).isoformat(),
+		logger.info("%s | %s | %s | %s", datetime.now(timezone.utc).isoformat(),
 					 msg.from_user.id, msg.from_user.username, msg.text)
 
-async def regular_checks():
+async def regular_cleaning():
 	while True:
 		await hard_cleaning()
 		await asyncio.sleep(30*60)
+async def regular_views_checking():
+	while True:
+		await update_all_views_and_reactions()
+		await asyncio.sleep(2*60)
 async def main():
-	asyncio.create_task(regular_checks())
+	asyncio.create_task(regular_cleaning())
+	asyncio.create_task(regular_views_checking())
 	try:
 		logger.info("Starting polling...")
 		bot.set_update_listener(log_updates)
