@@ -39,13 +39,14 @@ from code.bot.utils import send_message_with_files
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from code.bot.services.requests import request_list, request_confirmation, request_files
+from code.bot.services.requests import request_list, request_confirmation, request_files, print_awaiters
 from code.bot.services.validation import validators
 
 from code.database.service import connect_db
 from code.database.queries import get_all
 
 from code.bot.services.files import hard_cleaning
+
 @bot.message_handler(commands=['test'])
 async def test(message):
 	async with connect_db() as db:
@@ -84,7 +85,12 @@ async def regular_views_checking():
 	while True:
 		await update_all_views_and_reactions()
 		await asyncio.sleep(2*60)
+async def check_awaiters():
+	while True:
+		await print_awaiters()
+		await asyncio.sleep(2)
 async def main():
+	# asyncio.create_task(check_awaiters())
 	asyncio.create_task(regular_cleaning())
 	asyncio.create_task(regular_views_checking())
 	try:

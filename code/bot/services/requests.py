@@ -11,6 +11,24 @@ from code.logging import logger
 awaiters: dict[tuple[int, int], asyncio.Future | asyncio.Queue] = {}
 specific_awaiters: dict[tuple[int, int, int], asyncio.Future | asyncio.Queue] = {}
 
+async def print_awaiters():
+	print(awaiters)
+	print(specific_awaiters)
+async def  remove_awaiters(user_id, chat_id):
+	key = (user_id, chat_id)
+	logger.info(f'Removing awaiters with {key=}')
+	if key in awaiters:
+		del awaiters[key]
+
+	keys_to_remove = [
+		k for k in specific_awaiters
+		if k[0] == user_id and k[1] == chat_id
+	]
+
+	for key in keys_to_remove:
+		del specific_awaiters[key]
+
+
 
 async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
 	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
@@ -520,7 +538,6 @@ async def wait_for_callback_on_message(
 		raise RuntimeError('Already waiting for a response from the user')
 
 	await _save_waiting_for_flag(user_id, chat_id, 'callback')
-
 	loop = asyncio.get_running_loop()
 	fut = loop.create_future()
 	specific_awaiters[specific_key] = fut

@@ -52,8 +52,8 @@ async def delete_message_after_delay(chat_id, message_id, delay_seconds=10):
 	asyncio.create_task(delete_message_after_delay_interrupt(chat_id, message_id, delay_seconds))
 
 
-async def send_temporary_message(chat_id, text, delay_seconds=10):
-	message = await bot.send_message(chat_id, text, parse_mode='HTML')
+async def send_temporary_message(chat_id, text, delay_seconds=10, reply_markup=None):
+	message = await bot.send_message(chat_id, text, reply_markup=reply_markup, parse_mode='HTML')
 	asyncio.create_task(delete_message_after_delay_interrupt(chat_id=chat_id, message_id=message.message_id,
 	                                                         delay_seconds=delay_seconds))
 

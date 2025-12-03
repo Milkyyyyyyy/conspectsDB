@@ -2,11 +2,11 @@
 В этом файле происходит обработка главного меню (пока что это только само главное меню и вывод информации о пользователе)
 """
 
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
-from code.bot.services.requests import request, request_list
+from code.bot.services.requests import request, request_list, remove_awaiters
 from code.bot.services.user_service import get_user_info
 from code.bot.services.validation import validators
 from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message, delete_message_after_delay
@@ -15,6 +15,10 @@ from code.database.service import connect_db
 from code.logging import logger
 from code.utils import getkey
 
+@bot.message_handler(func=lambda m: m.text == 'Вернуться в меню')
+async def message_handler(message):
+	logger.info(f'Returning user {message.from_user.id} to main_menu')
+	await main_menu(message.from_user.id, message.chat.id)
 
 @bot.callback_query_handler(func=call_factory.filter(area='main_menu').check)
 async def callback_handler(call):
@@ -51,6 +55,8 @@ async def callback_handler(call):
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'User({user_id}) is requesting main menu.')
 
+	await remove_awaiters(user_id, chat_id)
+
 	async with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as data:
 		is_user_moderator = await getkey(data, 'is_user_moderator', None)
 		if is_user_moderator is None:
@@ -66,6 +72,16 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 
 	# Собираем reply_markup
 	markup = InlineKeyboardMarkup()
+	back_to_menu_markup = ReplyKeyboardMarkup(
+		resize_keyboard=True,
+		one_time_keyboard=False
+	)
+
+	back_to_menu_button = InlineKeyboardButton(
+		'Вернуться в меню',
+		callback_data='Вернуться в меню'
+	)
+	back_to_menu_markup.add(back_to_menu_button)
 	show_info_button = InlineKeyboardButton(
 		'О пользователе 👤',
 		callback_data=call_factory.new(
@@ -116,6 +132,11 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		user_id,
 		text=greeting,
 		reply_markup=markup
+	)
+	await bot.send_message(
+		chat_id,
+		text='Если вдруг кнопки перестанут реагировать\nНажмите на кнопку под клавиатурой',
+		reply_markup=back_to_menu_markup
 	)
 
 

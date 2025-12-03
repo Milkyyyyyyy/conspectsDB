@@ -143,7 +143,7 @@ async def make_list_of_conspects(conspects_list):
 				subject_name = subject['name']
 			status = conspect['status']
 			if status == 'accepted':
-				status = '✅ Проверенно.'
+				status = '✅ Проверено'
 			elif status == 'pending':
 				status = '⏳ Модерация'
 			elif status == 'rejected':
@@ -180,6 +180,10 @@ async def get_conspects_list_slice(
 		last_page: int = None
 
 ):
+	if len(conspects_formatted_list) == 0:
+		message_text = header +'\n<blockquote>'
+		message_text += 'Ничего не найдено\n' + '\n</blockquote>' + rule_line
+		return message_text
 	conspects_to_message = conspects_formatted_list[first_index:last_index]
 	message_text = header + '\n<blockquote>'
 	for conspect in conspects_to_message:

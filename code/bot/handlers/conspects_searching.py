@@ -101,7 +101,7 @@ async def conspect_searching(
 	header = (
 				 f'📚 ПОЛЬЗОВАТЕЛЬСКИЕ КОНСПЕКТЫ ({conspects_amount})\n'
 				 '🔍 Фильтр: Все предметы\n'
-				 f'{'' if users_query is None else f'Запрос: {users_query}\n'}'
+				 f'🔍 {'' if users_query is None else f'Запрос: {users_query}\n'}'
 			 ) + rule_line
 
 
