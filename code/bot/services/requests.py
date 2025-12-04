@@ -7,9 +7,28 @@ from code.bot.bot_instance import bot
 from code.bot.states import MainStates, set_default_state
 from code.bot.utils import send_temporary_message, delete_message_after_delay, safe_edit_message
 from code.logging import logger
+from functools import partial
 
 awaiters: dict[tuple[int, int], asyncio.Future | asyncio.Queue] = {}
 specific_awaiters: dict[tuple[int, int, int], asyncio.Future | asyncio.Queue] = {}
+
+async def print_awaiters():
+	print(awaiters)
+	print(specific_awaiters)
+async def  remove_awaiters(user_id, chat_id):
+	key = (user_id, chat_id)
+	logger.info(f'Removing awaiters with {key=}')
+	if key in awaiters:
+		del awaiters[key]
+
+	keys_to_remove = [
+		k for k in specific_awaiters
+		if k[0] == user_id and k[1] == chat_id
+	]
+
+	for key in keys_to_remove:
+		del specific_awaiters[key]
+
 
 
 async def _save_waiting_for_flag(user_id, chat_id, waiting_for):
@@ -196,7 +215,7 @@ async def request_list(
 		previous_message_id: int | None = None,
 		items_list: list | tuple | dict = None,
 		input_field: str = '',
-		output_field: str | List[str] = '',
+		output_field: str | List[str] = ''
 ):
 	"""
 	Предлагает пользователю выбор из списка
@@ -520,7 +539,6 @@ async def wait_for_callback_on_message(
 		raise RuntimeError('Already waiting for a response from the user')
 
 	await _save_waiting_for_flag(user_id, chat_id, 'callback')
-
 	loop = asyncio.get_running_loop()
 	fut = loop.create_future()
 	specific_awaiters[specific_key] = fut
@@ -594,7 +612,6 @@ async def _handle_awaited_callback(call):
 				fut_specific.set_result(None)
 			except Exception:
 				pass
-			await send_temporary_message(call.message.chat.id, text='Ввод отменён', delay_seconds=2)
 			return
 		# ставим результат
 		if hasattr(fut_specific, 'set_result'):
@@ -620,7 +637,6 @@ async def _handle_awaited_callback(call):
 				await fut.put(None)
 		except Exception:
 			pass
-		await send_temporary_message(call.message.chat.id, text='Ввод отменён', delay_seconds=2)
 	else:
 		if hasattr(fut, 'set_result'):
 			fut.set_result(response)

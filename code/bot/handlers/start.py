@@ -3,15 +3,16 @@
 Проверка регистрации пользователя
 """
 
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
 from code.bot.handlers.main_menu import main_menu
-from code.bot.services.user_service import is_user_exists
+from code.bot.services.user_service import is_user_exists, ensure_user_registered
 from code.bot.states import MainStates
-from code.bot.utils import delete_message_after_delay
+from code.bot.utils import delete_message_after_delay, send_message_after
 from code.logging import logger
+import random
 
 
 # Обрабатываем команду /start
@@ -24,22 +25,30 @@ async def start(message):
 	logger.debug('Check if user %s exists', user_id)
 
 	# Если не существует, предлагаем пройти регистрацию
-	user_id = message.from_user.id
-	if not await is_user_exists(user_id):
-		logger.info(f'The user ({user_id}) does not exist')
-		text = 'Похоже, что вы не зарегистрированы. Если хотите пройти регистрацию вызовите команду /register или нажмите на кнопку ниже'
-		markup = InlineKeyboardMarkup()
-		markup.add(InlineKeyboardButton(
-			"Зарегистрироваться",
-			callback_data=call_factory.new(
-				area='registration',
-				action="register"
-			)
-		)
-		)
+	exists = await ensure_user_registered(user_id, chat_id=message.chat.id)
 
-		await bot.reply_to(message, text, reply_markup=markup)
-	else:
+	if exists:
 		logger.info(f'The user ({user_id}) exists')
 		await bot.set_state(user_id=user_id, chat_id=message.chat.id, state=MainStates.default_state)
 		await main_menu(user_id=message.from_user.id, chat_id=message.chat.id)
+
+	back_to_menu_markup = ReplyKeyboardMarkup(
+		resize_keyboard=True,
+		one_time_keyboard=False
+	)
+
+	back_to_menu_button = KeyboardButton(
+		'Вернуться в меню'
+	)
+	back_to_menu_markup.add(back_to_menu_button)
+
+	if exists:
+		delay_seconds = random.uniform(10, 20)
+	else:
+		delay_seconds = random.uniform(60, 60*3)
+	await send_message_after(
+		message.chat.id,
+		text='Если кнопки не реагируют\nИспользуйте кнопку под клавиатурой',
+		reply_markup=back_to_menu_markup,
+		delay_seconds=delay_seconds
+	)

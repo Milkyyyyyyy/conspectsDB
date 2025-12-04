@@ -1,4 +1,4 @@
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
@@ -6,7 +6,8 @@ from code.bot.handlers.main_menu import main_menu
 from code.bot.services.requests import request, request_list, request_confirmation
 from code.bot.services.user_service import is_user_exists, save_user_in_database
 from code.bot.services.validation import validators
-from code.bot.utils import delete_message_after_delay, send_temporary_message
+from code.bot.utils import (delete_message_after_delay, send_temporary_message, send_reminder_contact_moderator,
+                            send_message_after)
 from code.database.queries import get_all
 from code.database.service import connect_db
 from code.logging import logger
@@ -45,7 +46,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 
 	# Проверяем, существует ли пользователь
 	try:
-		isUserExists = await is_user_exists(user_id)
+		exists = await is_user_exists(user_id)
 		logger.debug("is_user_exists result")
 	except Exception as e:
 		logger.exception("Error while checking user existence", exc_info=e)
@@ -53,7 +54,7 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 		return
 
 	# Если пользователь найден, обрываем процесс регистрации
-	if isUserExists:
+	if exists:
 		logger.info("User already exists — stopping registration")
 		await send_temporary_message(
 			chat_id=chat_id,
@@ -101,7 +102,12 @@ async def start_registration(message=None, user_id=None, chat_id=None):
 		async with connect_db() as db:
 			logger.debug("Fetching faculties from DB")
 			facult_db = await get_all(database=db, table='FACULTS')
-
+			await send_reminder_contact_moderator(
+				chat_id,
+				text='<b>Не можете что-то найти?</b>\n'
+				     'Вы можете помочь расширить список и сделать бота удобнее',
+				delay=0.5
+			)
 			facult = await request_list(
 				user_id=user_id,
 				chat_id=chat_id,
@@ -256,6 +262,8 @@ async def end_registration(
 		text = 'Регистрация прошла успешно' if saved else 'Не удалось зарегистрироваться.'
 		await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id)
 		await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
+
+
 		if saved:
 			try:
 				await main_menu(user_id=user_id, chat_id=chat_id)

@@ -1,5 +1,3 @@
-# TODO !СДЕЛАТЬ РЕФАКТОРИНГ, ВСЁ ПЕРЕМЕСТИТЬ В РАЗНЫЕ ФАЙЛЫ!!! (почти готово)
-
 import asyncio
 import re
 from datetime import datetime, timezone
@@ -8,10 +6,10 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 
 from code.bot.bot_instance import bot
 from code.bot.handlers.main_menu import main_menu
-from code.bot.services.conspects import send_conspect_message
+from code.bot.services.conspects import send_conspect_message, update_all_views_and_reactions
 from code.bot.states import RegStates, MenuStates
 from code.bot.utils import delete_message_after_delay
-from code.database.queries import is_exists, get_all, get, insert
+from code.database.queries import is_exists, get_all, get, insert, update
 from code.database.service import connect_db
 from code.logging import logger
 
@@ -39,13 +37,14 @@ from code.bot.utils import send_message_with_files
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from code.bot.services.requests import request_list, request_confirmation, request_files
+from code.bot.services.requests import request_list, request_confirmation, request_files, print_awaiters
 from code.bot.services.validation import validators
 
 from code.database.service import connect_db
 from code.database.queries import get_all
 
 from code.bot.services.files import hard_cleaning
+
 @bot.message_handler(commands=['test'])
 async def test(message):
 	async with connect_db() as db:
@@ -73,12 +72,38 @@ async def log_updates(updates):
 		except:
 			msg = upd
 		if not msg: continue
-		logger.debug("%s | %s | %s | %s", datetime.now(timezone.utc).isoformat(),
+		logger.info("%s | %s | %s | %s", datetime.now(timezone.utc).isoformat(),
 					 msg.from_user.id, msg.from_user.username, msg.text)
 
-
+async def regular_cleaning():
+	while True:
+		await hard_cleaning()
+		await asyncio.sleep(30*60)
+async def regular_views_checking(hard_update=False):
+	while True:
+		await update_all_views_and_reactions(hard_update)
+		hard_update=False
+		await asyncio.sleep(1)
+async def check_awaiters():
+	while True:
+		await print_awaiters()
+		await asyncio.sleep(2)
 async def main():
-	await hard_cleaning()
+	import os
+	import sys
+
+	if getattr(sys, 'frozen', False):
+		# Если программа скомпилирована
+		application_path = os.path.dirname(sys.executable)
+	else:
+		# Если запускается как обычный скрипт
+		application_path = os.path.dirname(os.path.abspath(__file__))
+
+	os.chdir(application_path)
+
+	# asyncio.create_task(check_awaiters())
+	asyncio.create_task(regular_cleaning())
+	asyncio.create_task(regular_views_checking(True))
 	try:
 		logger.info("Starting polling...")
 		bot.set_update_listener(log_updates)

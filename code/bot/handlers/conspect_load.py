@@ -13,7 +13,7 @@ from code.bot.services.files import save_files, delete_files
 from code.bot.services.requests import (request, request_list, request_files,
                                         wait_for_callback_on_message)
 from code.bot.services.validation import validators
-from code.bot.utils import send_temporary_message, send_message_with_files
+from code.bot.utils import (send_temporary_message, send_message_with_files, send_reminder_contact_moderator,)
 from code.database.queries import get_all, get, insert
 from code.database.service import connect_db
 from code.logging import logger
@@ -35,6 +35,11 @@ async def callback_handler(call):
 
 	try:
 		await bot.answer_callback_query(call.id)
+		await bot.edit_message_reply_markup(
+			chat_id,
+			message_id,
+			reply_markup=None
+		)
 	except Exception as e:
 		logger.exception('Failed to answer callback query for user=%s', user_id, exc_info=e)
 
@@ -64,15 +69,21 @@ async def create_conspect(
 
 	try:
 		# Получение предмета
-		subject_id, subject_name = await _get_subject_selection(user_id, chat_id)
+		subject = await _get_subject_selection(user_id, chat_id)
+		if subject is None:
+			asyncio.create_task(main_menu(user_id, chat_id))
+			return
+		subject_id, subject_name = subject
 
 		# Загрузка файлов с повторными попытками
 		files = await _request_files_with_retry(user_id, chat_id, MAX_FILE_UPLOAD_ATTEMPTS)
 		if files is None:
 			asyncio.create_task(main_menu(user_id, chat_id))
 			return
+		wait_message = await bot.send_message(chat_id, text='Скачиваю ваши файлы...')
 		file_paths = await save_files(files, save_dir=CONSPECT_FILES_DIR)
 		file_paths = await normalize_paths(file_paths)
+		await bot.delete_message(chat_id=chat_id, message_id=wait_message.id)
 
 		# Сбор метаданных
 		theme, conspect_date, keywords = await _collect_conspect_metadata(user_id, chat_id)
@@ -94,7 +105,7 @@ async def create_conspect(
 	except Exception as e:
 		error_occurred = True
 		logger.exception("Unexpected error during conspect creation", exc_info=e)
-		await send_temporary_message(chat_id, 'Произошла ошибка. Попробуйте ещё раз.', delay_seconds=10)
+		# await send_temporary_message(chat_id, 'Произошла ошибка. Попробуйте ещё раз.', delay_seconds=10)
 	finally:
 		# Всегда очищаем файлы при ошибке (если не были сохранены в БД)
 		if file_paths and error_occurred:
@@ -158,15 +169,16 @@ async def _get_subject_selection(user_id, chat_id):
 			filters=subject_filters,
 			operator='OR'
 		)
-	subject_id, subject_name = await request_list(
+	await send_reminder_contact_moderator(chat_id, text='<b>Не можете найти нужный предмет?</b>', delay=0.5)
+	subject = await request_list(
 		user_id=user_id,
 		chat_id=chat_id,
 		header='Выберите предмет',
 		items_list=all_subjects,
 		input_field='name',
-		output_field=['rowid', 'name']
+		output_field=['rowid', 'name'],
 	)
-	return subject_id, subject_name
+	return subject
 
 
 async def _request_files_with_retry(
@@ -180,7 +192,8 @@ async def _request_files_with_retry(
 		files = await request_files(
 			user_id=user_id,
 			chat_id=chat_id,
-			request_message=request_message
+			request_message=request_message,
+			timeout=60*5
 		)
 		if files == 'cancel':
 			return None
@@ -216,7 +229,8 @@ async def request_theme(
 		user_id=user_id,
 		chat_id=chat_id,
 		request_message=request_message,
-		validator=validators.theme
+		validator=validators.theme,
+		timeout=60*2
 	)
 	return theme, message_id
 
@@ -229,7 +243,8 @@ async def request_date(
 		user_id=user_id,
 		chat_id=chat_id,
 		request_message=request_message,
-		validator=validators.conspect_date
+		validator=validators.conspect_date,
+		timeout=60*2
 	)
 	return date, message_id
 
@@ -241,7 +256,8 @@ async def request_keywords(
 	keywords, message_id = await request(
 		user_id=user_id,
 		chat_id=chat_id,
-		request_message=request_message
+		request_message=request_message,
+		timeout=60*3
 
 	)
 	keywords = await normalize_keywords(keywords)
@@ -277,8 +293,8 @@ async def accept_creation(
 		мы будем предоставлять пользователю возможность на этом этапе заменить всю информацию
 		'''
 
-		accept_button = InlineKeyboardButton('✅ Да', callback_data='accept')
-		decline_button = InlineKeyboardButton('❌ Нет', callback_data='decline')
+		accept_button = InlineKeyboardButton('✅ Загрузить', callback_data='accept')
+		decline_button = InlineKeyboardButton('❌ Отменить', callback_data='decline')
 		change_files_button = InlineKeyboardButton('📎 Прикрепить другие файлы', callback_data='change_files')
 		change_theme_button = InlineKeyboardButton('✏️ Изменить тему', callback_data='change_theme')
 		change_date_button = InlineKeyboardButton('📅 Изменить дату', callback_data='change_date')
