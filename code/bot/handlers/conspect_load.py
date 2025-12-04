@@ -35,6 +35,11 @@ async def callback_handler(call):
 
 	try:
 		await bot.answer_callback_query(call.id)
+		await bot.edit_message_reply_markup(
+			chat_id,
+			message_id,
+			reply_markup=None
+		)
 	except Exception as e:
 		logger.exception('Failed to answer callback query for user=%s', user_id, exc_info=e)
 

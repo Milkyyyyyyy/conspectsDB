@@ -263,20 +263,7 @@ async def end_registration(
 		await bot.edit_message_text(text=text, chat_id=chat_id, message_id=previous_message_id)
 		await delete_message_after_delay(chat_id=chat_id, message_id=previous_message_id, delay_seconds=5)
 
-		back_to_menu_markup = ReplyKeyboardMarkup(
-			resize_keyboard=True,
-			one_time_keyboard=False
-		)
 
-		back_to_menu_button = KeyboardButton(
-			'Вернуться в меню'
-		)
-		back_to_menu_markup.add(back_to_menu_button)
-		await send_message_after(
-			chat_id,
-			text='Если вдруг кнопки перестанут реагировать\nНажмите на кнопку под клавиатурой',
-			reply_markup=back_to_menu_markup
-		)
 		if saved:
 			try:
 				await main_menu(user_id=user_id, chat_id=chat_id)
