@@ -2,14 +2,15 @@
 В этом файле происходит обработка главного меню (пока что это только само главное меню и вывод информации о пользователе)
 """
 
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from code.bot.bot_instance import bot
 from code.bot.callbacks import call_factory
 from code.bot.services.requests import request, request_list, remove_awaiters
-from code.bot.services.user_service import get_user_info
+from code.bot.services.user_service import get_user_info, ensure_user_registered, change_user_info
 from code.bot.services.validation import validators
-from code.bot.utils import get_greeting, send_temporary_message, safe_edit_message, delete_message_after_delay
+from code.bot.utils import (get_greeting, send_temporary_message, safe_edit_message, delete_message_after_delay,
+                            send_reminder_contact_moderator)
 from code.database.queries import update, get, get_all, insert
 from code.database.service import connect_db
 from code.logging import logger
@@ -18,6 +19,11 @@ from code.utils import getkey
 @bot.message_handler(func=lambda m: m.text == 'Вернуться в меню')
 async def message_handler(message):
 	logger.info(f'Returning user {message.from_user.id} to main_menu')
+	user_id = message.from_user.id
+	chat_id = message.chat.id
+	exists = await ensure_user_registered(user_id, chat_id)
+	if not exists:
+		return
 	await main_menu(message.from_user.id, message.chat.id)
 
 @bot.callback_query_handler(func=call_factory.filter(area='main_menu').check)
@@ -27,6 +33,10 @@ async def callback_handler(call):
 	chat_id = call.message.chat.id
 	message_id = call.message.id
 	username = call.from_user.username
+
+	exists = await ensure_user_registered(user_id, chat_id)
+	if not exists:
+		return
 
 	try:
 		await bot.answer_callback_query(call.id)
@@ -49,11 +59,20 @@ async def callback_handler(call):
 		case 'change_surname':
 			await change_surname(user_id, chat_id, username, message_id)
 		case 'change_facult':
+			await send_reminder_contact_moderator(
+				chat_id,
+				text='<b>Не можете что-то найти?</b>\n'
+				     'Вы можете помочь расширить список и сделать бота удобнее',
+				delay=0.5
+			)
 			await change_facult(user_id, chat_id, username, message_id)
+		case 'change_group':
+			await change_group(user_id, chat_id, username, message_id)
 
 
 async def main_menu(user_id, chat_id, previous_message_id=None):
 	logger.info(f'User({user_id}) is requesting main menu.')
+
 
 	await remove_awaiters(user_id, chat_id)
 
@@ -77,9 +96,8 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		one_time_keyboard=False
 	)
 
-	back_to_menu_button = InlineKeyboardButton(
-		'Вернуться в меню',
-		callback_data='Вернуться в меню'
+	back_to_menu_button = KeyboardButton(
+		'Вернуться в меню'
 	)
 	back_to_menu_markup.add(back_to_menu_button)
 	show_info_button = InlineKeyboardButton(
@@ -117,7 +135,7 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 	# Если юзер модератор, добавляем кнопку с доступом к панели админа
 	if is_user_moderator:
 		moderator_menu = InlineKeyboardButton(
-			'Админ панель',
+			'⚙️ Админ панель',
 			callback_data=call_factory.new(
 				area='admin_menu',
 				action='admin_menu'
@@ -132,11 +150,6 @@ async def main_menu(user_id, chat_id, previous_message_id=None):
 		user_id,
 		text=greeting,
 		reply_markup=markup
-	)
-	await bot.send_message(
-		chat_id,
-		text='Если вдруг кнопки перестанут реагировать\nНажмите на кнопку под клавиатурой',
-		reply_markup=back_to_menu_markup
 	)
 
 
@@ -187,8 +200,15 @@ async def print_user_info(user_id=None, chat_id=None, previous_message_id=None, 
 			action='change_facult'
 		)
 	)
+	change_group = InlineKeyboardButton(
+		'Изменить учебную группу',
+		callback_data=call_factory.new(
+			area='main_menu',
+			action='change_group'
+		)
+	)
 	markup.row(change_name_button, change_surname_button)
-	markup.row(change_facult)
+	markup.row(change_group, change_facult)
 	markup.row(back_button)
 	try:
 		if previous_message_id is None or not isinstance(previous_message_id, int):
@@ -318,33 +338,20 @@ async def change_name(user_id, chat_id, username, previous_message_id):
 			raise Exception('Invalid input')
 	except Exception as e:
 		logger.exception("Request for new name failed for user=%s chat=%s", user_id, chat_id)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=None,
 		                      username=username)
 		return
 
-
-	updated = None
-	try:
-		async with connect_db() as db:
-			updated = await update(
-				database=db,
-				values=[name, ],
-				table='USERS',
-				columns=['name'],
-				filters={'telegram_id': user_id}
-			)
-			logger.info("Database update result for user=%s: %r", user_id, updated)
-	except Exception as e:
-		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
-		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
-		                      username=username)
-		return
-	finally:
-		text = 'Обновлено' if updated else 'Не удалось обновить'
-		await send_temporary_message(chat_id, text=text, delay_seconds=3)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
-		                      username=username)
+	await change_user_info(
+		chat_id,
+		user_id,
+		username,
+		previous_message_id,
+		values=[name],
+		columns=['name']
+	)
+	await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=None,
+	                      username=username)
 
 
 async def change_surname(user_id, chat_id, username, previous_message_id):
@@ -365,30 +372,51 @@ async def change_surname(user_id, chat_id, username, previous_message_id):
 			raise Exception('Invalid input')
 	except Exception as e:
 		logger.exception("Request for new name failed for user=%s chat=%s", user_id, chat_id)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=None,
 		                      username=username)
 		return
 
 
-	updated = None
+	await change_user_info(
+		chat_id,
+		user_id,
+		username,
+		previous_message_id,
+		values=[surname],
+		columns=['surname']
+	)
+	await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=None,
+	                      username=username)
+
+async def change_group(user_id, chat_id, username, previous_message_id):
+	logger.info("Initiating change_group for user=%s chat=%s", user_id, chat_id)
+
+	group = None
 	try:
-		async with connect_db() as db:
-			updated = await update(
-				database=db,
-				values=[surname, ],
-				table='USERS',
-				columns=['surname'],
-				filters={'telegram_id': user_id}
-			)
-			logger.info("Database update result for user=%s: %r", user_id, updated)
+		group, _ = await request(
+			user_id=user_id,
+			chat_id=chat_id,
+			timeout=30,
+			validator=validators.group,
+			request_message='Введите новую группу:'
+		)
+		if not isinstance(group, str):
+			logger.info('User %s provided invalid group input: %r', user_id, group)
+			await send_temporary_message(chat_id, text='Имя не было изменено.', delay_seconds=10)
+			raise Exception('Invalid input')
 	except Exception as e:
-		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
-		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
+		logger.exception("Request for new group failed for user=%s chat=%s", user_id, chat_id)
+		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=None,
 		                      username=username)
 		return
-	finally:
-		text = 'Обновлено' if updated else 'Не удалось обновить'
-		await send_temporary_message(chat_id, text=text, delay_seconds=3)
-		await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=previous_message_id,
-		                      username=username)
+
+	await change_user_info(
+		chat_id,
+		user_id,
+		username,
+		previous_message_id,
+		values=[group],
+		columns=['study_group']
+	)
+	await print_user_info(user_id=user_id, chat_id=chat_id, previous_message_id=None,
+	                      username=username)

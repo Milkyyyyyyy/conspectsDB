@@ -134,6 +134,8 @@ async def make_list_of_conspects(conspects_list):
 	conspect_dict = {}
 	async with connect_db() as db:
 		for i, conspect in enumerate(conspects_list, start=1):
+			if not isinstance(conspect, dict):
+				conspect =await safe_row_to_dict(conspect)
 			subject_name = conspect.get('subject_name', None)
 			if not subject_name:
 				subject = await get(

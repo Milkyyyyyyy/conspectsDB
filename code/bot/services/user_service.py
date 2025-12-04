@@ -2,8 +2,13 @@
 Здесь обрабатываются все запросы к датабазе для юзеров
 Получение информации, проверка, существует ли пользователь и т.д
 """
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from code.database.queries import is_exists, get, insert, get_all
+from code.bot.bot_instance import bot
+from code.bot.callbacks import call_factory
+from code.bot.utils import send_temporary_message
+
+from code.database.queries import is_exists, get, insert, get_all, update
 from code.database.service import connect_db
 from code.logging import logger
 from code.database.utils import safe_row_to_dict
@@ -61,6 +66,30 @@ async def get_user_info(chat_id=None, user_id=None):
 		'all_conspects': conspect_rows
 	}
 	return output
+
+async def change_user_info(chat_id, user_id, username, previous_message_id, values, columns):
+	logger.info("Initiating change_name for user=%s chat=%s", user_id, chat_id)
+	updated = None
+	try:
+		async with connect_db() as db:
+			updated = await update(
+				database=db,
+				values=values,
+				table='USERS',
+				columns=columns,
+				filters={'telegram_id': user_id}
+			)
+			logger.info("Database update result for user=%s: %r", user_id, updated)
+	except Exception as e:
+		logger.exception(f'Database update failed for user=%s\n{e}', user_id)
+		await send_temporary_message(chat_id, text='Произошла ошибка!', delay_seconds=5)
+
+		return
+	finally:
+		text = 'Обновлено' if updated else 'Не удалось обновить'
+		await send_temporary_message(chat_id, text=text, delay_seconds=3)
+
+
 async def save_user_in_database(user_id=None, name=None, surname=None, group=None, direction_id=None, role=None):
 	logger.info('Saving user in database...')
 	if None in (user_id, name, surname, group, direction_id, role):
@@ -89,3 +118,21 @@ async def save_user_in_database(user_id=None, name=None, surname=None, group=Non
 	# Проверяем, сохранился ли пользователь
 	return await is_user_exists(user_id)
 
+
+async def ensure_user_registered(user_id, chat_id):
+	exists = await is_user_exists(user_id)
+	print(exists)
+	if not exists:
+		logger.info(f'The user ({user_id}) does not exist')
+		text = 'Похоже, что вы не зарегистрированы. Если хотите пройти регистрацию вызовите команду /register или нажмите на кнопку ниже'
+		markup = InlineKeyboardMarkup()
+		markup.add(InlineKeyboardButton(
+			"Зарегистрироваться",
+			callback_data=call_factory.new(
+				area='registration',
+				action="start_register"
+			)
+		)
+		)
+		await bot.send_message(chat_id, text, reply_markup=markup)
+	return exists

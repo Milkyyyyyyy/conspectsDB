@@ -3,7 +3,9 @@
 """
 
 import asyncio
+from ast import parse
 from datetime import datetime
+from functools import partial
 from random import choice
 from zoneinfo import ZoneInfo
 
@@ -57,7 +59,28 @@ async def send_temporary_message(chat_id, text, delay_seconds=10, reply_markup=N
 	asyncio.create_task(delete_message_after_delay_interrupt(chat_id=chat_id, message_id=message.message_id,
 	                                                         delay_seconds=delay_seconds))
 
-
+async def _send_message_after_interrupt(chat_id, text, delay_seconds=1, reply_markup=None, parse_mode='HTML',disable_web_page_preview=True):
+	await asyncio.sleep(delay_seconds)
+	await bot.send_message(
+		chat_id,
+		text,
+		reply_markup=reply_markup,
+		parse_mode=parse_mode,
+		disable_web_page_preview=disable_web_page_preview
+	)
+	return
+async def send_message_after(chat_id, text, delay_seconds=1, reply_markup=None, parse_mode='HTML', disable_web_page_preview=True):
+	asyncio.create_task(
+		_send_message_after_interrupt(
+			chat_id,
+			text,
+			delay_seconds,
+			reply_markup=reply_markup,
+			parse_mode=parse_mode,
+			disable_web_page_preview=disable_web_page_preview
+		)
+	)
+	return
 async def safe_edit_message(
 		previous_message_id=None,
 		chat_id=None,
@@ -194,6 +217,26 @@ async def send_message_with_files(
 
 	return sent_message
 
+
+async def send_reminder_contact_moderator(chat_id, text: str = '', delay=0):
+	if text != '':
+		text += '\n'
+	text += 'Обратитесь к <a href="https://t.me/MilKy1_1Man">модератору</a>'
+	if delay == 0:
+		await bot.send_message(
+			chat_id,
+			text = text,
+			parse_mode='HTML',
+			disable_web_page_preview=True
+		)
+	else:
+		await send_message_after(
+			chat_id,
+			text = text,
+			parse_mode='HTML',
+			disable_web_page_preview=True,
+			delay_seconds=delay
+		)
 
 async def get_greeting():
 	now = datetime.now(ZoneInfo('Europe/Ulyanovsk'))
