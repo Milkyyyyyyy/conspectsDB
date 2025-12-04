@@ -13,7 +13,7 @@ from code.bot.services.files import save_files, delete_files
 from code.bot.services.requests import (request, request_list, request_files,
                                         wait_for_callback_on_message)
 from code.bot.services.validation import validators
-from code.bot.utils import send_temporary_message, send_message_with_files
+from code.bot.utils import (send_temporary_message, send_message_with_files, send_reminder_contact_moderator,)
 from code.database.queries import get_all, get, insert
 from code.database.service import connect_db
 from code.logging import logger
@@ -64,7 +64,11 @@ async def create_conspect(
 
 	try:
 		# Получение предмета
-		subject_id, subject_name = await _get_subject_selection(user_id, chat_id)
+		subject = await _get_subject_selection(user_id, chat_id)
+		if subject is None:
+			asyncio.create_task(main_menu(user_id, chat_id))
+			return
+		subject_id, subject_name = subject
 
 		# Загрузка файлов с повторными попытками
 		files = await _request_files_with_retry(user_id, chat_id, MAX_FILE_UPLOAD_ATTEMPTS)
@@ -96,7 +100,7 @@ async def create_conspect(
 	except Exception as e:
 		error_occurred = True
 		logger.exception("Unexpected error during conspect creation", exc_info=e)
-		await send_temporary_message(chat_id, 'Произошла ошибка. Попробуйте ещё раз.', delay_seconds=10)
+		# await send_temporary_message(chat_id, 'Произошла ошибка. Попробуйте ещё раз.', delay_seconds=10)
 	finally:
 		# Всегда очищаем файлы при ошибке (если не были сохранены в БД)
 		if file_paths and error_occurred:
@@ -160,15 +164,16 @@ async def _get_subject_selection(user_id, chat_id):
 			filters=subject_filters,
 			operator='OR'
 		)
-	subject_id, subject_name = await request_list(
+	await send_reminder_contact_moderator(chat_id, text='<b>Не можете найти нужный предмет?</b>', delay=0.5)
+	subject = await request_list(
 		user_id=user_id,
 		chat_id=chat_id,
 		header='Выберите предмет',
 		items_list=all_subjects,
 		input_field='name',
-		output_field=['rowid', 'name']
+		output_field=['rowid', 'name'],
 	)
-	return subject_id, subject_name
+	return subject
 
 
 async def _request_files_with_retry(
